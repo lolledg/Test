@@ -125,695 +125,9 @@ if table.find(v1, tostring(v2)) then
     })
 
     local _ReplicatedStorage = game:GetService('ReplicatedStorage')
-
-    game:GetService('RunService')
-
-    local _ = game:GetService('Players').LocalPlayer
-    local u19 = nil
-    local u20 = nil
-    local u21 = nil
-    local u22 = {}
-    local u23 = nil
-
-    local function u27(p24, p25, p26)
-        p24.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-        p24.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-        p24.Velocity = Vector3.new(0, 0, 0)
-        p24.CFrame = p25.CFrame * (p26 or CFrame.new())
-        p24.CanCollide = false
-        p25.CanCollide = false
-    end
-
-    local u28 = {
-        2788309317,
-        2788309982,
-        2788311138,
-        2788308661,
-    }
-
-    local function u31(p29, p30)
-        if type(p29) == 'table' and p30 then
-            p29[#p29 + 1] = p30
-        end
-    end
-    local function u37(p32, p33)
-        if game:GetService('RunService')[p32] then
-            local u34 = nil
-
-            u34 = game:GetService('RunService')[p32]:Connect(function()
-                local v35, v36 = pcall(p33)
-
-                if not v35 then
-                    u34:Disconnect()
-                    warn(v36)
-                end
-            end)
-
-            return u34
-        end
-    end
-
-    function ZeroVelocity___(p38)
-        p38.Velocity = Vector3.zero
-        p38.AssemblyAngularVelocity = Vector3.zero
-        p38.AssemblyLinearVelocity = Vector3.zero
-    end
-
-    TweenService = game:GetService('TweenService')
-
+    local _RunService = game:GetService('RunService')
     local _LocalPlayer2 = game:GetService('Players').LocalPlayer
-    local u40 = 0
 
-    function StopAudio()
-        game:GetService('ReplicatedStorage'):WaitForChild('MainEvent'):FireServer('BoomboxStop')
-    end
-    function stop(p41, p42)
-        coroutine.wrap(function()
-            wait(_LocalPlayer2.Character.LowerTorso.BOOMBOXSOUND.TimeLength - 0.1)
-
-            if _LocalPlayer2.Character.LowerTorso.BOOMBOXSOUND.SoundId == 'rbxassetid://' .. p41 and u40 == p42 then
-                StopAudio()
-            end
-        end)()
-    end
-    function AnimPlay(p43, p44, p45, p46)
-        local v47, v48, v49 = pairs(game.Players.LocalPlayer.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
-
-        while true do
-            local v50
-
-            v49, v50 = v47(v48, v49)
-
-            if v49 == nil then
-                break
-            end
-            if v50.Animation.AnimationId:match('rbxassetid://' .. p43) then
-                v50:Stop(0.5)
-            end
-        end
-
-        local _Animation = Instance.new('Animation', game:GetService('Workspace'))
-
-        _Animation.AnimationId = 'rbxassetid://' .. p43
-        playing = game.Players.LocalPlayer.Character:WaitForChild('Humanoid'):LoadAnimation(_Animation)
-        playing.Priority = Enum.AnimationPriority.Action4
-
-        if tonumber(p46) then
-            playing:Play(p46)
-        else
-            playing:Play()
-        end
-        if tonumber(p44) then
-            playing:AdjustSpeed(p44)
-        else
-            playing:AdjustSpeed(1)
-        end
-        if tonumber(p45) then
-            playing.TimePosition = p45
-        end
-
-        _Animation:Destroy()
-    end
-    function AnimPlayvv2(p52, p53, p54, p55)
-        local v56, v57, v58 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
-
-        while true do
-            local v59
-
-            v58, v59 = v56(v57, v58)
-
-            if v58 == nil then
-                break
-            end
-            if v59.Animation.AnimationId:match('rbxassetid://' .. p52) then
-                v59:Stop()
-            end
-        end
-
-        local _Animation2 = Instance.new('Animation', game:GetService('Workspace'))
-
-        _Animation2.AnimationId = 'rbxassetid://' .. p52
-        playing = _LocalPlayer2.Character:WaitForChild('Humanoid'):LoadAnimation(_Animation2)
-
-        if tonumber(p55) then
-            playing:Play(p55)
-        else
-            playing:Play()
-        end
-        if tonumber(p53) then
-            playing:AdjustSpeed(p53)
-        else
-            playing:AdjustSpeed(1)
-        end
-        if tonumber(p54) then
-            playing.TimePosition = p54
-        end
-
-        _Animation2:Destroy()
-    end
-    function AnimStopv2(p61, p62)
-        local v63, v64, v65 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
-
-        while true do
-            local v66
-
-            v65, v66 = v63(v64, v65)
-
-            if v65 == nil then
-                break
-            end
-            if v66.Animation.AnimationId:match('rbxassetid://' .. p61) then
-                if tonumber(p62) then
-                    v66:Stop(p62)
-                else
-                    v66:Stop()
-                end
-            end
-        end
-    end
-    function CloneStopanim(p67, p68)
-        local v69, v70, v71 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-        while true do
-            local v72
-
-            v71, v72 = v69(v70, v71)
-
-            if v71 == nil then
-                break
-            end
-            if v72.Animation.AnimationId:match('rbxassetid://' .. p67) then
-                if tonumber(p68) then
-                    v72:Stop(p68)
-                else
-                    v72:Stop()
-                end
-            end
-        end
-    end
-
-    game.Workspace.FallenPartsDestroyHeight = -1 / 0
-
-    local function u84(p73)
-        local v74, v75, v76 = pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks())
-
-        while true do
-            local v77
-
-            v76, v77 = v74(v75, v76)
-
-            if v76 == nil then
-                break
-            end
-            if v77.Animation.AnimationId:match('rbxassetid://' .. p73) then
-                v77:Stop()
-
-                if not u21:FindFirstChild(p73) then
-                    local _Animation3 = Instance.new('Animation', u21)
-
-                    _Animation3.AnimationId = 'rbxassetid://' .. p73
-                    _Animation3.Name = '_____GYAT'
-                    playing = u21.Humanoid:LoadAnimation(_Animation3)
-
-                    playing:Play()
-                end
-            end
-        end
-
-        if u21.Humanoid.MoveDirection.magnitude > 0 then
-            CloneStopanim(p73)
-
-            local v79 = u21
-            local v80, v81, v82 = pairs(v79:GetChildren())
-
-            while true do
-                local v83
-
-                v82, v83 = v80(v81, v82)
-
-                if v82 == nil then
-                    break
-                end
-                if v83.Name == '_____GYAT' then
-                    v83:Destroy()
-                end
-            end
-        end
-    end
-    local function u92(p85, p86)
-        local v87, v88, v89 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-        while true do
-            local v90
-
-            v89, v90 = v87(v88, v89)
-
-            if v89 == nil then
-                break
-            end
-            if v90.Animation.AnimationId:match('rbxassetid://' .. p85) then
-                v90:Stop()
-
-                return
-            end
-        end
-
-        local _Animation4 = Instance.new('Animation', game:GetService('Workspace'))
-
-        _Animation4.AnimationId = 'rbxassetid://' .. p85
-        playing = u21.Humanoid:LoadAnimation(_Animation4)
-
-        playing:Play()
-
-        if tonumber(p86) then
-            playing:AdjustSpeed(p86)
-        else
-            playing:AdjustSpeed(1)
-        end
-
-        _Animation4:Destroy()
-    end
-    local function u100(p93, p94)
-        local v95, v96, v97 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-        while true do
-            local v98
-
-            v97, v98 = v95(v96, v97)
-
-            if v97 == nil then
-                break
-            end
-            if v98.Animation.AnimationId:match('rbxassetid://' .. p93) then
-                v98:Stop()
-            end
-        end
-
-        local _Animation5 = Instance.new('Animation', game:GetService('Workspace'))
-
-        _Animation5.AnimationId = 'rbxassetid://' .. p93
-        playing = u21.Humanoid:LoadAnimation(_Animation5)
-
-        playing:Play()
-
-        if tonumber(p94) then
-            playing:AdjustSpeed(p94)
-        else
-            playing:AdjustSpeed(1)
-        end
-
-        _Animation5:Destroy()
-    end
-    local function u107(p101)
-        p101.Archivable = true
-
-        local v102 = p101:Clone()
-
-        v102.HumanoidRootPart.Anchored = false
-        v102.Humanoid.MaxHealth = 9000000000
-        v102.Humanoid.Health = 9000000000
-
-        v102.RagdollConstraints:Destroy()
-        v102.BodyEffects:Destroy()
-        v102:WaitForChild('GRABBING_CONSTRAINT'):Destroy()
-
-        local v103, v104, v105 = pairs(v102:GetDescendants())
-
-        while true do
-            local v106
-
-            v105, v106 = v103(v104, v105)
-
-            if v105 == nil then
-                break
-            end
-            if v106:IsA('BasePart') and (v106.Name ~= 'Head' and (v106.Name ~= 'HumanoidRootPart' and (v106.Name ~= 'UpperTorso' and (v106.Name ~= 'LowerTorso' and (v106.Name ~= 'LeftUpperArm' and (v106.Name ~= 'RightUpperArm' and (v106.Name ~= 'LeftLowerArm' and (v106.Name ~= 'RightLowerArm' and (v106.Name ~= 'LeftHand' and (v106.Name ~= 'RightHand' and (v106.Name ~= 'LeftUpperLeg' and (v106.Name ~= 'RightUpperLeg' and (v106.Name ~= 'LeftLowerLeg' and (v106.Name ~= 'RightLowerLeg' and (v106.Name ~= 'LeftFoot' and v106.Name ~= 'RightFoot'))))))))))))))) then
-                v106.Massless = false
-
-                v106:Destroy()
-            end
-            if v106:IsA('BasePart') or (v106:IsA('MeshPart') or v106:IsA('Part')) then
-                v106.CustomPhysicalProperties = PhysicalProperties.new(100, 2, 0.5, 100, 1)
-                v106.Transparency = 1
-                v106.CanCollide = false
-
-                if v106:FindFirstChildWhichIsA('BodyGyro') and v106:FindFirstChildWhichIsA('BodyPosition') then
-                    v106:Destroy()
-                end
-            end
-            if v106:IsA('Decal') then
-                v106.Transparency = 1
-            end
-            if v106:IsA('ForceField') then
-                v106:Destroy()
-            end
-            if v106:IsA('Motor6D') then
-                v106:Destroy()
-            end
-        end
-
-        v102.HumanoidRootPart.Transparency = 1
-        v102.Parent = _LocalPlayer2.Character
-
-        v102.Humanoid:ChangeState('GettingUp')
-
-        v102.HumanoidRootPart.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-        p101.Archivable = false
-        p101.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = false
-        p101.RightHand:FindFirstChildOfClass('Motor6D').Enabled = false
-        p101.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = false
-        p101.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = false
-
-        return v102
-    end
-
-    function AnimStop(p108, p109)
-        local v110, v111, v112 = pairs(game.Players.LocalPlayer.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
-
-        while true do
-            local v113
-
-            v112, v113 = v110(v111, v112)
-
-            if v112 == nil then
-                break
-            end
-            if v113.Animation.AnimationId:match('rbxassetid://' .. p108) then
-                if tonumber(p109) then
-                    v113:Stop(p109)
-                else
-                    v113:Stop()
-                end
-            end
-        end
-    end
-
-    local function u127()
-        local u114 = nil
-
-        u31(u22, _LocalPlayer2:GetMouse().KeyDown:Connect(function(p115)
-            if p115 == 'v' then
-                u92(7024352298)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(7024352298)
-            elseif p115 == 'q' then
-                u92(10370362157, 1.1)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(10370362157)
-            elseif p115 == 't' then
-                u92(10714068222)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(10714068222)
-            elseif p115 == 'y' then
-                u92(507770818)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(507770818)
-            elseif p115 == 'u' then
-                u92(10714340543, 1.3)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(10714340543)
-            elseif p115 == 'j' then
-                u92(14548619594)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(14548619594)
-            elseif p115 == 'e' then
-                u92(2816431506, 1.5)
-            elseif p115 == 'r' then
-                u92(11444443576, 1.1)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(11444443576)
-            elseif p115 == 'b' then
-                u92(10214314957)
-
-                repeat
-                    wait()
-                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
-
-                CloneStopanim(10214314957)
-            elseif p115 == '2' then
-                u100(3152394906)
-            elseif p115 == 'f' then
-                u100(2788354405)
-            elseif p115 == '0' then
-                u21.Humanoid.WalkSpeed = 24
-            elseif p115 == 'c' then
-                _G.FlyClone = not _G.FlyClone
-            elseif p115 == 'x' then
-                u114 = not u114
-
-                if u114 == true then
-                    u92(3189777795)
-
-                    repeat
-                        task.wait()
-
-                        u21.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame + u21.Humanoid.MoveDirection * getgenv().config.control.cframespeed
-                    until u114 == false
-                end
-            end
-        end))
-        task.spawn(function()
-            while true do
-                repeat
-                    task.wait(0.2)
-                until _LocalPlayer2 and _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('BodyEffects')
-
-                local _Grabbed = _LocalPlayer2.Character.BodyEffects:FindFirstChild('Grabbed')
-
-                if _Grabbed and _Grabbed.Value == nil then
-                    _G.FlyClone = false
-                end
-            end
-        end)
-        u31(u22, _LocalPlayer2:GetMouse().KeyUp:Connect(function(p117)
-            if p117 == '2' then
-                CloneStopanim(3152394906)
-            elseif p117 == 'f' then
-                CloneStopanim(2788354405)
-            elseif p117 == '0' then
-                u21.Humanoid.WalkSpeed = 16
-            end
-        end))
-        u31(u22, _LocalPlayer2.Backpack.Combat.Activated:Connect(function(_)
-            u100(u28[math.random(1, #u28)], 1.3)
-        end))
-
-        repeat
-            task.wait()
-        until _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil or u20 == true
-
-        _LocalPlayer2.Character.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame
-
-        ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
-
-        workspace.CurrentCamera.CameraSubject = _LocalPlayer2.Character
-
-        u21:Destroy()
-
-        local v118 = u19
-        local v119, v120, v121 = pairs(v118:GetDescendants())
-
-        while true do
-            local v122
-
-            v121, v122 = v119(v120, v121)
-
-            if v121 == nil then
-                break
-            end
-            if v122:IsA('BodyPosition') then
-                v122:Destroy()
-            end
-        end
-
-        local v123, v124, v125 = pairs(u22)
-
-        while true do
-            local v126
-
-            v125, v126 = v123(v124, v125)
-
-            if v125 == nil then
-                break
-            end
-
-            v126:Disconnect()
-        end
-
-        u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-        u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-        u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-        u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-    end
-
-    _G.FlyCloneSpeed = getgenv().config.control.flyspeed
-
-    game:GetService('RunService').RenderStepped:Connect(function(p128)
-        if _G.FlyClone == true then
-            if u21:FindFirstChild('Humanoid') and u21:FindFirstChild('HumanoidRootPart') then
-                local _MoveDirection = u21.Humanoid.MoveDirection
-                local _HumanoidRootPart = u21.HumanoidRootPart
-                local _UserInputService = game:GetService('UserInputService')
-                local _flyspeed = getgenv().config.control.flyspeed
-                local v133 = _flyspeed * 6
-                local v134 = _flyspeed * 2
-                local _zero = Vector3.zero
-
-                if _UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    _zero = Vector3.new(0, 1, 0)
-                elseif _UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                    _zero = Vector3.new(0, -1, 0)
-                end
-
-                _HumanoidRootPart.CFrame = _HumanoidRootPart.CFrame + _MoveDirection * p128 * v133 + _zero * p128 * v134
-                _HumanoidRootPart.Velocity = Vector3.new(_HumanoidRootPart.Velocity.X, 0, _HumanoidRootPart.Velocity.Z)
-            end
-        end
-    end)
-
-    function ZeroVelocity___(p136)
-        p136.Velocity = Vector3.zero
-        p136.AssemblyAngularVelocity = Vector3.zero
-        p136.AssemblyLinearVelocity = Vector3.zero
-    end
-    function Align(p137, p138, p139, p140, p141, p142)
-        if _LocalPlayer2.Character.BodyEffects.Grabbed.Value ~= nil then
-            if not (u19[p139]:FindFirstChildWhichIsA('BodyPosition') or u19[p139]:FindFirstChildWhichIsA('BodyGyro')) then
-                Instance.new('BodyPosition', u19[p139]).MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-
-                local _BodyGyro = Instance.new('BodyGyro', u19[p139])
-
-                _BodyGyro.maxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
-                _BodyGyro.P = 10000
-            end
-
-            u19[p139].BodyGyro.CFrame = _LocalPlayer2.Character[p140].CFrame * p142
-            u19[p139].BodyPosition.Position = _LocalPlayer2.Character[p140].CFrame * p141.Position
-            u19[p139].BodyPosition.P = p137
-            u19[p139].BodyPosition.D = p138
-        end
-    end
-    function Destroy(p144)
-        if u19[p144]:FindFirstChildOfClass('BodyGyro') or u19[p144]:FindFirstChildOfClass('BodyPosition') then
-            u19[p144]:FindFirstChildOfClass('BodyGyro'):Destroy()
-            u19[p144]:FindFirstChildOfClass('BodyPosition'):Destroy()
-        end
-    end
-    function Holding()
-        repeat
-            task.wait()
-            Align(10000, 175, 'UpperTorso', 'RightUpperArm', CFrame.new(-0.2, -1.7, 0.5), CFrame.Angles(math.pi * -0.5, math.pi * 1, math.pi * 0.07))
-        until _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil or u20 == true
-    end
-    function Grab()
-        if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-            u19 = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-
-            local _GRABBING_CONSTRAINT = u19:WaitForChild('GRABBING_CONSTRAINT')
-
-            if not _GRABBING_CONSTRAINT then
-                return
-            end
-
-            u23 = _GRABBING_CONSTRAINT:FindFirstChildOfClass('RopeConstraint')
-            u23.Length = 1 / 0
-            u20 = false
-
-            local v146 = u19
-            local v147, v148, v149 = pairs(v146:GetChildren())
-
-            while true do
-                local v150
-
-                v149, v150 = v147(v148, v149)
-
-                if v149 == nil then
-                    break
-                end
-                if v150:IsA('BasePart') then
-                    v150.CanCollide = false
-                end
-            end
-            while true do
-                task.wait()
-
-                local v151, v152, v153 = pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks())
-
-                while true do
-                    local v154
-
-                    v153, v154 = v151(v152, v153)
-
-                    if v153 == nil then
-                        break
-                    end
-                    if v154.Animation.AnimationId:match('rbxassetid://11075367458') then
-                        u20 = true
-
-                        v154:Stop()
-                    end
-                end
-
-                if u20 == true then
-                    local v155 = u19
-                    local v156, v157, v158 = pairs(v155:GetDescendants())
-
-                    while true do
-                        local v159
-
-                        v158, v159 = v156(v157, v158)
-
-                        if v158 == nil then
-                            break
-                        end
-                        if v159:IsA('BasePart') then
-                            v159.Velocity = Vector3.zero
-                            v159.AssemblyAngularVelocity = Vector3.zero
-                            v159.AssemblyLinearVelocity = Vector3.zero
-                        end
-                    end
-
-                    u20 = false
-
-                    AnimPlayvv2(3135389157, 0, 0.1, 0.3)
-                    Holding()
-                    AnimStopv2(3135389157)
-                    Destroy('UpperTorso')
-                end
-            end
-        else
-            return
-        end
-    end
-    
     -- Función para reproducir sonidos
     local function PlaySound(soundId)
         if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
@@ -830,7 +144,7 @@ if table.find(v1, tostring(v2)) then
     end
     
     function ToolSSs()
-        -- TOOL: ACTIVATE (MANTENIDO IGUAL)
+        -- TOOL: ACTIVATE
         if _LocalPlayer2.Backpack:FindFirstChild('Activate') then
             _LocalPlayer2.Backpack:FindFirstChild('Activate'):Destroy()
         end
@@ -844,11 +158,18 @@ if table.find(v1, tostring(v2)) then
 
         _Tool.Activated:Connect(function()
             game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
-            wait(0.3)
-            Grab()
+            
+            -- Notificación
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Activate',
+                Text = 'Neck grab activated',
+                Duration = 3
+            })
         end)
 
-        -- TOOL: GRAB KNIFE (AÑADIDO)
+        -- ============================================
+        -- TOOL: GRAB KNIFE
+        -- ============================================
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -861,141 +182,388 @@ if table.find(v1, tostring(v2)) then
         _ToolGrabKnife.ToolTip = 'Grab Knife - Brutal execution'
         _ToolGrabKnife.Parent = _LocalPlayer2.Backpack
         
+        local knifeExecuting = false
+        
         _ToolGrabKnife.Activated:Connect(function()
-            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-                
-                -- SONIDO INICIAL
-                PlaySound('91676414066995')
-                
-                -- EQUIPAR CUCHILLO SI EXISTE
-                local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
-                             _LocalPlayer2.Backpack:FindFirstChild('knife')
-                if knife then
-                    knife.Parent = _LocalPlayer2.Character
-                end
-                
-                -- ANIMACIÓN CONGELADA
-                local freezeAnim = Instance.new('Animation')
-                freezeAnim.AnimationId = 'rbxassetid://74694286613254'
-                local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
-                freezeTrack:Play()
-                freezeTrack:AdjustSpeed(0)
-                freezeTrack.TimePosition = 1.66
-                
-                -- ALINEAR VÍCTIMA
-                local stopAlign = false
-                local alignConnection
-                
-                alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                    if stopAlign or not victim or not victim.Parent then
-                        if alignConnection then alignConnection:Disconnect() end
-                        return
-                    end
-                    
-                    local upperTorso = victim:FindFirstChild('UpperTorso')
-                    if not upperTorso then return end
-                    
-                    local bodyPos = upperTorso:FindFirstChild('BodyPosition')
-                    if not bodyPos then
-                        bodyPos = Instance.new('BodyPosition')
-                        bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
-                        bodyPos.P = 8000
-                        bodyPos.D = 800
-                        bodyPos.Parent = upperTorso
-                    end
-                    
-                    local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
-                    if not bodyGyro then
-                        bodyGyro = Instance.new('BodyGyro')
-                        bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
-                        bodyGyro.P = 10000
-                        bodyGyro.Parent = upperTorso
-                    end
-                    
-                    local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                    local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
-                    
-                    bodyPos.Position = frontPos
-                    bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
-                end)
-                
-                -- SECUENCIA DE CORTES
-                local cutAnim = Instance.new('Animation')
-                cutAnim.AnimationId = 'rbxassetid://126796684932532'
-                
-                local bodyParts = {
-                    'RightUpperArm',
-                    'LeftUpperArm',
-                    'LeftUpperLeg',
-                    'RightUpperLeg',
-                    'UpperTorso'
-                }
-                
-                for i = 1, 5 do
-                    PlaySound('125856818464345')
-                    
-                    local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
-                    cutTrack:Play()
-                    
-                    if victim and victim.Parent then
-                        local part = victim:FindFirstChild(bodyParts[i])
-                        if part then part:Destroy() end
-                    end
-                    
-                    wait(2)
-                    cutTrack:Stop()
-                end
-                
-                -- MANEJO DE CABEZA
-                if victim and victim.Parent and victim:FindFirstChild('Head') then
-                    local headClone = victim.Head:Clone()
-                    headClone.CanCollide = false
-                    headClone.Anchored = true
-                    headClone.Parent = workspace
-                    
-                    local rightHand = _LocalPlayer2.Character:FindFirstChild('RightHand') or 
-                                     _LocalPlayer2.Character:FindFirstChild('Right Arm')
-                    if rightHand then
-                        headClone.CFrame = rightHand.CFrame
-                    end
-                    
-                    wait(0.5)
-                    headClone.Anchored = false
-                    headClone.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
-                    
-                    local stompAnim = Instance.new('Animation')
-                    stompAnim.AnimationId = 'rbxassetid://72406748336709'
-                    local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
-                    stompTrack:Play()
-                    
-                    wait(2)
-                    headClone.CFrame = CFrame.new(0, -1000, 0)
-                    headClone:Destroy()
-                    stompTrack:Stop()
-                end
-                
-                -- LIMPIAR
-                stopAlign = true
-                if alignConnection then alignConnection:Disconnect() end
-                
-                if victim and victim.Parent and victim:FindFirstChild('UpperTorso') then
-                    local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
-                    local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
-                    if bodyPos then bodyPos:Destroy() end
-                    if bodyGyro then bodyGyro:Destroy() end
-                end
-                
-                _ReplicatedStorage.MainEvent:FireServer('Grabbing')
-                
-                if knife and knife.Parent == _LocalPlayer2.Character then
-                    knife.Parent = _LocalPlayer2.Backpack
-                end
-                
-                freezeTrack:Stop()
-                freezeAnim:Destroy()
-                cutAnim:Destroy()
+            if knifeExecuting then return end
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Grab Knife',
+                    Text = 'No victim grabbed',
+                    Duration = 2
+                })
+                return
             end
+            
+            knifeExecuting = true
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            
+            -- Detener animación de agarre
+            for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
+                if track.Animation.AnimationId == 'rbxassetid://3135389157' then
+                    track:Stop()
+                end
+            end
+            
+            -- Equipar cuchillo si existe
+            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
+                         _LocalPlayer2.Backpack:FindFirstChild('knife')
+            if knife then
+                knife.Parent = _LocalPlayer2.Character
+            end
+            
+            -- Alinear víctima
+            local stopAlign = false
+            local alignConnection
+            
+            alignConnection = _RunService.Heartbeat:Connect(function()
+                if stopAlign or not victim or not victim.Parent then
+                    if alignConnection then alignConnection:Disconnect() end
+                    return
+                end
+                
+                local upperTorso = victim:FindFirstChild('UpperTorso')
+                if not upperTorso then return end
+                
+                local bodyPos = upperTorso:FindFirstChild('BodyPosition')
+                if not bodyPos then
+                    bodyPos = Instance.new('BodyPosition')
+                    bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
+                    bodyPos.P = 8000
+                    bodyPos.D = 800
+                    bodyPos.Parent = upperTorso
+                end
+                
+                local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
+                if not bodyGyro then
+                    bodyGyro = Instance.new('BodyGyro')
+                    bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
+                    bodyGyro.P = 10000
+                    bodyGyro.Parent = upperTorso
+                end
+                
+                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
+                
+                bodyPos.Position = frontPos
+                bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
+            end)
+            
+            -- Sonido inicial
+            PlaySound('91676414066995')
+            
+            -- Animación congelada
+            local freezeAnim = Instance.new('Animation')
+            freezeAnim.AnimationId = 'rbxassetid://74694286613254'
+            local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
+            freezeTrack:Play()
+            freezeTrack:AdjustSpeed(0)
+            freezeTrack.TimePosition = 1.66
+            
+            -- Esperar y mensaje
+            wait(5)
+            game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('DIE!!...', 'All')
+            
+            -- Secuencia de cortes
+            local cutAnim = Instance.new('Animation')
+            cutAnim.AnimationId = 'rbxassetid://126796684932532'
+            
+            local bodyParts = {
+                'RightUpperArm',
+                'LeftUpperArm',
+                'LeftUpperLeg',
+                'RightUpperLeg',
+                'UpperTorso'
+            }
+            
+            for i = 1, 5 do
+                PlaySound('125856818464345')
+                
+                local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
+                cutTrack:Play()
+                
+                if victim and victim.Parent then
+                    local part = victim:FindFirstChild(bodyParts[i])
+                    if part then part:Destroy() end
+                end
+                
+                wait(2)
+                cutTrack:Stop()
+            end
+            
+            -- Destruir LowerTorso
+            if victim and victim.Parent and victim:FindFirstChild('LowerTorso') then
+                victim.LowerTorso:Destroy()
+            end
+            
+            -- Manejar cabeza
+            if victim and victim.Parent and victim:FindFirstChild('Head') then
+                local headClone = victim.Head:Clone()
+                headClone.CanCollide = false
+                headClone.Anchored = true
+                headClone.Parent = workspace
+                
+                local rightHand = _LocalPlayer2.Character:FindFirstChild('RightHand') or 
+                                 _LocalPlayer2.Character:FindFirstChild('Right Arm')
+                if rightHand then
+                    headClone.CFrame = rightHand.CFrame
+                end
+                
+                wait(0.5)
+                headClone.Anchored = false
+                headClone.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+                
+                local stompAnim = Instance.new('Animation')
+                stompAnim.AnimationId = 'rbxassetid://72406748336709'
+                local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
+                stompTrack:Play()
+                
+                wait(2)
+                headClone.CFrame = CFrame.new(0, -1000, 0)
+                headClone:Destroy()
+                
+                game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('HAHAHAHAHAHAHAHAH', 'All')
+            end
+            
+            -- Limpiar
+            stopAlign = true
+            if alignConnection then alignConnection:Disconnect() end
+            
+            if victim and victim.Parent and victim:FindFirstChild('UpperTorso') then
+                local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
+                if bodyPos then bodyPos:Destroy() end
+                if bodyGyro then bodyGyro:Destroy() end
+            end
+            
+            _ReplicatedStorage.MainEvent:FireServer('Grabbing')
+            
+            if knife and knife.Parent == _LocalPlayer2.Character then
+                knife.Parent = _LocalPlayer2.Backpack
+            end
+            
+            freezeTrack:Stop()
+            freezeAnim:Destroy()
+            cutAnim:Destroy()
+            
+            knifeExecuting = false
+        end)
+
+        -- ============================================
+        -- TOOL: HOVERBOARD GRAB (NUEVO)
+        -- ============================================
+        if _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab') then
+            _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab'):Destroy()
+        end
+        
+        wait(0.1)
+        
+        local _ToolHoverboard = Instance.new('Tool')
+        _ToolHoverboard.RequiresHandle = false
+        _ToolHoverboard.Name = 'Hoverboard Grab'
+        _ToolHoverboard.ToolTip = 'Surf on grabbed victim'
+        _ToolHoverboard.Parent = _LocalPlayer2.Backpack
+        
+        local isSurfing = false
+        local surfVictim = nil
+        local surfConnection = nil
+        local surfAnimTrack = nil
+        local victimBodyPos = nil
+        local victimBodyGyro = nil
+        local surfWeld = nil
+        
+        _ToolHoverboard.Activated:Connect(function()
+            if isSurfing then
+                -- Detener surf
+                isSurfing = false
+                if surfConnection then
+                    surfConnection:Disconnect()
+                    surfConnection = nil
+                end
+                
+                if surfAnimTrack then
+                    surfAnimTrack:Stop()
+                    surfAnimTrack = nil
+                end
+                
+                if surfWeld then
+                    surfWeld:Destroy()
+                    surfWeld = nil
+                end
+                
+                -- Limpiar controles de víctima
+                if surfVictim and surfVictim.Parent then
+                    local victimRoot = surfVictim:FindFirstChild('HumanoidRootPart')
+                    if victimRoot then
+                        if victimBodyPos then 
+                            victimBodyPos:Destroy()
+                            victimBodyPos = nil
+                        end
+                        if victimBodyGyro then 
+                            victimBodyGyro:Destroy()
+                            victimBodyGyro = nil
+                        end
+                    end
+                    
+                    if surfVictim:FindFirstChild('Humanoid') then
+                        surfVictim.Humanoid.PlatformStand = false
+                    end
+                end
+                
+                -- Restaurar velocidad
+                if _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('Humanoid') then
+                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
+                end
+                
+                surfVictim = nil
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Hoverboard Grab',
+                    Text = 'Surfing stopped',
+                    Duration = 2
+                })
+                return
+            end
+            
+            -- Verificar si hay víctima agarrada
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Hoverboard Grab',
+                    Text = 'No victim grabbed',
+                    Duration = 2
+                })
+                return
+            end
+            
+            surfVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            
+            if not surfVictim or not surfVictim.Parent then
+                return
+            end
+            
+            -- Verificar que sea otro jugador
+            local victimPlayer = game.Players:GetPlayerFromCharacter(surfVictim)
+            if not victimPlayer or victimPlayer == _LocalPlayer2 then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Hoverboard Grab',
+                    Text = 'Cannot surf on yourself',
+                    Duration = 2
+                })
+                return
+            end
+            
+            -- 1. DETENER AGARRE TRADICIONAL
+            _ReplicatedStorage.MainEvent:FireServer('Grabbing')
+            
+            -- 2. HACER FLOTAR A LA VÍCTIMA
+            local victimRoot = surfVictim:FindFirstChild('HumanoidRootPart')
+            if not victimRoot then return end
+            
+            victimBodyPos = Instance.new('BodyPosition')
+            victimBodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
+            victimBodyPos.P = 12000
+            victimBodyPos.D = 1000
+            victimBodyPos.Position = victimRoot.Position + Vector3.new(0, 3, 0)
+            victimBodyPos.Parent = victimRoot
+            
+            victimBodyGyro = Instance.new('BodyGyro')
+            victimBodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
+            victimBodyGyro.P = 10000
+            victimBodyGyro.CFrame = CFrame.new(victimRoot.Position) * CFrame.Angles(math.rad(-10), 0, 0)
+            victimBodyGyro.Parent = victimRoot
+            
+            -- 3. POSICIONAR AL JUGADOR ENCIMA
+            local victimUpperTorso = surfVictim:FindFirstChild('UpperTorso')
+            if not victimUpperTorso then return end
+            
+            -- Crear WeldConstraint
+            surfWeld = Instance.new('WeldConstraint')
+            surfWeld.Part0 = _LocalPlayer2.Character.HumanoidRootPart
+            surfWeld.Part1 = victimUpperTorso
+            surfWeld.Parent = _LocalPlayer2.Character.HumanoidRootPart
+            
+            -- Posicionar inicialmente
+            local surfHeight = 1.8
+            local initialSurfCF = victimUpperTorso.CFrame:ToWorldSpace(CFrame.new(0, surfHeight, 0.2))
+            _LocalPlayer2.Character.HumanoidRootPart.CFrame = initialSurfCF
+            
+            -- 4. ANIMACIÓN DE SURF
+            local surfAnim = Instance.new('Animation')
+            surfAnim.AnimationId = 'rbxassetid://76573949416065'
+            surfAnimTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(surfAnim)
+            surfAnimTrack:Play()
+            surfAnimTrack:AdjustSpeed(1.2)
+            
+            -- 5. CONFIGURAR MOVIMIENTO RÁPIDO
+            _LocalPlayer2.Character.Humanoid.WalkSpeed = 28
+            
+            -- 6. HACER QUE LA VÍCTIMA SEA PLATAFORMA
+            if surfVictim:FindFirstChild('Humanoid') then
+                surfVictim.Humanoid.PlatformStand = true
+            end
+            
+            -- 7. ACTIVAR MODO SURF
+            isSurfing = true
+            
+            -- 8. SISTEMA DE MOVIMIENTO
+            surfConnection = _RunService.Heartbeat:Connect(function(delta)
+                if not isSurfing or not surfVictim or not surfVictim.Parent then
+                    return
+                end
+                
+                local humanoid = _LocalPlayer2.Character.Humanoid
+                local moveDirection = humanoid.MoveDirection
+                
+                if moveDirection.Magnitude > 0.1 then
+                    if victimBodyPos and victimBodyPos.Parent then
+                        local currentPos = victimBodyPos.Position
+                        local speedMultiplier = 22
+                        local newPos = currentPos + (moveDirection * speedMultiplier * delta)
+                        
+                        newPos = Vector3.new(newPos.X, currentPos.Y, newPos.Z)
+                        victimBodyPos.Position = newPos
+                        
+                        if victimBodyGyro and victimBodyGyro.Parent then
+                            local lookCFrame = CFrame.new(victimBodyGyro.CFrame.Position, 
+                                                          victimBodyGyro.CFrame.Position + moveDirection)
+                            victimBodyGyro.CFrame = lookCFrame * CFrame.Angles(math.rad(-10), 0, 0)
+                        end
+                    end
+                end
+                
+                -- Efecto de flotación
+                if victimBodyPos and victimBodyPos.Parent then
+                    local floatWave = math.sin(tick() * 4) * 0.08
+                    local currentPos = victimBodyPos.Position
+                    victimBodyPos.Position = Vector3.new(
+                        currentPos.X, 
+                        currentPos.Y + floatWave, 
+                        currentPos.Z
+                    )
+                end
+                
+                -- Mantener posición del jugador
+                if victimUpperTorso and victimUpperTorso.Parent then
+                    local updatedSurfCF = victimUpperTorso.CFrame:ToWorldSpace(CFrame.new(0, surfHeight, 0.2))
+                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = updatedSurfCF
+                end
+            end)
+            
+            -- 9. SONIDO
+            PlaySound('4590662764')
+            
+            -- 10. NOTIFICACIÓN
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '🏄 HOVERBOARD MODE 🏄',
+                Text = 'Surfing on ' .. victimPlayer.Name .. '! Use joystick',
+                Duration = 5
+            })
+            
+            -- 11. MENSAJE EN CHAT
+            game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+                'SURFING ON ' .. victimPlayer.Name:upper() .. '! 🏄‍♂️', 
+                'All'
+            )
         end)
     end
                     
