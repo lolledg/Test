@@ -886,7 +886,7 @@ if table.find(v1, tostring(v2)) then
         heightSlider.Size = UDim2.new(1, -20, 0, 30)
         heightSlider.Position = UDim2.new(0, 10, 0, 35)
         heightSlider.BackgroundTransparency = 1
-        heightSlider.Text = "Height: 0.3m ▲"
+        heightSlider.Text = "Height: 1.0m ▲"
         heightSlider.TextColor3 = Color3.fromRGB(200, 200, 255)
         heightSlider.Font = Enum.Font.Gotham
         heightSlider.TextSize = 12
@@ -970,7 +970,7 @@ if table.find(v1, tostring(v2)) then
             end
         end)
         
-        -- TOOL: GRAB KNIFE (MANTENIDO)
+        -- TOOL: GRAB KNIFE (REEMPLAZADO POR TU VERSIÓN)
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -1095,8 +1095,6 @@ if table.find(v1, tostring(v2)) then
                     headClone.CFrame = CFrame.new(0, -1000, 0)
                     headClone:Destroy()
                     stompTrack:Stop()
-                    
-                    game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('HAHAHAHAHAHAHAHAH', 'All')
                 end
                 
                 -- LIMPIAR
@@ -1123,7 +1121,7 @@ if table.find(v1, tostring(v2)) then
         end)
         
         -- ============================================
-        -- TOOL: HOVERBOARD GRAB - COMPLETAMENTE REHECHO
+        -- TOOL: HOVERBOARD GRAB - COMPLETAMENTE CORREGIDO
         -- ============================================
         if _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab') then
             _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab'):Destroy()
@@ -1134,7 +1132,7 @@ if table.find(v1, tostring(v2)) then
         local _ToolHoverboard = Instance.new('Tool')
         _ToolHoverboard.RequiresHandle = false
         _ToolHoverboard.Name = 'Hoverboard Grab'
-        _ToolHoverboard.ToolTip = '🏄 Surf on grabbed victim - Smooth floating system'
+        _ToolHoverboard.ToolTip = '🏄 Surf on grabbed victim - Stable 1m floating'
         _ToolHoverboard.Parent = _LocalPlayer2.Backpack
         
         local isHoverboarding = false
@@ -1145,74 +1143,18 @@ if table.find(v1, tostring(v2)) then
         local victimBodyGyro = nil
         local floatParticles = nil
         local hoverboardGUI = nil
-        local currentHeight = 0.3
+        local currentHeight = 1.0  -- CAMBIADO A 1 METRO
         local baseSpeed = 16
         local maxSpeed = 28
         local currentSpeed = baseSpeed
         local isMounted = false
         local mountTimer = 0
+        local ragdollCheckConnection = nil
         
         _ToolHoverboard.Activated:Connect(function()
             if isHoverboarding then
                 -- DETENER HOVERBOARD
-                isHoverboarding = false
-                isMounted = false
-                
-                if hoverConnection then
-                    hoverConnection:Disconnect()
-                    hoverConnection = nil
-                end
-                
-                if surfAnimTrack then
-                    surfAnimTrack:Stop()
-                    surfAnimTrack = nil
-                end
-                
-                if floatParticles then
-                    floatParticles:Destroy()
-                    floatParticles = nil
-                end
-                
-                -- LIMPIAR CONTROLES
-                if surfVictim and surfVictim.Parent then
-                    local victimRoot = surfVictim:FindFirstChild('HumanoidRootPart')
-                    if victimRoot then
-                        if victimBodyPos then 
-                            victimBodyPos:Destroy()
-                            victimBodyPos = nil
-                        end
-                        if victimBodyGyro then 
-                            victimBodyGyro:Destroy()
-                            victimBodyGyro = nil
-                        end
-                    end
-                    
-                    if surfVictim:FindFirstChild('Humanoid') then
-                        surfVictim.Humanoid.PlatformStand = false
-                        surfVictim.Humanoid:ChangeState('GettingUp')
-                    end
-                end
-                
-                -- RESTAURAR VELOCIDAD
-                if _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('Humanoid') then
-                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
-                end
-                
-                -- DESTRUIR GUI
-                if hoverboardGUI then
-                    hoverboardGUI.GUI:Destroy()
-                    hoverboardGUI = nil
-                end
-                
-                surfVictim = nil
-                currentHeight = 0.3
-                currentSpeed = baseSpeed
-                
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Hoverboard Grab',
-                    Text = 'Surfing stopped',
-                    Duration = 2
-                })
+                StopHoverboard()
                 return
             end
             
@@ -1248,34 +1190,47 @@ if table.find(v1, tostring(v2)) then
             -- 1. DETENER AGARRE TRADICIONAL
             _ReplicatedStorage.MainEvent:FireServer('Grabbing')
             
-            -- 2. INICIAR SISTEMA DE FLOTACIÓN SUAVE
+            -- 2. INICIAR SISTEMA DE FLOTACIÓN ESTABLE A 1 METRO
             local victimRoot = surfVictim:FindFirstChild('HumanoidRootPart')
             if not victimRoot then return end
             
-            -- Crear BodyPosition para flotación suave
+            -- Asegurarse de que la víctima esté en posición adecuada
+            ZeroVelocity___(victimRoot)
+            victimRoot.Velocity = Vector3.new(0, 0, 0)
+            victimRoot.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            
+            -- Crear BodyPosition para flotación ESTABLE
             victimBodyPos = Instance.new('BodyPosition')
-            victimBodyPos.MaxForce = Vector3.new(40000, 40000, 40000) -- Fuerza más suave
-            victimBodyPos.P = 8000
-            victimBodyPos.D = 1200
+            victimBodyPos.MaxForce = Vector3.new(50000, 50000, 50000)
+            victimBodyPos.P = 10000  -- P más alto para más estabilidad
+            victimBodyPos.D = 1500   -- D más alto para amortiguación
             victimBodyPos.Position = victimRoot.Position + Vector3.new(0, currentHeight, 0)
             victimBodyPos.Parent = victimRoot
             
-            -- Crear BodyGyro para estabilidad
+            -- Crear BodyGyro para ESTABILIDAD COMPLETA
             victimBodyGyro = Instance.new('BodyGyro')
-            victimBodyGyro.MaxTorque = Vector3.new(40000, 40000, 40000)
-            victimBodyGyro.P = 8000
-            victimBodyGyro.CFrame = CFrame.new(victimRoot.Position) * CFrame.Angles(math.rad(-5), 0, 0)
+            victimBodyGyro.MaxTorque = Vector3.new(50000, 50000, 50000)
+            victimBodyGyro.P = 12000
+            victimBodyGyro.CFrame = victimRoot.CFrame * CFrame.Angles(0, 0, 0)
             victimBodyGyro.Parent = victimRoot
             
             -- Hacer que la víctima sea plataforma
             if surfVictim:FindFirstChild('Humanoid') then
                 surfVictim.Humanoid.PlatformStand = true
+                surfVictim.Humanoid:ChangeState('Physics')
             end
             
-            -- 3. CREAR EFECTOS DE FLOTACIÓN
+            -- 3. DESACTIVAR COLISIONES TEMPORALES PARA MEJOR FLOTACIÓN
+            for _, part in pairs(surfVictim:GetChildren()) do
+                if part:IsA('BasePart') then
+                    part.CanCollide = false
+                end
+            end
+            
+            -- 4. CREAR EFECTOS DE FLOTACIÓN
             floatParticles = CreateFloatingEffect(surfVictim)
             
-            -- 4. CREAR GUI DE CONTROL
+            -- 5. CREAR GUI DE CONTROL
             hoverboardGUI = CreateHoverboardGUI()
             
             -- Configurar botones de GUI
@@ -1293,18 +1248,31 @@ if table.find(v1, tostring(v2)) then
             end)
             
             hoverboardGUI.DestroyButton.MouseButton1Click:Connect(function()
-                if hoverboardGUI then
-                    hoverboardGUI.GUI:Destroy()
-                    hoverboardGUI = nil
-                end
+                StopHoverboard()
             end)
             
-            -- 5. ACTIVAR MODO HOVERBOARD
+            -- 6. ACTIVAR MODO HOVERBOARD
             isHoverboarding = true
             isMounted = false
             mountTimer = 0
             
-            -- 6. SISTEMA DE FLOTACIÓN Y MOVIMIENTO
+            -- 7. DETECCIÓN DE RAGDOLL (si la víctima se levanta)
+            ragdollCheckConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if not isHoverboarding or not surfVictim or not surfVictim.Parent then
+                    return
+                end
+                
+                -- Verificar si la víctima ya no está en ragdoll
+                if surfVictim:FindFirstChild('Humanoid') then
+                    local state = surfVictim.Humanoid:GetState()
+                    if state ~= Enum.HumanoidStateType.Physics and state ~= Enum.HumanoidStateType.FallingDown then
+                        print('[Hoverboard] Victim got up, stopping hoverboard')
+                        StopHoverboard()
+                    end
+                end
+            end)
+            
+            -- 8. SISTEMA PRINCIPAL DE FLOTACIÓN Y MOVIMIENTO
             hoverConnection = game:GetService('RunService').Heartbeat:Connect(function(delta)
                 if not isHoverboarding or not surfVictim or not surfVictim.Parent then
                     return
@@ -1312,29 +1280,30 @@ if table.find(v1, tostring(v2)) then
                 
                 mountTimer = mountTimer + delta
                 
-                -- FASE 1: FLOTACIÓN SUAVE (PRIMEROS 5 SEGUNDOS)
-                if mountTimer < 5 then
-                    -- Efecto de flotación ondulante
-                    local floatWave = math.sin(tick() * 3) * 0.1
-                    if victimBodyPos and victimBodyPos.Parent then
-                        local targetHeight = currentHeight + floatWave
-                        local smoothHeight = victimBodyPos.Position.Y + (targetHeight - victimBodyPos.Position.Y) * 0.1
-                        
-                        victimBodyPos.Position = Vector3.new(
-                            victimBodyPos.Position.X,
-                            smoothHeight,
-                            victimBodyPos.Position.Z
-                        )
-                    end
+                -- MANTENER FLOTACIÓN ESTABLE A 1 METRO
+                if victimBodyPos and victimBodyPos.Parent then
+                    -- Posición objetivo fija a 1 metro
+                    local targetPos = Vector3.new(
+                        victimBodyPos.Position.X,
+                        surfVictim.HumanoidRootPart.Position.Y + currentHeight,
+                        victimBodyPos.Position.Z
+                    )
                     
+                    -- Suavizar movimiento hacia la posición objetivo
+                    victimBodyPos.Position = targetPos
+                end
+                
+                -- FASE 1: FLOTACIÓN SOLA (PRIMEROS 5 SEGUNDOS)
+                if mountTimer < 5 then
                     -- Mantener al jugador cerca pero no encima
                     local playerPos = _LocalPlayer2.Character.HumanoidRootPart.Position
                     local victimPos = surfVictim.HumanoidRootPart.Position
-                    local desiredDistance = 2
+                    local desiredDistance = 3
                     
                     if (playerPos - victimPos).Magnitude > desiredDistance then
                         local direction = (victimPos - playerPos).Unit
-                        _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(victimPos - (direction * desiredDistance))
+                        local targetPlayerPos = victimPos - (direction * desiredDistance)
+                        _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(targetPlayerPos)
                     end
                     
                     -- Actualizar GUI
@@ -1391,19 +1360,20 @@ if table.find(v1, tostring(v2)) then
                             surfAnimTrack:AdjustSpeed(animSpeed)
                         end
                         
-                        -- MOVER A LA VÍCTIMA
+                        -- MOVER A LA VÍCTIMA CON LA DIRECCIÓN DEL JUGADOR
                         if victimBodyPos and victimBodyPos.Parent then
                             local currentPos = victimBodyPos.Position
-                            local speedMultiplier = 18 + (currentSpeed - baseSpeed) * 0.5
+                            local speedMultiplier = 15 + (currentSpeed - baseSpeed) * 0.3
                             local newPos = currentPos + (moveDirection * speedMultiplier * delta)
                             
+                            -- Mantener altura estable
                             newPos = Vector3.new(newPos.X, currentPos.Y, newPos.Z)
                             victimBodyPos.Position = newPos
                             
                             if victimBodyGyro and victimBodyGyro.Parent then
                                 local lookCFrame = CFrame.new(victimBodyGyro.CFrame.Position, 
                                                               victimBodyGyro.CFrame.Position + moveDirection)
-                                victimBodyGyro.CFrame = lookCFrame * CFrame.Angles(math.rad(-10), 0, 0)
+                                victimBodyGyro.CFrame = lookCFrame * CFrame.Angles(math.rad(-5), 0, 0)
                             end
                         end
                         
@@ -1434,19 +1404,9 @@ if table.find(v1, tostring(v2)) then
                     local UserInputService = game:GetService("UserInputService")
                     
                     if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                        currentHeight = math.min(currentHeight + delta * 2, 5.0)
+                        currentHeight = math.min(currentHeight + delta * 1, 3.0)
                     elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                        currentHeight = math.max(currentHeight - delta * 2, 0.1)
-                    end
-                    
-                    -- Actualizar posición de flotación
-                    if victimBodyPos and victimBodyPos.Parent then
-                        local smoothHeight = victimBodyPos.Position.Y + (currentHeight - victimBodyPos.Position.Y) * 0.2
-                        victimBodyPos.Position = Vector3.new(
-                            victimBodyPos.Position.X,
-                            smoothHeight,
-                            victimBodyPos.Position.Z
-                        )
+                        currentHeight = math.max(currentHeight - delta * 1, 0.5)
                     end
                     
                     -- Mantener posición del jugador sobre la víctima
@@ -1454,6 +1414,9 @@ if table.find(v1, tostring(v2)) then
                     if victimUpperTorso and victimUpperTorso.Parent and isMounted then
                         local updatedSurfCF = victimUpperTorso.CFrame:ToWorldSpace(CFrame.new(0, 1.8, 0.2))
                         _LocalPlayer2.Character.HumanoidRootPart.CFrame = updatedSurfCF
+                        
+                        -- Asegurar que el jugador no se caiga
+                        ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
                     end
                     
                     -- Actualizar GUI
@@ -1465,24 +1428,98 @@ if table.find(v1, tostring(v2)) then
                 end
             end)
             
-            -- 7. SONIDO DE INICIO
+            -- 9. SONIDO DE INICIO
             PlaySound('4590662764')
             
-            -- 8. NOTIFICACIÓN INICIAL
+            -- 10. NOTIFICACIÓN INICIAL
             game:GetService('StarterGui'):SetCore('SendNotification', {
                 Title = '🏄 HOVERBOARD MODE ACTIVATED 🏄',
-                Text = victimPlayer.Name .. ' is floating! Wait 5s to mount...\nUse SPACE/Shift to control height',
+                Text = victimPlayer.Name .. ' is floating at 1m! Wait 5s to mount...\nUse SPACE/Shift to control height',
                 Duration = 5
             })
             
-            -- 9. MENSAJE EN CHAT
+            -- 11. MENSAJE EN CHAT
             game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
                 '🚀 PREPARING TO SURF ON ' .. victimPlayer.Name:upper() .. '! 🏄‍♂️', 
                 'All'
             )
             
-            print('[Hoverboard Grab] Hoverboard mode activated - Mounting in 5 seconds')
+            print('[Hoverboard Grab] Hoverboard mode activated - Stable at 1m')
         end)
+        
+        -- FUNCIÓN PARA DETENER EL HOVERBOARD
+        function StopHoverboard()
+            isHoverboarding = false
+            isMounted = false
+            
+            if hoverConnection then
+                hoverConnection:Disconnect()
+                hoverConnection = nil
+            end
+            
+            if ragdollCheckConnection then
+                ragdollCheckConnection:Disconnect()
+                ragdollCheckConnection = nil
+            end
+            
+            if surfAnimTrack then
+                surfAnimTrack:Stop()
+                surfAnimTrack = nil
+            end
+            
+            if floatParticles then
+                floatParticles:Destroy()
+                floatParticles = nil
+            end
+            
+            -- RESTAURAR VÍCTIMA
+            if surfVictim and surfVictim.Parent then
+                local victimRoot = surfVictim:FindFirstChild('HumanoidRootPart')
+                if victimRoot then
+                    if victimBodyPos then 
+                        victimBodyPos:Destroy()
+                        victimBodyPos = nil
+                    end
+                    if victimBodyGyro then 
+                        victimBodyGyro:Destroy()
+                        victimBodyGyro = nil
+                    end
+                    
+                    -- Reactivar colisiones
+                    for _, part in pairs(surfVictim:GetChildren()) do
+                        if part:IsA('BasePart') then
+                            part.CanCollide = true
+                        end
+                    end
+                end
+                
+                if surfVictim:FindFirstChild('Humanoid') then
+                    surfVictim.Humanoid.PlatformStand = false
+                    surfVictim.Humanoid:ChangeState('GettingUp')
+                end
+            end
+            
+            -- RESTAURAR VELOCIDAD DEL JUGADOR
+            if _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('Humanoid') then
+                _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
+            end
+            
+            -- DESTRUIR GUI
+            if hoverboardGUI then
+                hoverboardGUI.GUI:Destroy()
+                hoverboardGUI = nil
+            end
+            
+            surfVictim = nil
+            currentHeight = 1.0
+            currentSpeed = baseSpeed
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Hoverboard Grab',
+                Text = 'Surfing stopped',
+                Duration = 2
+            })
+        end
     end
                     
     ToolSSs()
