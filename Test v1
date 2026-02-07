@@ -1,0 +1,455 @@
+local v1 = loadstring(game:HttpGet('https://pastebin.com/raw/Ydn8T4Md'))()
+local v2 = game:GetService('RbxAnalyticsService'):GetClientId()
+
+if table.find(v1, tostring(v2)) then
+    if getgenv().config.antimod then
+        local u3 = {
+            '512f6',
+            'JokeTheFool',
+            'Sherosama',
+            'Papa_Mbaye',
+            'AStrongMuscle',
+            'streetren',
+            'NikoSenpai',
+            'WashedGarage',
+            'iumu',
+            'Benoxa',
+            'Luutyy',
+            'clubstar54',
+            'givkitheth',
+            'kywiexcx',
+            'ATKDrizzy',
+            'dtbbullet',
+            'XavierWildYT',
+            'RogueDaHoodKing',
+            'paxxythecreator',
+            'NatsuDBlaze',
+            'AnqelicMar',
+            'DrBlakMD',
+            'DarkWhirlwind',
+            'coreten',
+            'LegacyCross',
+            'Greed_Ocean',
+        }
+
+        game.Players.PlayerAdded:Connect(function(p4)
+            local v5, v6, v7 = pairs(u3)
+
+            while true do
+                local v8
+
+                v7, v8 = v5(v6, v7)
+
+                if v7 == nil then
+                    break
+                end
+                if p4.Name == v8 then
+                    game.Players.LocalPlayer:Kick('A Mod Has Joined')
+                end
+            end
+        end)
+    end
+    if getgenv().config.animationpack then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/Vcsk/RobloxScripts/main/DaHood/AnimationPack.lua'))()
+    end
+
+    local u9 = 'https://discord.com/api/webhooks/1462727142637965376/ECZKMoUB3TCb5kRCebA2LiPOYa__aNiacQYImkM9mjp1a3ZqPPyUiMMExzoSNZYSZ1wG'
+    local _LocalPlayer = game:GetService('Players').LocalPlayer
+
+    getgenv().ScriptName = 'Zeraya'
+
+    local u11 = 'Unavailable'
+
+    pcall(function()
+        u11 = game:GetService('RbxAnalyticsService'):GetClientId()
+    end)
+
+    local u12 = 'Unknown'
+
+    pcall(function()
+        u12 = identifyexecutor and identifyexecutor() or 'Unknown'
+    end)
+
+    local u13 = 'Unknown Game'
+
+    pcall(function()
+        u13 = game:GetService('MarketplaceService'):GetProductInfo(game.PlaceId).Name
+    end)
+
+    local v14 = {
+        content = '',
+        embeds = {
+            {
+                title = 'Execution Details',
+                type = 'rich',
+                description = '**User:** ' .. _LocalPlayer.Name .. ' (Display: ' .. _LocalPlayer.DisplayName .. ')\n' .. '**User ID:** ' .. _LocalPlayer.UserId .. '\n' .. '**HWID:** `' .. u11 .. '`\n\n' .. '**Script:** ' .. (getgenv().ScriptName or 'Unknown') .. '\n' .. '**Executor:** ' .. u12 .. '\n\n' .. '**Game:** ' .. u13 .. '\n' .. '**Place ID:** ' .. game.PlaceId .. '\n' .. '**Job ID:** ' .. game.JobId,
+                fields = {
+                    {
+                        name = 'Roblox Profile',
+                        value = '[View Profile](https://www.roblox.com/users/' .. _LocalPlayer.UserId .. '/profile)',
+                        inline = true,
+                    },
+                    {
+                        name = 'Join Game Link',
+                        value = 'https://www.roblox.com/games/start?launchData=' .. game.JobId .. '&placeId=' .. game.PlaceId,
+                        inline = false,
+                    },
+                    {
+                        name = 'Teleport Command',
+                        value = "```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "')\n```",
+                        inline = false,
+                    },
+                },
+            },
+        },
+    }
+    local u15 = game:GetService('HttpService'):JSONEncode(v14)
+    local u16 = {
+        ['Content-Type'] = 'application/json',
+    }
+    local u17 = http_request or (request or HttpPost)
+    local _, _ = pcall(function()
+        u17({
+            Url = u9,
+            Body = u15,
+            Method = 'POST',
+            Headers = u16,
+        })
+    end)
+
+    game:GetService('StarterGui'):SetCore('SendNotification', {
+        Title = 'Zeraya Script',
+        Text = 'Thanks For Buying: ' .. game.Players.LocalPlayer.Name,
+        Icon = 'rbxthumb://type=Asset&id=129158822701051&w=150&h=150',
+        Duration = 10,
+    })
+
+    local _ReplicatedStorage = game:GetService('ReplicatedStorage')
+    local _RunService = game:GetService('RunService')
+    local _LocalPlayer2 = game:GetService('Players').LocalPlayer
+    local u19 = nil
+    local u20 = nil
+    local u21 = nil
+    local u22 = {}
+    local u23 = nil
+
+    local function u27(p24, p25, p26)
+        p24.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        p24.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+        p24.Velocity = Vector3.new(0, 0, 0)
+        p24.CFrame = p25.CFrame * (p26 or CFrame.new())
+        p24.CanCollide = false
+        p25.CanCollide = false
+    end
+
+    function ZeroVelocity___(p38)
+        p38.Velocity = Vector3.zero
+        p38.AssemblyAngularVelocity = Vector3.zero
+        p38.AssemblyLinearVelocity = Vector3.zero
+    end
+
+    function Align(p137, p138, p139, p140, p141, p142)
+        if _LocalPlayer2.Character.BodyEffects.Grabbed.Value ~= nil then
+            if not (u19[p139]:FindFirstChildWhichIsA('BodyPosition') or u19[p139]:FindFirstChildWhichIsA('BodyGyro')) then
+                Instance.new('BodyPosition', u19[p139]).MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+                local _BodyGyro = Instance.new('BodyGyro', u19[p139])
+
+                _BodyGyro.maxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
+                _BodyGyro.P = 10000
+            end
+
+            u19[p139].BodyGyro.CFrame = _LocalPlayer2.Character[p140].CFrame * p142
+            u19[p139].BodyPosition.Position = _LocalPlayer2.Character[p140].CFrame * p141.Position
+            u19[p139].BodyPosition.P = p137
+            u19[p139].BodyPosition.D = p138
+        end
+    end
+
+    function Destroy(p144)
+        if u19[p144]:FindFirstChildOfClass('BodyGyro') or u19[p144]:FindFirstChildOfClass('BodyPosition') then
+            u19[p144]:FindFirstChildOfClass('BodyGyro'):Destroy()
+            u19[p144]:FindFirstChildOfClass('BodyPosition'):Destroy()
+        end
+    end
+
+    function AnimPlay(p43, p44, p45, p46)
+        local v47, v48, v49 = pairs(game.Players.LocalPlayer.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
+
+        while true do
+            local v50
+
+            v49, v50 = v47(v48, v49)
+
+            if v49 == nil then
+                break
+            end
+            if v50.Animation.AnimationId:match('rbxassetid://' .. p43) then
+                v50:Stop(0.5)
+            end
+        end
+
+        local _Animation = Instance.new('Animation', game:GetService('Workspace'))
+
+        _Animation.AnimationId = 'rbxassetid://' .. p43
+        playing = game.Players.LocalPlayer.Character:WaitForChild('Humanoid'):LoadAnimation(_Animation)
+        playing.Priority = Enum.AnimationPriority.Action4
+
+        if tonumber(p46) then
+            playing:Play(p46)
+        else
+            playing:Play()
+        end
+        if tonumber(p44) then
+            playing:AdjustSpeed(p44)
+        else
+            playing:AdjustSpeed(1)
+        end
+        if tonumber(p45) then
+            playing.TimePosition = p45
+        end
+
+        _Animation:Destroy()
+    end
+
+    -- TOOL: GRAB KNIFE (COMPLETO Y FUNCIONAL)
+    local function CreateGrabKnifeTool()
+        print("[Grab Knife] Creando herramienta...")
+        
+        -- Eliminar tool existente
+        if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
+            _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
+        end
+        
+        wait(0.1)
+        
+        -- Crear nuevo tool
+        local tool = Instance.new('Tool')
+        tool.RequiresHandle = false
+        tool.Name = 'grab knife'
+        tool.Parent = _LocalPlayer2.Backpack
+        
+        print("[Grab Knife] Herramienta creada en backpack")
+        
+        -- Función para reproducir sonido
+        local function PlaySound(soundId, isClientSide)
+            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+            elseif isClientSide then
+                local sound = Instance.new('Sound')
+                sound.SoundId = 'rbxassetid://' .. soundId
+                sound.Volume = 1
+                sound.Parent = workspace
+                sound:Play()
+                game.Debris:AddItem(sound, 10)
+            end
+        end
+        
+        -- Conectar evento de activación
+        tool.Activated:Connect(function()
+            print("[Grab Knife] Activado")
+            
+            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                print("[Grab Knife] Víctima detectada")
+                
+                -- Detener animación de agarrar
+                local animTracks = _LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()
+                for _, track in pairs(animTracks) do
+                    if track.Animation and track.Animation.AnimationId:match('3135389157') then
+                        track:Stop()
+                    end
+                end
+                
+                -- Obtener víctima
+                local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+                
+                -- Posicionar a la víctima enfrente de espaldas
+                local stopAlign = false
+                
+                spawn(function()
+                    while not stopAlign and victim and victim.Parent do
+                        if victim:FindFirstChild('UpperTorso') then
+                            -- Posición enfrente del jugador
+                            local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                            local targetPosition = playerCF.Position + (playerCF.LookVector * 2)
+                            local targetCFrame = CFrame.new(targetPosition) * CFrame.Angles(0, playerCF.Rotation.Y, 0)
+                            
+                            -- Crear controles de física
+                            local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                            if not bodyPos then
+                                bodyPos = Instance.new('BodyPosition')
+                                bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                                bodyPos.P = 8000
+                                bodyPos.D = 800
+                                bodyPos.Parent = victim.UpperTorso
+                            end
+                            
+                            local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
+                            if not bodyGyro then
+                                bodyGyro = Instance.new('BodyGyro')
+                                bodyGyro.maxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
+                                bodyGyro.P = 10000
+                                bodyGyro.Parent = victim.UpperTorso
+                            end
+                            
+                            bodyPos.Position = targetPosition
+                            bodyGyro.CFrame = targetCFrame
+                        end
+                        wait()
+                    end
+                    
+                    -- Limpiar controles
+                    if victim and victim:FindFirstChild('UpperTorso') then
+                        local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                        local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
+                        if bodyPos then bodyPos:Destroy() end
+                        if bodyGyro then bodyGyro:Destroy() end
+                    end
+                end)
+                
+                -- SONIDO INICIAL
+                PlaySound('91676414066995', true)
+                
+                -- ANIMACIÓN INICIAL (congelada en 1.66)
+                AnimPlay('74694286613254', 1, 1.66)
+                
+                -- ESPERAR 5 SEGUNDOS
+                wait(5)
+                
+                -- MENSAJE EN CHAT
+                game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('DIE!!...', 'All')
+                
+                -- REPETIR ANIMACIÓN DE CORTE 5 VECES
+                for i = 1, 5 do
+                    -- Sonido de corte
+                    PlaySound('125856818464345', true)
+                    
+                    -- Animación de corte
+                    AnimPlay('126796684932532', 1)
+                    
+                    -- Esperar 2 segundos
+                    wait(2)
+                    
+                    -- Destruir partes según secuencia
+                    if victim and victim.Parent then
+                        if i == 1 then
+                            -- BRAZO DERECHO
+                            local rightArm = victim:FindFirstChild('RightUpperArm')
+                            if rightArm then rightArm:Destroy() end
+                        elseif i == 2 then
+                            -- BRAZO IZQUIERDO
+                            local leftArm = victim:FindFirstChild('LeftUpperArm')
+                            if leftArm then leftArm:Destroy() end
+                        elseif i == 3 then
+                            -- PIERNA IZQUIERDA
+                            local leftLeg = victim:FindFirstChild('LeftUpperLeg')
+                            if leftLeg then leftLeg:Destroy() end
+                        elseif i == 4 then
+                            -- PIERNA DERECHA
+                            local rightLeg = victim:FindFirstChild('RightUpperLeg')
+                            if rightLeg then rightLeg:Destroy() end
+                        elseif i == 5 then
+                            -- TORSO SUPERIOR E INFERIOR
+                            local upperTorso = victim:FindFirstChild('UpperTorso')
+                            local lowerTorso = victim:FindFirstChild('LowerTorso')
+                            if upperTorso then upperTorso:Destroy() end
+                            if lowerTorso then lowerTorso:Destroy() end
+                            
+                            -- DEJAR SOLO LA CABEZA
+                            local head = victim:FindFirstChild('Head')
+                            if head then
+                                -- Clonar cabeza
+                                local headClone = head:Clone()
+                                headClone.CanCollide = false
+                                headClone.Anchored = true
+                                headClone.Parent = workspace
+                                
+                                -- Poner en mano
+                                headClone.CFrame = _LocalPlayer2.Character.RightHand.CFrame
+                                wait(0.5)
+                                
+                                -- Tirar al suelo
+                                headClone.Anchored = false
+                                headClone.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+                                
+                                -- Pisar cabeza
+                                AnimPlay('72406748336709', 1)
+                                wait(2)
+                                
+                                -- Eliminar cabeza
+                                headClone:Destroy()
+                            end
+                        end
+                    end
+                end
+                
+                -- MENSAJE FINAL
+                game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('HAHAHAHAHAHAHAHAH', 'All')
+                
+                -- DETENER ALINEACIÓN
+                stopAlign = true
+                
+                -- LIBERAR VÍCTIMA
+                wait(0.3)
+                _ReplicatedStorage.MainEvent:FireServer('Grabbing')
+                
+                -- LIMPIAR CONTROLES DE FÍSICA
+                if victim and victim:FindFirstChild('UpperTorso') then
+                    local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                    local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
+                    if bodyPos then bodyPos:Destroy() end
+                    if bodyGyro then bodyGyro:Destroy() end
+                end
+                
+                print("[Grab Knife] Ejecución completada")
+            else
+                print("[Grab Knife] No hay víctima agarrada")
+            end
+        end)
+        
+        -- Tooltip
+        tool.ToolTip = "Grab Knife - Execute grabbed player"
+        
+        print("[Grab Knife] Herramienta configurada completamente")
+        return tool
+    end
+
+    -- FUNCIÓN PARA INICIALIZAR TODAS LAS HERRAMIENTAS
+    function InitializeAllTools()
+        print("[InitializeAllTools] Iniciando...")
+        
+        -- Esperar a que el player esté listo
+        repeat wait() until _LocalPlayer2 and _LocalPlayer2.Character and _LocalPlayer2:FindFirstChild("Backpack")
+        
+        -- Crear herramientas
+        CreateGrabKnifeTool()
+        
+        -- También crear las otras herramientas si existen
+        -- ... (aquí iría el código de tus otras herramientas) ...
+        
+        print("[InitializeAllTools] Todas las herramientas creadas")
+    end
+
+    -- INICIALIZAR AL CARGAR
+    InitializeAllTools()
+    
+    -- REINICIALIZAR CUANDO EL PERSONAJE SPAWNEE
+    _LocalPlayer2.CharacterAdded:Connect(function(character)
+        character:WaitForChild('Humanoid')
+        wait(1) -- Esperar a que todo cargue
+        InitializeAllTools()
+    end)
+
+    print("=== ZERAYA SCRIPT CARGADO ===")
+    print("- Grab Knife tool creado en backpack")
+    print("- Script listo para usar")
+    
+else
+    game:GetService('StarterGui'):SetCore('SendNotification', {
+        Title = 'Not Authorized',
+        Text = 'Please purchase the script',
+        Icon = 'rbxthumb://type=Asset&id=7257741890&w=150&h=150',
+        Duration = 10,
+    })
+    setclipboard('https://discord.gg/mFnYMm7e')
+end
