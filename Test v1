@@ -125,10 +125,9 @@ if table.find(v1, tostring(v2)) then
     })
 
     local _ReplicatedStorage = game:GetService('ReplicatedStorage')
-
     game:GetService('RunService')
 
-    local _ = game:GetService('Players').LocalPlayer
+    local _LocalPlayer2 = game:GetService('Players').LocalPlayer
     local u19 = nil
     local u20 = nil
     local u21 = nil
@@ -181,7 +180,6 @@ if table.find(v1, tostring(v2)) then
 
     TweenService = game:GetService('TweenService')
 
-    local _LocalPlayer2 = game:GetService('Players').LocalPlayer
     local u40 = 0
 
     function StopAudio()
@@ -830,7 +828,7 @@ if table.find(v1, tostring(v2)) then
     end
     
     function ToolSSs()
-        -- TOOL: ACTIVATE
+        -- TOOL: ACTIVATE (CORREGIDO Y MEJORADO)
         if _LocalPlayer2.Backpack:FindFirstChild('Activate') then
             _LocalPlayer2.Backpack:FindFirstChild('Activate'):Destroy()
         end
@@ -840,14 +838,40 @@ if table.find(v1, tostring(v2)) then
         local _Tool = Instance.new('Tool')
         _Tool.RequiresHandle = false
         _Tool.Name = 'Activate'
+        _Tool.ToolTip = 'Neck Grab - Main grabbing tool'
         _Tool.Parent = _LocalPlayer2.Backpack
 
         _Tool.Activated:Connect(function()
-            game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
-            wait(0.3)
-            Grab()
+            -- Verificar si ya estamos agarrando a alguien
+            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                -- Si ya hay agarre, soltar
+                game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
+                wait(0.1)
+            else
+                -- Activar agarre
+                game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
+                
+                -- Esperar un momento para que el agarre se active
+                wait(0.3)
+                
+                -- Verificar si el agarre fue exitoso
+                if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                    -- Iniciar el sistema de agarre mejorado
+                    Grab()
+                    
+                    -- Reproducir sonido de agarre
+                    PlaySound('4590662761')
+                    
+                    -- Notificación
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = 'Neck Grab',
+                        Text = 'Grabbing ' .. _LocalPlayer2.Character.BodyEffects.Grabbed.Value.Name,
+                        Duration = 2
+                    })
+                end
+            end
         end)
-
+        
         -- QUITADO: RIP IN HALF
         
         -- TOOL: GRAB KNIFE
@@ -1001,10 +1025,8 @@ if table.find(v1, tostring(v2)) then
                 cutAnim:Destroy()
             end
         end)
-
-        -- ============================================
-        -- TOOL: HOVERBOARD GRAB (NUEVO)
-        -- ============================================
+        
+        -- TOOL: HOVERBOARD GRAB
         if _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab') then
             _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab'):Destroy()
         end
@@ -1106,8 +1128,6 @@ if table.find(v1, tostring(v2)) then
                 return
             end
             
-            print('[Hoverboard Grab] Starting surf on:', victimPlayer.Name)
-            
             -- 1. DETENER AGARRE TRADICIONAL
             _ReplicatedStorage.MainEvent:FireServer('Grabbing')
             
@@ -1143,7 +1163,7 @@ if table.find(v1, tostring(v2)) then
             local initialSurfCF = victimUpperTorso.CFrame:ToWorldSpace(CFrame.new(0, surfHeight, 0.2))
             _LocalPlayer2.Character.HumanoidRootPart.CFrame = initialSurfCF
             
-            -- 4. ANIMACIÓN DE SURF (76573949416065)
+            -- 4. ANIMACIÓN DE SURF
             local surfAnim = Instance.new('Animation')
             surfAnim.AnimationId = 'rbxassetid://76573949416065'
             surfAnimTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(surfAnim)
@@ -1234,8 +1254,6 @@ if table.find(v1, tostring(v2)) then
                 '🚀 SURFING ON ' .. victimPlayer.Name:upper() .. '! 🏄‍♂️', 
                 'All'
             )
-            
-            print('[Hoverboard Grab] Surf mode activated')
         end)
     end
                     
