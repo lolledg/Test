@@ -17,7 +17,7 @@ if table.find(v1, tostring(v2)) then
             'Luutyy',
             'clubstar54',
             'givkitheth',
-            'kywiexcx',
+            'kywieexcx',
             'ATKDrizzy',
             'dtbbullet',
             'XavierWildYT',
@@ -212,9 +212,9 @@ if table.find(v1, tostring(v2)) then
         _Animation:Destroy()
     end
 
-    -- ================================================
-    -- GRAB KNIFE TOOL (VERSIÓN CORREGIDA Y FUNCIONAL)
-    -- ================================================
+    -- ============================================
+    -- GRAB KNIFE TOOL - VERSIÓN COMPLETA CORREGIDA
+    -- ============================================
     local function CreateGrabKnifeTool()
         -- Eliminar tool existente
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
@@ -223,117 +223,107 @@ if table.find(v1, tostring(v2)) then
         
         wait(0.1)
         
-        -- Crear tool nuevo
+        -- Crear nuevo tool
         local tool = Instance.new('Tool')
         tool.RequiresHandle = false
         tool.Name = 'grab knife'
-        tool.ToolTip = 'Grab Knife - Brutal Execution Tool'
         tool.Parent = _LocalPlayer2.Backpack
         
         -- Variable para controlar ejecución
-        local isExecuting = false
+        local executing = false
         
         -- Función para reproducir sonido
-        local function PlaySound(soundId)
+        local function PlayKnifeSound(soundId)
             if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                -- Serverside con boombox
                 _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
-                return true
             else
-                -- Clientside como fallback
                 local sound = Instance.new('Sound')
                 sound.SoundId = 'rbxassetid://' .. soundId
                 sound.Volume = 1
                 sound.Parent = workspace
                 sound:Play()
-                game.Debris:AddItem(sound, 10)
-                return false
+                game.Debris:AddItem(sound, 6)
             end
         end
         
         -- Conectar evento de activación
         tool.Activated:Connect(function()
-            if isExecuting then return end
+            if executing then return end
             
-            -- Verificar que hay una víctima agarrada
-            local grabbed = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            if not grabbed then
+            -- Verificar si hay una víctima agarrada
+            local grabbedValue = _LocalPlayer2.Character.BodyEffects.Grabbed
+            if not grabbedValue.Value then
                 game:GetService('StarterGui'):SetCore('SendNotification', {
                     Title = 'Grab Knife',
-                    Text = 'No hay víctima agarrada',
+                    Text = 'No victim grabbed',
                     Duration = 3
                 })
                 return
             end
             
-            isExecuting = true
+            executing = true
+            local victim = grabbedValue.Value
             
-            -- 1. Detener animación de agarre original
+            -- 1. Detener animación de agarre
             for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
                 if track.Animation and track.Animation.AnimationId == 'rbxassetid://3135389157' then
                     track:Stop()
                 end
             end
             
-            -- 2. Equipar cuchillo del backpack si existe
-            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
-                         _LocalPlayer2.Backpack:FindFirstChild('knife')
-            if knife then
-                knife.Parent = _LocalPlayer2.Character
+            -- 2. Equipar cuchillo del backpack
+            local knifeTool = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
+                             _LocalPlayer2.Backpack:FindFirstChild('knife')
+            if knifeTool then
+                knifeTool.Parent = _LocalPlayer2.Character
             end
             
-            -- 3. Sistema de alineación (víctima enfrente de espaldas)
+            -- 3. Posicionar víctima enfrente de espaldas
             local stopAlign = false
-            local alignConnection
             
-            alignConnection = _RunService.Heartbeat:Connect(function()
-                if stopAlign or not grabbed or not grabbed.Parent then
-                    if alignConnection then
-                        alignConnection:Disconnect()
+            spawn(function()
+                while not stopAlign and victim and victim.Parent do
+                    if victim:FindFirstChild('UpperTorso') then
+                        -- Crear BodyPosition si no existe
+                        local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                        if not bodyPos then
+                            bodyPos = Instance.new('BodyPosition')
+                            bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
+                            bodyPos.P = 8000
+                            bodyPos.D = 800
+                            bodyPos.Parent = victim.UpperTorso
+                        end
+                        
+                        -- Crear BodyGyro si no existe
+                        local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
+                        if not bodyGyro then
+                            bodyGyro = Instance.new('BodyGyro')
+                            bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
+                            bodyGyro.P = 10000
+                            bodyGyro.Parent = victim.UpperTorso
+                        end
+                        
+                        -- Posicionar enfrente (2.5 unidades) mirando al revés
+                        local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                        local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
+                        
+                        bodyPos.Position = frontPos
+                        bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
                     end
-                    return
+                    task.wait()
                 end
-                
-                local upperTorso = grabbed:FindFirstChild('UpperTorso')
-                if not upperTorso then return end
-                
-                -- Crear o obtener BodyPosition
-                local bodyPos = upperTorso:FindFirstChild('BodyPosition')
-                if not bodyPos then
-                    bodyPos = Instance.new('BodyPosition')
-                    bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
-                    bodyPos.P = 8000
-                    bodyPos.D = 800
-                    bodyPos.Parent = upperTorso
-                end
-                
-                -- Crear o obtener BodyGyro
-                local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
-                if not bodyGyro then
-                    bodyGyro = Instance.new('BodyGyro')
-                    bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
-                    bodyGyro.P = 10000
-                    bodyGyro.Parent = upperTorso
-                end
-                
-                -- Posicionar enfrente (2 unidades) mirando al revés
-                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
-                
-                bodyPos.Position = frontPos
-                bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
             end)
             
             -- 4. SONIDO INICIAL (91676414066995)
-            PlaySound('91676414066995')
+            PlayKnifeSound('91676414066995')
             
             -- 5. ANIMACIÓN CONGELADA EN 1.66 (74694286613254)
-            local freezeAnim = Instance.new('Animation')
-            freezeAnim.AnimationId = 'rbxassetid://74694286613254'
-            local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
-            freezeTrack:Play()
-            freezeTrack:AdjustSpeed(0) -- Congelar
-            freezeTrack.TimePosition = 1.66 -- Posición exacta
+            local anim1 = Instance.new('Animation')
+            anim1.AnimationId = 'rbxassetid://74694286613254'
+            local track1 = _LocalPlayer2.Character.Humanoid:LoadAnimation(anim1)
+            track1:Play()
+            track1:AdjustSpeed(0) -- Congelar
+            track1.TimePosition = 1.66 -- Posición exacta
             
             -- 6. ESPERAR 5 SEGUNDOS
             wait(5)
@@ -345,47 +335,46 @@ if table.find(v1, tostring(v2)) then
             local cutAnim = Instance.new('Animation')
             cutAnim.AnimationId = 'rbxassetid://126796684932532'
             
-            -- Secuencia de partes a destruir
             local bodyParts = {
-                'RightUpperArm',    -- 1. Brazo derecho
-                'LeftUpperArm',     -- 2. Brazo izquierdo
-                'LeftUpperLeg',     -- 3. Pierna izquierda
-                'RightUpperLeg',    -- 4. Pierna derecha
-                'UpperTorso'        -- 5. Torso superior
+                'RightUpperArm',    -- 1
+                'LeftUpperArm',     -- 2
+                'LeftUpperLeg',     -- 3
+                'RightUpperLeg',    -- 4
+                'UpperTorso'        -- 5
             }
             
             for i = 1, 5 do
-                -- Sonido de corte (UNA SOLA VEZ por iteración)
-                PlaySound('125856818464345')
+                -- Sonido de corte (125856818464345) - UNA VEZ POR CORTE
+                PlayKnifeSound('125856818464345')
                 
                 -- Animación de corte
                 local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
                 cutTrack:Play()
                 
-                -- Destruir parte correspondiente
-                if grabbed and grabbed.Parent then
-                    local part = grabbed:FindFirstChild(bodyParts[i])
+                -- Destruir parte del cuerpo
+                if victim and victim.Parent then
+                    local part = victim:FindFirstChild(bodyParts[i])
                     if part then
                         part:Destroy()
                     end
                 end
                 
-                -- Esperar 2 segundos entre cortes
+                -- Esperar 2 segundos
                 wait(2)
                 
-                -- Detener animación de corte
+                -- Detener animación
                 cutTrack:Stop()
             end
             
-            -- 9. Destruir LowerTorso también
-            if grabbed and grabbed.Parent and grabbed:FindFirstChild('LowerTorso') then
-                grabbed.LowerTorso:Destroy()
+            -- 9. DESTRUIR LOWERTORSO TAMBIÉN
+            if victim and victim.Parent and victim:FindFirstChild('LowerTorso') then
+                victim.LowerTorso:Destroy()
             end
             
-            -- 10. MANEJO DE LA CABEZA
-            if grabbed and grabbed.Parent and grabbed:FindFirstChild('Head') then
+            -- 10. MANEJAR LA CABEZA
+            if victim and victim.Parent and victim:FindFirstChild('Head') then
                 -- Clonar cabeza
-                local headClone = grabbed.Head:Clone()
+                local headClone = victim.Head:Clone()
                 headClone.CanCollide = false
                 headClone.Anchored = true
                 headClone.Parent = workspace
@@ -412,30 +401,21 @@ if table.find(v1, tostring(v2)) then
                 -- Esperar 2 segundos
                 wait(2)
                 
-                -- 12. HACER DESAPARECER LA CABEZA (enviar al vacío)
+                -- 12. HACER DESAPARECER LA CABEZA
                 headClone.CFrame = CFrame.new(0, -1000, 0)
-                wait(0.1)
                 headClone:Destroy()
                 
-                -- Detener animación de pisar
-                stompTrack:Stop()
-                
-                -- 13. MENSAJE FINAL EN CHAT
+                -- 13. MENSAJE FINAL
                 game:GetService('ReplicatedStorage').DefaultChatSystemChatEvents.SayMessageRequest:FireServer('HAHAHAHAHAHAHAHAH', 'All')
             end
             
             -- 14. LIMPIAR Y TERMINAR
             stopAlign = true
             
-            -- Desconectar alineación
-            if alignConnection then
-                alignConnection:Disconnect()
-            end
-            
             -- Limpiar controles de física
-            if grabbed and grabbed.Parent and grabbed:FindFirstChild('UpperTorso') then
-                local bodyPos = grabbed.UpperTorso:FindFirstChild('BodyPosition')
-                local bodyGyro = grabbed.UpperTorso:FindFirstChild('BodyGyro')
+            if victim and victim.Parent and victim:FindFirstChild('UpperTorso') then
+                local bodyPos = victim.UpperTorso:FindFirstChild('BodyPosition')
+                local bodyGyro = victim.UpperTorso:FindFirstChild('BodyGyro')
                 if bodyPos then bodyPos:Destroy() end
                 if bodyGyro then bodyGyro:Destroy() end
             end
@@ -443,23 +423,22 @@ if table.find(v1, tostring(v2)) then
             -- Liberar agarre
             _ReplicatedStorage.MainEvent:FireServer('Grabbing')
             
-            -- Desequipar cuchillo si estaba equipado
-            if knife and knife.Parent == _LocalPlayer2.Character then
-                knife.Parent = _LocalPlayer2.Backpack
+            -- Desequipar cuchillo
+            if knifeTool and knifeTool.Parent == _LocalPlayer2.Character then
+                knifeTool.Parent = _LocalPlayer2.Backpack
             end
             
-            -- Detener animación congelada
-            freezeTrack:Stop()
-            
             -- Limpiar animaciones
-            freezeAnim:Destroy()
+            track1:Stop()
+            anim1:Destroy()
             cutAnim:Destroy()
             if stompAnim then stompAnim:Destroy() end
             
-            isExecuting = false
-            
-            print('[Grab Knife] Ejecución completada')
+            executing = false
         end)
+        
+        -- Añadir tooltip
+        tool.ToolTip = 'Grab Knife - Execute grabbed player'
         
         return tool
     end
@@ -472,9 +451,10 @@ if table.find(v1, tostring(v2)) then
         -- Crear herramientas
         CreateGrabKnifeTool()
         
-        -- (Aquí puedes añadir otras herramientas si las tienes)
+        -- También crear las otras herramientas si existen
+        -- ... (aquí iría el código de tus otras herramientas) ...
         
-        print("[InitializeAllTools] Herramientas creadas")
+        print("[InitializeAllTools] Todas las herramientas creadas")
     end
 
     -- INICIALIZAR AL CARGAR
@@ -483,12 +463,13 @@ if table.find(v1, tostring(v2)) then
     -- REINICIALIZAR CUANDO EL PERSONAJE SPAWNEE
     _LocalPlayer2.CharacterAdded:Connect(function(character)
         character:WaitForChild('Humanoid')
-        wait(1)
+        wait(1) -- Esperar a que todo cargue
         InitializeAllTools()
     end)
 
     print("=== ZERAYA SCRIPT CARGADO ===")
-    print("- Grab Knife tool creado y funcional")
+    print("- Grab Knife tool creado en backpack")
+    print("- Script listo para usar")
     
 else
     game:GetService('StarterGui'):SetCore('SendNotification', {
