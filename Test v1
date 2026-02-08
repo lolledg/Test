@@ -125,9 +125,10 @@ if table.find(v1, tostring(v2)) then
     })
 
     local _ReplicatedStorage = game:GetService('ReplicatedStorage')
+
     game:GetService('RunService')
 
-    local _LocalPlayer2 = game:GetService('Players').LocalPlayer
+    local _ = game:GetService('Players').LocalPlayer
     local u19 = nil
     local u20 = nil
     local u21 = nil
@@ -180,6 +181,7 @@ if table.find(v1, tostring(v2)) then
 
     TweenService = game:GetService('TweenService')
 
+    local _LocalPlayer2 = game:GetService('Players').LocalPlayer
     local u40 = 0
 
     function StopAudio()
@@ -812,6 +814,7 @@ if table.find(v1, tostring(v2)) then
         end
     end
     
+    -- Función para reproducir sonidos
     local function PlaySound(soundId)
         if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
             _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
@@ -827,6 +830,7 @@ if table.find(v1, tostring(v2)) then
     end
     
     function ToolSSs()
+        -- TOOL: ACTIVATE (MANTENIDO IGUAL)
         if _LocalPlayer2.Backpack:FindFirstChild('Activate') then
             _LocalPlayer2.Backpack:FindFirstChild('Activate'):Destroy()
         end
@@ -836,32 +840,15 @@ if table.find(v1, tostring(v2)) then
         local _Tool = Instance.new('Tool')
         _Tool.RequiresHandle = false
         _Tool.Name = 'Activate'
-        _Tool.ToolTip = 'Neck Grab - Main grabbing tool'
         _Tool.Parent = _LocalPlayer2.Backpack
 
         _Tool.Activated:Connect(function()
-            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
-                wait(0.1)
-            else
-                game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
-                
-                wait(0.3)
-                
-                if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                    Grab()
-                    PlaySound('4590662761')
-                    
-                    game:GetService('StarterGui'):SetCore('SendNotification', {
-                        Title = 'Neck Grab',
-                        Text = 'Grabbing ' .. _LocalPlayer2.Character.BodyEffects.Grabbed.Value.Name,
-                        Duration = 2
-                    })
-                end
-            end
+            game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
+            wait(0.3)
+            Grab()
         end)
-        
-        if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
+
+if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
         
