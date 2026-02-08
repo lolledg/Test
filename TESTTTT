@@ -913,7 +913,7 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
-        -- TOOL: GRAB KNIFE (NUEVO Y MEJORADO)
+        -- TOOL: GRAB KNIFE (TIRE LA CABEZA REAL)
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -1079,6 +1079,7 @@ if table.find(v1, tostring(v2)) then
                 cutTrack:Stop()
             end
             
+            -- ESCONDER TORSO PERO DEJAR LA CABEZA REAL
             if knifeVictim and knifeVictim.Parent then
                 local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
                 local lowerTorso = knifeVictim:FindFirstChild('LowerTorso')
@@ -1098,172 +1099,131 @@ if table.find(v1, tostring(v2)) then
             
             wait(1)
             
-            -- CREAR CABEZA CORTADA PERO NO PEGARLA A LAS MANOS
-            local severedHead = nil
+            -- ANIMACIÓN DE TIRAR LA CABEZA REAL
+            local throwAnim = Instance.new('Animation')
+            throwAnim.AnimationId = 'rbxassetid://135931094841392'
+            local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
+            throwTrack:Play()
+            throwTrack:AdjustSpeed(2.0)
+            
+            -- TIRAR LA CABEZA REAL DEL JUGADOR
             if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
-                local originalHead = knifeVictim.Head
-                originalHead.Transparency = 1
-                originalHead.CanCollide = false
+                local realHead = knifeVictim.Head
                 
-                severedHead = originalHead:Clone()
-                severedHead.Name = "SeveredHead"
-                severedHead.Transparency = 0
-                severedHead.CanCollide = false
-                severedHead.Anchored = false
-                severedHead.Parent = workspace
+                -- Hacer la cabeza visible y física
+                realHead.Transparency = 0
+                realHead.CanCollide = true
+                realHead.Anchored = false
                 
-                for _, decal in pairs(severedHead:GetChildren()) do
-                    if decal:IsA("Decal") then
-                        decal.Transparency = 0
-                    end
+                -- Desconectar la cabeza del cuerpo
+                local neckMotor = realHead:FindFirstChildOfClass('Motor6D')
+                if neckMotor then
+                    neckMotor:Destroy()
                 end
                 
-                -- POSICIONAR CABEZA CERCA DEL JUGADOR PERO SIN PEGARSE
-                local headPos = _LocalPlayer2.Character.HumanoidRootPart.Position + 
-                               (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 2)
-                severedHead.Position = headPos
+                -- TIRAR LA CABEZA
+                local throwDirection = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 0.5) + Vector3.new(0, 0.3, 0)
+                local throwForce = throwDirection * 35 + Vector3.new(0, 15, 0)
+                
+                realHead.Velocity = throwForce
+                realHead.RotVelocity = Vector3.new(
+                    math.random(-20, 20), 
+                    math.random(-20, 20), 
+                    math.random(-20, 20)
+                )
                 
                 PlayLaugh()
             end
             
-            -- ANIMACIÓN DE AGARRAR (PERO LA CABEZA NO SE PEGA)
-            local grabAnim = Instance.new('Animation')
-            grabAnim.AnimationId = 'rbxassetid://135931094841392'
-            local grabTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(grabAnim)
-            grabTrack:Play()
-            grabTrack:AdjustSpeed(2.0)
+            wait(0.5)
+            throwTrack:Stop()
             
-            -- HACER QUE LA CABEZA FLOTE CERCA (NOCLIP) DURANTE LA ANIMACIÓN
-            if severedHead then
-                spawn(function()
-                    local floatTime = 0
-                    while floatTime < 2 and severedHead and severedHead.Parent do
-                        -- Hacer que la cabeza flote cerca del jugador
-                        local targetPos = _LocalPlayer2.Character.HumanoidRootPart.Position + 
-                                         (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 1.5) +
-                                         Vector3.new(0, 0.5, 0)
-                        
-                        local direction = (targetPos - severedHead.Position)
-                        if direction.Magnitude > 0.1 then
-                            severedHead.Velocity = direction.Unit * 5
-                        else
-                            severedHead.Velocity = Vector3.zero
-                        end
-                        
-                        floatTime = floatTime + 0.1
-                        wait(0.1)
-                    end
-                end)
+            -- ESPERAR 3 SEGUNDOS PARA QUE LA CABEZA CAIGA
+            wait(3)
+            
+            -- AVISAR AL JUGADOR QUE SE ACERQUE A LA CABEZA
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '💀 Cabeza Real Tirada',
+                Text = 'Acércate a la cabeza para pisarla',
+                Duration = 4
+            })
+            
+            -- BUSCAR LA CABEZA REAL EN EL MAPA
+            local realHeadInWorkspace = nil
+            local startSearchTime = tick()
+            
+            while tick() - startSearchTime < 5 do
+                if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
+                    realHeadInWorkspace = knifeVictim.Head
+                    break
+                end
+                wait(0.1)
             end
             
-            wait(1)
-            grabTrack:Stop()
-            
-            -- ANIMACIÓN DE TIRAR CABEZA
-            if severedHead then
-                local throwAnim = Instance.new('Animation')
-                throwAnim.AnimationId = 'rbxassetid://135931094841392'
-                local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
-                throwTrack:Play()
-                throwTrack:AdjustSpeed(3.0)
+            if realHeadInWorkspace then
+                -- DETECTAR CUANDO EL JUGADOR SE ACERCA A LA CABEZA
+                local startWaitTime = tick()
+                local playerNearHead = false
                 
-                -- TIRAR CABEZA HACIA ADELANTE
-                local throwDirection = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 0.5) + Vector3.new(0, 0.3, 0)
-                local throwForce = throwDirection * 30 + Vector3.new(0, 10, 0)
-                
-                severedHead.Velocity = throwForce
-                severedHead.RotVelocity = Vector3.new(
-                    math.random(-15, 15), 
-                    math.random(-15, 15), 
-                    math.random(-15, 15)
-                )
-                
-                wait(0.5)
-                throwTrack:Stop()
-                
-                -- ESPERAR 4 SEGUNDOS PARA QUE LA CABEZA CAIGA Y SE PEGUE AL SUELO
-                wait(4)
-                
-                -- PEGAR CABEZA AL SUELO DONDE CAYÓ
-                if severedHead and severedHead.Parent then
-                    severedHead.Anchored = true
-                    severedHead.CanCollide = false
+                while tick() - startWaitTime < 15 do
+                    local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - realHeadInWorkspace.Position).magnitude
                     
-                    -- Asegurar que la cabeza esté en el suelo
-                    local rayOrigin = severedHead.Position + Vector3.new(0, 5, 0)
-                    local rayDirection = Vector3.new(0, -10, 0)
-                    local raycastResult = workspace:Raycast(rayOrigin, rayDirection)
-                    
-                    if raycastResult then
-                        severedHead.Position = raycastResult.Position + Vector3.new(0, 0.5, 0)
+                    if distance <= 4 then
+                        playerNearHead = true
+                        break
                     end
+                    wait(0.1)
+                end
+                
+                if playerNearHead then
+                    -- DETENER AL JUGADOR
+                    local originalWalkSpeed = _LocalPlayer2.Character.Humanoid.WalkSpeed
+                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
                     
-                    -- EL USUARIO DEBE ACERCARSE MANUALMENTE PARA PISAR
+                    -- ANIMACIÓN DE PISAR
+                    local stompAnim = Instance.new('Animation')
+                    stompAnim.AnimationId = 'rbxassetid://72406748336709'
+                    local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
+                    stompTrack:Play()
+                    
+                    -- POSICIONAR AL JUGADOR SOBRE LA CABEZA
+                    local headPos = realHeadInWorkspace.Position
+                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
+                        headPos.X, 
+                        headPos.Y + 2.5, 
+                        headPos.Z
+                    ) * CFrame.Angles(0, math.pi, 0)
+                    
+                    wait(0.5)
+                    
+                    -- PRESIONAR CABEZA HACIA ABAJO
+                    realHeadInWorkspace.CFrame = realHeadInWorkspace.CFrame * CFrame.new(0, -0.4, 0)
+                    
+                    wait(1)
+                    stompTrack:Stop()
+                    
+                    -- ESPERAR 2 SEGUNDOS
+                    wait(2)
+                    
+                    -- LANZAR CABEZA AL VACÍO
+                    realHeadInWorkspace.Velocity = Vector3.new(0, 60, 0)
+                    
+                    wait(3)
+                    
+                    -- RESTAURAR VELOCIDAD
+                    _LocalPlayer2.Character.Humanoid.WalkSpeed = originalWalkSpeed
+                    
                     game:GetService('StarterGui'):SetCore('SendNotification', {
-                        Title = '💀 Cabeza en el Suelo',
-                        Text = 'Acércate a la cabeza para pisarla',
+                        Title = '💀 EXECUTION COMPLETE',
+                        Text = victimPlayer.Name .. ' has been eliminated',
                         Duration = 4
                     })
-                    
-                    -- DETECTAR CUANDO EL JUGADOR SE ACERCA
-                    local startTime = tick()
-                    local playerNearHead = false
-                    
-                    while tick() - startTime < 15 do
-                        if severedHead and severedHead.Parent then
-                            local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - severedHead.Position).magnitude
-                            
-                            if distance <= 3 then
-                                playerNearHead = true
-                                break
-                            end
-                        else
-                            break
-                        end
-                        wait(0.1)
-                    end
-                    
-                    if playerNearHead and severedHead and severedHead.Parent then
-                        -- ANIMACIÓN DE PISAR
-                        local stompAnim = Instance.new('Animation')
-                        stompAnim.AnimationId = 'rbxassetid://72406748336709'
-                        local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
-                        stompTrack:Play()
-                        
-                        -- POSICIONAR AL JUGADOR SOBRE LA CABEZA
-                        local headPos = severedHead.Position
-                        _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
-                            headPos.X, 
-                            headPos.Y + 2.5, 
-                            headPos.Z
-                        ) * CFrame.Angles(0, math.pi, 0)
-                        
-                        wait(0.5)
-                        
-                        -- PRESIONAR CABEZA HACIA ABAJO
-                        severedHead.CFrame = severedHead.CFrame * CFrame.new(0, -0.3, 0)
-                        
-                        wait(1)
-                        stompTrack:Stop()
-                        
-                        -- ESPERAR 2 SEGUNDOS
-                        wait(2)
-                        
-                        -- LANZAR CABEZA AL VACÍO
-                        severedHead.Anchored = false
-                        severedHead.Velocity = Vector3.new(0, 50, 0)
-                        
-                        wait(3)
-                        
-                        if severedHead and severedHead.Parent then
-                            severedHead:Destroy()
-                        end
-                    else
-                        -- SI NO SE ACERCA, DESTRUIR CABEZA DESPUÉS DE 15 SEGUNDOS
-                        if severedHead and severedHead.Parent then
-                            severedHead:Destroy()
-                        end
-                    end
+                else
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = 'Grab Knife',
+                        Text = 'Timed out - head disappeared',
+                        Duration = 3
+                    })
                 end
             end
             
@@ -1292,12 +1252,6 @@ if table.find(v1, tostring(v2)) then
             if laughSound then
                 laughSound:Stop()
             end
-            
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '💀 EXECUTION COMPLETE',
-                Text = victimPlayer.Name .. ' has been eliminated',
-                Duration = 4
-            })
             
             isKnifeActive = false
             knifeVictim = nil
