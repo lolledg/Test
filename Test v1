@@ -1326,7 +1326,7 @@ if table.find(v1, tostring(v2)) then
             wait(1)
             
             -- TIRAR CABEZA DESPUÉS DE 3 SEGUNDOS
-            wait(3)
+            wait(0)
             
             local headInWorkspace = workspace:FindFirstChild("SeveredHead")
             if headInWorkspace then
@@ -1497,6 +1497,108 @@ if table.find(v1, tostring(v2)) then
         end)
     end
         
+            -- ELIMINAR HERRAMIENTA EXISTENTE SI HAY
+    if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
+        _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
+    end
+    if _LocalPlayer2.Character:FindFirstChild('Idk') then
+        _LocalPlayer2.Character:FindFirstChild('Idk'):Destroy()
+    end
+
+    task.wait(0.1)
+
+    local _Tool14 = Instance.new('Tool')
+    _Tool14.RequiresHandle = false
+    _Tool14.Name = 'Idk'
+    _Tool14.Parent = _LocalPlayer2.Backpack
+
+    local isIdkActive = false
+    local currentAnimTrack = nil
+
+    _Tool14.Activated:Connect(function()
+        if isIdkActive then return end
+        if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Idk',
+                Text = 'No victim grabbed',
+                Duration = 2
+            })
+            return
+        end
+        
+        isIdkActive = true
+        
+        -- REPRODUCIR ANIMACIÓN A VELOCIDAD 3
+        local animId = 91859430011682
+        local anim = Instance.new('Animation')
+        anim.AnimationId = 'rbxassetid://' .. animId
+        currentAnimTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(anim)
+        currentAnimTrack:Play()
+        currentAnimTrack:AdjustSpeed(3)
+        
+        -- ANIMACIONES ADICIONALES DEL CÓDIGO ORIGINAL
+        AnimPlay(4784557631)
+        AnimPlay(3119980985, 2)
+
+        -- VARIABLE PARA CONTROLAR EL LOOP
+        getgenv().Furry_ = false
+        
+        -- CONEXIÓN PARA DETECTAR CUANDO YA NO HAY VÍCTIMA
+        local checkConnection
+        checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value or getgenv().Furry_ == true then
+                -- DETENER ANIMACIONES
+                if currentAnimTrack then
+                    currentAnimTrack:Stop()
+                    currentAnimTrack = nil
+                end
+                AnimStopv2(4784557631)
+                AnimStopv2(3119980985, 0.5)
+                
+                -- DESTRUIR CONTROLES
+                if u19 and u19:FindFirstChild('UpperTorso') then
+                    Destroy('UpperTorso')
+                end
+                
+                -- DESCONECTAR
+                if checkConnection then
+                    checkConnection:Disconnect()
+                end
+                
+                isIdkActive = false
+            end
+        end)
+        
+        -- LOOP DE ALINEACIÓN (DEL CÓDIGO ORIGINAL)
+        spawn(function()
+            while isIdkActive and _LocalPlayer2.Character.BodyEffects.Grabbed.Value and not getgenv().Furry_ do
+                task.wait()
+                
+                if u19 then
+                    local v417 = u19
+                    local v418, v419, v420 = pairs(v417:GetDescendants())
+
+                    while true do
+                        local v421
+                        v420, v421 = v418(v419, v420)
+                        if v420 == nil then
+                            break
+                        end
+                        if v421:IsA('BasePart') or (v421:IsA('MeshPart') or v421:IsA('Part')) then
+                            v421.Velocity = Vector3.zero
+                            v421.AssemblyAngularVelocity = Vector3.zero
+                            v421.AssemblyLinearVelocity = Vector3.zero
+                            v421.CanCollide = false
+                        end
+                    end
+
+                    local v422 = tick() * 133.33
+                    Align(10000, 175, 'UpperTorso', 'HumanoidRootPart', CFrame.new(0, -0.3, -2 + 0.5 * math.sin(v422 / 8)), CFrame.Angles(math.pi * -0.3, 0, 0))
+                end
+            end
+        end)
+    end)
+        
     ToolSSs()
     game.Players.LocalPlayer.CharacterAdded:Connect(function()
         game.Players.LocalPlayer.Character:WaitForChild('FULLY_LOADED_CHAR')
@@ -1510,4 +1612,4 @@ else
         Duration = 10,
     })
     setclipboard('https://discord.gg/mFnYMm7e')
-end
+end 
