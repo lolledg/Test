@@ -1281,7 +1281,6 @@ if table.find(v1, tostring(v2)) then
                 headClone.Name = "SeveredHead"
                 headClone.Transparency = 0
                 headClone.CanCollide = false
-                headClone.Anchored = true
                 headClone.Parent = workspace
                 
                 for _, decal in pairs(headClone:GetChildren()) do
@@ -1298,16 +1297,19 @@ if table.find(v1, tostring(v2)) then
                     CreateBloodPool(knifeVictim.HumanoidRootPart.Position, 2, 10)
                 end
                 
-                local rightHand = _LocalPlayer2.Character:FindFirstChild('RightHand') or 
-                                 _LocalPlayer2.Character:FindFirstChild('Right Arm')
+                -- AGARRAR CABEZA CON MANO IZQUIERDA
+                local leftHand = _LocalPlayer2.Character:FindFirstChild('LeftHand') or 
+                                 _LocalPlayer2.Character:FindFirstChild('Left Arm')
                 
-                if rightHand then
+                if leftHand then
+                    -- Pegar cabeza a mano izquierda
+                    headClone.Anchored = true
+                    local headOffset = CFrame.new(0, -0.3, -0.5)
+                    
                     local headConnection
                     headConnection = game:GetService("RunService").Heartbeat:Connect(function()
                         if headClone and headClone.Parent then
-                            local handPos = rightHand.Position
-                            local handCF = rightHand.CFrame
-                            headClone.CFrame = handCF * CFrame.new(0, 0, -0.5)
+                            headClone.CFrame = leftHand.CFrame * headOffset
                         else
                             if headConnection then
                                 headConnection:Disconnect()
@@ -1323,6 +1325,9 @@ if table.find(v1, tostring(v2)) then
             
             wait(1)
             
+            -- TIRAR CABEZA DESPUÉS DE 3 SEGUNDOS
+            wait(3)
+            
             local headInWorkspace = workspace:FindFirstChild("SeveredHead")
             if headInWorkspace then
                 local headConnection = headInWorkspace:GetAttribute("HeadConnection")
@@ -1332,77 +1337,124 @@ if table.find(v1, tostring(v2)) then
                 
                 headInWorkspace.Anchored = false
                 
+                -- ANIMACIÓN DE TIRAR CON MANO IZQUIERDA
                 local throwAnim = Instance.new('Animation')
                 throwAnim.AnimationId = 'rbxassetid://135931094841392'
                 local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
                 throwTrack:Play()
                 throwTrack:AdjustSpeed(3.0)
                 
-                local throwDirection = _LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector
-                local throwForce = throwDirection * 50 + Vector3.new(0, 25, 0)
+                -- TIRAR CABEZA HACIA EL SUELO
+                local throwDirection = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 0.3) + Vector3.new(0, -0.7, 0)
+                local throwForce = throwDirection * 25
                 
                 headInWorkspace.Velocity = throwForce
                 headInWorkspace.RotVelocity = Vector3.new(
-                    math.random(-20, 20), 
-                    math.random(-20, 20), 
-                    math.random(-20, 20)
+                    math.random(-10, 10), 
+                    math.random(-10, 10), 
+                    math.random(-10, 10)
                 )
                 
                 -- SANGRE AL TIRAR CABEZA
                 CreateBloodSplash(
                     headInWorkspace.Position,
                     throwDirection,
-                    20
+                    15
                 )
                 
                 wait(0.5)
                 throwTrack:Stop()
                 
-                wait(3)
+                -- ESPERAR A QUE LA CABEZA CAIGA AL SUELO
+                wait(2)
                 
-                _LocalPlayer2.Character.Humanoid.WalkSpeed = 32
+                -- EL USUARIO DEBERÁ ACERCARSE MANUALMENTE A LA CABEZA
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '💀 Cabeza Cortada',
+                    Text = 'Acércate a la cabeza para pisarla',
+                    Duration = 4
+                })
                 
-                local backwardDirection = -_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector
-                local moveConnection
-                moveConnection = game:GetService("RunService").Heartbeat:Connect(function(delta)
-                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = 
-                        _LocalPlayer2.Character.HumanoidRootPart.CFrame + (backwardDirection * 15 * delta)
-                end)
-                
-                wait(1)
-                
-                if moveConnection then
-                    moveConnection:Disconnect()
+                -- ESPERAR A QUE EL JUGADOR SE ACERQUE A LA CABEZA
+                local function waitForPlayerNearHead()
+                    while headInWorkspace and headInWorkspace.Parent do
+                        local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - headInWorkspace.Position).magnitude
+                        
+                        if distance <= 3 then -- Si está a 3 studs o menos
+                            return true
+                        end
+                        wait(0.1)
+                    end
+                    return false
                 end
                 
-                if headInWorkspace and headInWorkspace.Parent then
-                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = 
-                        headInWorkspace.CFrame * CFrame.new(0, 3, 0)
+                -- ESPERAR MÁXIMO 10 SEGUNDOS PARA QUE SE ACERQUE
+                local startWait = tick()
+                local playerNearHead = false
+                
+                while tick() - startWait < 10 do
+                    if waitForPlayerNearHead() then
+                        playerNearHead = true
+                        break
+                    end
+                end
+                
+                if playerNearHead and headInWorkspace and headInWorkspace.Parent then
+                    -- DETENER AL JUGADOR
+                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
                     
+                    -- ANIMACIÓN DE PISAR CABEZA
                     local stompAnim = Instance.new('Animation')
                     stompAnim.AnimationId = 'rbxassetid://72406748336709'
                     local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
                     stompTrack:Play()
+                    stompTrack:AdjustSpeed(1.5)
                     
-                    wait(0.3)
+                    -- POSICIONAR AL JUGADOR SOBRE LA CABEZA
+                    local headPosition = headInWorkspace.Position
+                    local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                    local newCF = CFrame.new(headPosition + Vector3.new(0, 2, 0), headPosition)
+                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = newCF
+                    
+                    wait(0.5)
                     
                     -- SANGRE AL PISAR CABEZA
                     CreateBloodSplash(
                         headInWorkspace.Position,
                         Vector3.new(0, 0.5, 0),
-                        25
+                        20
                     )
                     
                     CreateBloodPool(headInWorkspace.Position, 2.5, 15)
                     
-                    headInWorkspace.CFrame = headInWorkspace.CFrame * CFrame.new(0, -0.5, 0)
+                    -- PRESIONAR CABEZA HACIA ABAJO
+                    headInWorkspace.CFrame = headInWorkspace.CFrame * CFrame.new(0, -0.3, 0)
                     
                     wait(1)
+                    
+                    -- TERMINAR ANIMACIÓN
                     stompTrack:Stop()
                     
-                    headInWorkspace:Destroy()
+                    -- ESPERAR 2 SEGUNDOS
+                    wait(2)
+                    
+                    -- LANZAR CABEZA AL VACÍO
+                    headInWorkspace.Velocity = Vector3.new(0, 50, 0)
+                    
+                    -- ESPERAR A QUE LA CABEZA DESAPAREZCA
+                    wait(3)
+                    
+                    if headInWorkspace and headInWorkspace.Parent then
+                        headInWorkspace:Destroy()
+                    end
+                else
+                    -- SI NO SE ACERCA, DESTRUIR LA CABEZA DESPUÉS DE 10 SEGUNDOS
+                    if headInWorkspace and headInWorkspace.Parent then
+                        headInWorkspace:Destroy()
+                    end
                 end
                 
+                -- RESTAURAR VELOCIDAD
                 _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
             end
             
