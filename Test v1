@@ -848,656 +848,329 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
-        -- ESPERAR A QUE EL JUGADOR TENGA UN PERSONAJE VÁLIDO
-        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then
-            _LocalPlayer2.CharacterAdded:Wait()
-            _LocalPlayer2.Character:WaitForChild('Humanoid')
-        end
+-- TOOL: GRAB KNIFE
+if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
+    _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
+end
+if _LocalPlayer2.Character:FindFirstChild('grab knife') then
+    _LocalPlayer2.Character:FindFirstChild('grab knife'):Destroy()
+end
 
-        -- ELIMINAR HERRAMIENTA EXISTENTE SI HAY
-        if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
-            _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
-        end
-        if _LocalPlayer2.Character:FindFirstChild('grab knife') then
-            _LocalPlayer2.Character:FindFirstChild('grab knife'):Destroy()
-        end
-        
-        wait(0.1)
-        
-        local _ToolGrabKnife = Instance.new('Tool')
-        _ToolGrabKnife.RequiresHandle = false
-        _ToolGrabKnife.Name = 'grab knife'
-        _ToolGrabKnife.ToolTip = 'Grab Knife - Bloody execution with laugh'
-        _ToolGrabKnife.Parent = _LocalPlayer2.Backpack
-        
-        -- ============================================
-        -- SISTEMA DE SANGRE
-        -- ============================================
-        local Debris = game:GetService("Debris")
-        local TweenService = game:GetService("TweenService")
-        local bloodAsset = "rbxassetid://5069307706"
-        local bloodTemplateType = nil
-        local bloodEmitterTemplate = nil
-        local bloodModelTemplate = nil
-        
-        local function PreloadBloodSystem()
-            local ok, objects = pcall(function() 
-                return game:GetObjects(bloodAsset) 
-            end)
-            
-            if not ok or not objects or #objects == 0 then 
-                return 
-            end
-            
-            local root = objects[1]
-            local foundEmitter
-            
-            for _, d in ipairs(root:GetDescendants()) do
-                if d:IsA("ParticleEmitter") then 
-                    foundEmitter = d 
-                    break 
-                end
-            end
-            
-            if foundEmitter then
-                bloodEmitterTemplate = foundEmitter:Clone()
-                bloodTemplateType = "emitter"
-            else
-                for _, p in ipairs(root:GetDescendants()) do
-                    if p:IsA("BasePart") then 
-                        p.CanCollide = false 
-                        p.Massless = true 
-                    end
-                end
-                root.Parent = nil
-                bloodModelTemplate = root
-                bloodTemplateType = "model"
-            end
-        end
-        
-        local function CreateBloodEffect(position, parent, duration)
-            if not bloodTemplateType then return nil end
-            
-            duration = duration or 5
-            
-            if bloodTemplateType == "emitter" and bloodEmitterTemplate then
-                local emitter = bloodEmitterTemplate:Clone()
-                emitter.Name = "BloodEffect"
-                
-                local attachment = Instance.new("Attachment")
-                attachment.Position = position
-                attachment.Parent = parent or workspace
-                
-                emitter.Parent = attachment
-                emitter.Enabled = true
-                
-                Debris:AddItem(attachment, duration)
-                
-                return attachment
-            elseif bloodTemplateType == "model" and bloodModelTemplate then
-                local bloodModel = bloodModelTemplate:Clone()
-                bloodModel:PivotTo(CFrame.new(position))
-                bloodModel.Parent = parent or workspace
-                
-                for _, part in ipairs(bloodModel:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                        part.Massless = true
-                        part.Anchored = true
-                    end
-                end
-                
-                Debris:AddItem(bloodModel, duration)
-                
-                return bloodModel
-            end
-            
-            return nil
+wait(0.1)
+
+local _ToolGrabKnife = Instance.new('Tool')
+_ToolGrabKnife.RequiresHandle = false
+_ToolGrabKnife.Name = 'grab knife'
+_ToolGrabKnife.ToolTip = 'Grab Knife - Bloody execution with laugh'
+_ToolGrabKnife.Parent = _LocalPlayer2.Backpack
+
+local isKnifeActive = false
+local knifeVictim = nil
+local laughSound = nil
+
+local function PlayLaugh()
+    if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+        _ReplicatedStorage.MainEvent:FireServer('Boombox', '4810729995')
+    else
+        laughSound = Instance.new("Sound")
+        laughSound.SoundId = "rbxassetid://4810729995"
+        laughSound.Volume = 1.0
+        laughSound.Parent = workspace
+        laughSound:Play()
+        game.Debris:AddItem(laughSound, 10)
+    end
+end
+
+_ToolGrabKnife.Activated:Connect(function()
+    if isKnifeActive then return end
+    isKnifeActive = true
+    
+    if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+        game:GetService('StarterGui'):SetCore('SendNotification', {
+            Title = 'Grab Knife',
+            Text = 'No victim grabbed',
+            Duration = 2
+        })
+        isKnifeActive = false
+        return
+    end
+    
+    knifeVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+    local victimPlayer = game.Players:GetPlayerFromCharacter(knifeVictim)
+    
+    if not victimPlayer or victimPlayer == _LocalPlayer2 then
+        game:GetService('StarterGui'):SetCore('SendNotification', {
+            Title = 'Grab Knife',
+            Text = 'Cannot use on yourself',
+            Duration = 2
+        })
+        isKnifeActive = false
+        return
+    end
+    
+    print('[Grab Knife] Starting execution on:', victimPlayer.Name)
+    
+    PlayLaugh()
+    
+    local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
+                 _LocalPlayer2.Backpack:FindFirstChild('knife')
+    if knife then
+        knife.Parent = _LocalPlayer2.Character
+    end
+    
+    local freezeAnim = Instance.new('Animation')
+    freezeAnim.AnimationId = 'rbxassetid://74694286613254'
+    local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
+    freezeTrack:Play()
+    freezeTrack:AdjustSpeed(0)
+    freezeTrack.TimePosition = 1.66
+    
+    local stopAlign = false
+    local alignConnection
+    
+    alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
+        if stopAlign or not knifeVictim or not knifeVictim.Parent then
+            if alignConnection then alignConnection:Disconnect() end
+            return
         end
         
-        local function CreateBloodPool(position, size, duration)
-            duration = duration or 10
-            
-            local bloodPool = Instance.new("Part")
-            bloodPool.Name = "BloodPool"
-            bloodPool.Size = Vector3.new(size or 3, 0.1, size or 3)
-            bloodPool.BrickColor = BrickColor.new("Bright red")
-            bloodPool.Material = Enum.Material.Neon
-            bloodPool.Transparency = 0.4
-            bloodPool.Reflectance = 0.1
-            bloodPool.CanCollide = false
-            bloodPool.Anchored = true
-            bloodPool.CFrame = CFrame.new(position) * CFrame.new(0, -0.05, 0)
-            bloodPool.Parent = workspace
-            
-            local startSize = Vector3.new(0.5, 0.1, 0.5)
-            bloodPool.Size = startSize
-            
-            local tweenInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-            local tween = TweenService:Create(bloodPool, tweenInfo, {
-                Size = Vector3.new(size or 3, 0.1, size or 3)
-            })
-            tween:Play()
-            
-            Debris:AddItem(bloodPool, duration)
-            
-            return bloodPool
+        local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
+        if not upperTorso then return end
+        
+        local bodyPos = upperTorso:FindFirstChild('BodyPosition')
+        if not bodyPos then
+            bodyPos = Instance.new('BodyPosition')
+            bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
+            bodyPos.P = 8000
+            bodyPos.D = 800
+            bodyPos.Parent = upperTorso
         end
         
-        local function CreateBloodSplash(sourcePosition, direction, intensity)
-            intensity = intensity or 10
-            
-            for i = 1, intensity do
-                local bloodDrop = Instance.new("Part")
-                bloodDrop.Name = "BloodDrop"
-                bloodDrop.Size = Vector3.new(
-                    math.random(8, 15) / 10,
-                    math.random(8, 15) / 10,
-                    math.random(8, 15) / 10
-                )
-                bloodDrop.BrickColor = BrickColor.new("Bright red")
-                bloodDrop.Material = Enum.Material.Neon
-                bloodDrop.Transparency = 0.3
-                bloodDrop.CanCollide = false
-                bloodDrop.Anchored = false
-                bloodDrop.Position = sourcePosition
-                
-                local bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.Velocity = (
-                    (direction * math.random(20, 40)) + 
-                    Vector3.new(
-                        math.random(-15, 15),
-                        math.random(10, 25),
-                        math.random(-15, 15)
-                    )
-                )
-                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                bodyVelocity.Parent = bloodDrop
-                
-                local bodyGyro = Instance.new("BodyGyro")
-                bodyGyro.MaxTorque = Vector3.new(5000, 5000, 5000)
-                bodyGyro.P = 8000
-                bodyGyro.Parent = bloodDrop
-                
-                bloodDrop.Parent = workspace
-                
-                spawn(function()
-                    local gravity = 196.2
-                    local startTime = tick()
-                    
-                    while bloodDrop and bloodDrop.Parent do
-                        local elapsed = tick() - startTime
-                        if elapsed > 2 then break end
-                        
-                        bodyVelocity.Velocity = Vector3.new(
-                            bodyVelocity.Velocity.X,
-                            bodyVelocity.Velocity.Y - (gravity * 0.02),
-                            bodyVelocity.Velocity.Z
-                        )
-                        
-                        wait(0.02)
-                    end
-                    
-                    if bloodDrop and bloodDrop.Parent then
-                        CreateBloodPool(bloodDrop.Position, 0.8, 3)
-                        bloodDrop:Destroy()
-                    end
-                end)
-                
-                Debris:AddItem(bloodDrop, 3)
-                wait(0.05)
+        local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
+        if not bodyGyro then
+            bodyGyro = Instance.new('BodyGyro')
+            bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
+            bodyGyro.P = 10000
+            bodyGyro.Parent = upperTorso
+        end
+        
+        local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+        local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
+        
+        bodyPos.Position = frontPos
+        bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
+    end)
+    
+    local cutAnim = Instance.new('Animation')
+    cutAnim.AnimationId = 'rbxassetid://126796684932532'
+    
+    local limbsToSever = {
+        'RightUpperArm',
+        'LeftUpperArm', 
+        'LeftUpperLeg',
+        'RightUpperLeg'
+    }
+    
+    for i = 1, 4 do
+        local soundId = i == 4 and '91676414066995' or '125856818464345'
+        
+        if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+            _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+        else
+            local cutSound = Instance.new("Sound")
+            cutSound.SoundId = "rbxassetid://" .. soundId
+            cutSound.Volume = 0.8
+            cutSound.Parent = workspace
+            cutSound:Play()
+            game.Debris:AddItem(cutSound, 3)
+        end
+        
+        local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
+        cutTrack:Play()
+        cutTrack:AdjustSpeed(1.2)
+        
+        if knifeVictim and knifeVictim.Parent then
+            local part = knifeVictim:FindFirstChild(limbsToSever[i])
+            if part then 
+                wait(0.1)
+                part:Destroy()
             end
         end
         
-        local function AttachBloodToModel(model, attachmentPoint)
-            if not model or not model.Parent then return end
-            
-            local part = model:FindFirstChild(attachmentPoint)
-            if not part then return end
-            
-            local existingBlood = part:FindFirstChild("BloodAttachment")
-            if existingBlood then return end
-            
-            if bloodTemplateType == "emitter" and bloodEmitterTemplate then
-                local attachment = Instance.new("Attachment")
-                attachment.Name = "BloodAttachment"
-                
-                if attachmentPoint == "Head" then
-                    attachment.Position = Vector3.new(0, -0.45, 0)
-                elseif attachmentPoint == "UpperTorso" then
-                    attachment.Position = Vector3.new(0, -0.8, 0)
-                else
-                    attachment.Position = Vector3.new(0, -0.5, 0)
-                end
-                
-                attachment.Parent = part
-                
-                local emitter = bloodEmitterTemplate:Clone()
-                emitter.Name = "BloodEmitter"
-                emitter.Enabled = true
-                emitter.Rate = 30
-                emitter.Lifetime = NumberRange.new(0.8, 1.2)
-                emitter.Speed = NumberRange.new(2, 8)
-                emitter.Parent = attachment
-                
-                spawn(function()
-                    wait(5)
-                    if attachment and attachment.Parent then
-                        attachment:Destroy()
-                    end
-                end)
-                
-                return attachment
-            end
-        end
-        
-        local function CreateLimbBloodEffect(limbPosition, limbType)
-            CreateBloodSplash(
-                limbPosition,
-                Vector3.new(
-                    math.random(-1, 1),
-                    0.5,
-                    math.random(-1, 1)
-                ),
-                15
-            )
-            
-            CreateBloodPool(limbPosition, 1.5, 8)
-            CreateBloodEffect(limbPosition, workspace, 3)
-        end
-        
-        PreloadBloodSystem()
-        -- ============================================
-        -- FIN SISTEMA DE SANGRE
-        -- ============================================
-        
-        local isKnifeActive = false
-        local knifeVictim = nil
-        local laughSound = nil
-        
-        local function PlayLaugh()
-            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                _ReplicatedStorage.MainEvent:FireServer('Boombox', '4810729995')
-            else
-                laughSound = Instance.new("Sound")
-                laughSound.SoundId = "rbxassetid://4810729995"
-                laughSound.Volume = 1.0
-                laughSound.Parent = workspace
-                laughSound:Play()
-                game.Debris:AddItem(laughSound, 10)
-            end
-        end
-        
-        _ToolGrabKnife.Activated:Connect(function()
-            if isKnifeActive then return end
-            isKnifeActive = true
-            
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Grab Knife',
-                    Text = 'No victim grabbed',
-                    Duration = 2
-                })
-                isKnifeActive = false
-                return
-            end
-            
-            knifeVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local victimPlayer = game.Players:GetPlayerFromCharacter(knifeVictim)
-            
-            if not victimPlayer or victimPlayer == _LocalPlayer2 then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Grab Knife',
-                    Text = 'Cannot use on yourself',
-                    Duration = 2
-                })
-                isKnifeActive = false
-                return
-            end
-            
-            print('[Grab Knife] Starting execution on:', victimPlayer.Name)
-            
+        if math.random(1, 3) == 1 and laughSound and not laughSound.Playing then
             PlayLaugh()
-            
-            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
-                         _LocalPlayer2.Backpack:FindFirstChild('knife')
-            if knife then
-                knife.Parent = _LocalPlayer2.Character
+        end
+        
+        wait(1.5)
+        cutTrack:Stop()
+    end
+    
+    if knifeVictim and knifeVictim.Parent then
+        local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
+        local lowerTorso = knifeVictim:FindFirstChild('LowerTorso')
+        
+        if upperTorso then
+            upperTorso.CFrame = CFrame.new(0, -500, 0)
+            upperTorso.CanCollide = false
+            upperTorso.Transparency = 1
+        end
+        
+        if lowerTorso then
+            lowerTorso.CFrame = CFrame.new(0, -500, 0)
+            lowerTorso.CanCollide = false
+            lowerTorso.Transparency = 1
+        end
+    end
+    
+    if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
+        local originalHead = knifeVictim.Head
+        originalHead.Transparency = 1
+        originalHead.CanCollide = false
+        
+        local headClone = originalHead:Clone()
+        headClone.Name = "SeveredHead"
+        headClone.Transparency = 0
+        headClone.CanCollide = false
+        headClone.Anchored = true
+        headClone.Parent = workspace
+        
+        for _, decal in pairs(headClone:GetChildren()) do
+            if decal:IsA("Decal") then
+                decal.Transparency = 0
             end
-            
-            local freezeAnim = Instance.new('Animation')
-            freezeAnim.AnimationId = 'rbxassetid://74694286613254'
-            local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
-            freezeTrack:Play()
-            freezeTrack:AdjustSpeed(0)
-            freezeTrack.TimePosition = 1.66
-            
-            local stopAlign = false
-            local alignConnection
-            
-            alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                if stopAlign or not knifeVictim or not knifeVictim.Parent then
-                    if alignConnection then alignConnection:Disconnect() end
-                    return
+        end
+        
+        local rightHand = _LocalPlayer2.Character:FindFirstChild('RightHand') or 
+                         _LocalPlayer2.Character:FindFirstChild('Right Arm')
+        
+        if rightHand then
+            local headConnection
+            headConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if headClone and headClone.Parent then
+                    local handPos = rightHand.Position
+                    local handCF = rightHand.CFrame
+                    headClone.CFrame = handCF * CFrame.new(0, 0, -0.5)
+                else
+                    if headConnection then
+                        headConnection:Disconnect()
+                    end
                 end
-                
-                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
-                if not upperTorso then return end
-                
-                local bodyPos = upperTorso:FindFirstChild('BodyPosition')
-                if not bodyPos then
-                    bodyPos = Instance.new('BodyPosition')
-                    bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
-                    bodyPos.P = 8000
-                    bodyPos.D = 800
-                    bodyPos.Parent = upperTorso
-                end
-                
-                local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
-                if not bodyGyro then
-                    bodyGyro = Instance.new('BodyGyro')
-                    bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
-                    bodyGyro.P = 10000
-                    bodyGyro.Parent = upperTorso
-                end
-                
-                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                local frontPos = playerCF.Position + (playerCF.LookVector * 2.5)
-                
-                bodyPos.Position = frontPos
-                bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
             end)
             
-            local cutAnim = Instance.new('Animation')
-            cutAnim.AnimationId = 'rbxassetid://126796684932532'
+            headClone:SetAttribute("HeadConnection", headConnection)
+        end
+        
+        PlayLaugh()
+    end
+    
+    wait(1)
+    
+    local headInWorkspace = workspace:FindFirstChild("SeveredHead")
+    if headInWorkspace then
+        local headConnection = headInWorkspace:GetAttribute("HeadConnection")
+        if headConnection then
+            headConnection:Disconnect()
+        end
+        
+        headInWorkspace.Anchored = false
+        
+        local throwAnim = Instance.new('Animation')
+        throwAnim.AnimationId = 'rbxassetid://135931094841392'
+        local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
+        throwTrack:Play()
+        throwTrack:AdjustSpeed(3.0)
+        
+        local throwDirection = _LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector
+        local throwForce = throwDirection * 50 + Vector3.new(0, 25, 0)
+        
+        headInWorkspace.Velocity = throwForce
+        headInWorkspace.RotVelocity = Vector3.new(
+            math.random(-20, 20), 
+            math.random(-20, 20), 
+            math.random(-20, 20)
+        )
+        
+        wait(0.5)
+        throwTrack:Stop()
+        
+        wait(3)
+        
+        _LocalPlayer2.Character.Humanoid.WalkSpeed = 32
+        
+        local backwardDirection = -_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector
+        local moveConnection
+        moveConnection = game:GetService("RunService").Heartbeat:Connect(function(delta)
+            _LocalPlayer2.Character.HumanoidRootPart.CFrame = 
+                _LocalPlayer2.Character.HumanoidRootPart.CFrame + (backwardDirection * 15 * delta)
+        end)
+        
+        wait(1)
+        
+        if moveConnection then
+            moveConnection:Disconnect()
+        end
+        
+        if headInWorkspace and headInWorkspace.Parent then
+            _LocalPlayer2.Character.HumanoidRootPart.CFrame = 
+                headInWorkspace.CFrame * CFrame.new(0, 3, 0)
             
-            local limbsToSever = {
-                'RightUpperArm',
-                'LeftUpperArm', 
-                'LeftUpperLeg',
-                'RightUpperLeg'
-            }
+            local stompAnim = Instance.new('Animation')
+            stompAnim.AnimationId = 'rbxassetid://72406748336709'
+            local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
+            stompTrack:Play()
             
-            for i = 1, 4 do
-                local soundId = i == 4 and '91676414066995' or '125856818464345'
-                
-                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                    _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
-                else
-                    local cutSound = Instance.new("Sound")
-                    cutSound.SoundId = "rbxassetid://" .. soundId
-                    cutSound.Volume = 0.8
-                    cutSound.Parent = workspace
-                    cutSound:Play()
-                    game.Debris:AddItem(cutSound, 3)
-                end
-                
-                local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
-                cutTrack:Play()
-                cutTrack:AdjustSpeed(1.2)
-                
-                if knifeVictim and knifeVictim.Parent then
-                    local part = knifeVictim:FindFirstChild(limbsToSever[i])
-                    if part then 
-                        -- EFECTO DE SANGRE AL CORTAR MIEMBRO
-                        CreateLimbBloodEffect(part.Position, limbsToSever[i])
-                        
-                        wait(0.1)
-                        part:Destroy()
-                    end
-                end
-                
-                if math.random(1, 3) == 1 and laughSound and not laughSound.Playing then
-                    PlayLaugh()
-                end
-                
-                wait(1.5)
-                cutTrack:Stop()
-            end
+            wait(0.3)
             
-            if knifeVictim and knifeVictim.Parent then
-                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
-                local lowerTorso = knifeVictim:FindFirstChild('LowerTorso')
-                
-                if upperTorso then
-                    upperTorso.CFrame = CFrame.new(0, -500, 0)
-                    upperTorso.CanCollide = false
-                    upperTorso.Transparency = 1
-                end
-                
-                if lowerTorso then
-                    lowerTorso.CFrame = CFrame.new(0, -500, 0)
-                    lowerTorso.CanCollide = false
-                    lowerTorso.Transparency = 1
-                end
-            end
-            
-            if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
-                local originalHead = knifeVictim.Head
-                originalHead.Transparency = 1
-                originalHead.CanCollide = false
-                
-                local headClone = originalHead:Clone()
-                headClone.Name = "SeveredHead"
-                headClone.Transparency = 0
-                headClone.CanCollide = false
-                headClone.Parent = workspace
-                
-                for _, decal in pairs(headClone:GetChildren()) do
-                    if decal:IsA("Decal") then
-                        decal.Transparency = 0
-                    end
-                end
-                
-                -- SANGRE EN EL CUELLO DE LA CABEZA
-                AttachBloodToModel(headClone, "Head")
-                
-                -- CHARCO DE SANGRE DONDE ESTABA LA CABEZA
-                if knifeVictim:FindFirstChild("HumanoidRootPart") then
-                    CreateBloodPool(knifeVictim.HumanoidRootPart.Position, 2, 10)
-                end
-                
-                -- AGARRAR CABEZA CON MANO IZQUIERDA
-                local leftHand = _LocalPlayer2.Character:FindFirstChild('LeftHand') or 
-                                 _LocalPlayer2.Character:FindFirstChild('Left Arm')
-                
-                if leftHand then
-                    -- Pegar cabeza a mano izquierda
-                    headClone.Anchored = true
-                    local headOffset = CFrame.new(0, -0.3, -0.5)
-                    
-                    local headConnection
-                    headConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                        if headClone and headClone.Parent then
-                            headClone.CFrame = leftHand.CFrame * headOffset
-                        else
-                            if headConnection then
-                                headConnection:Disconnect()
-                            end
-                        end
-                    end)
-                    
-                    headClone:SetAttribute("HeadConnection", headConnection)
-                end
-                
-                PlayLaugh()
-            end
+            headInWorkspace.CFrame = headInWorkspace.CFrame * CFrame.new(0, -0.5, 0)
             
             wait(1)
+            stompTrack:Stop()
             
-            -- TIRAR CABEZA DESPUÉS DE 3 SEGUNDOS
-            wait(0)
-            
-            local headInWorkspace = workspace:FindFirstChild("SeveredHead")
-            if headInWorkspace then
-                local headConnection = headInWorkspace:GetAttribute("HeadConnection")
-                if headConnection then
-                    headConnection:Disconnect()
-                end
-                
-                headInWorkspace.Anchored = false
-                
-                -- ANIMACIÓN DE TIRAR CON MANO IZQUIERDA
-                local throwAnim = Instance.new('Animation')
-                throwAnim.AnimationId = 'rbxassetid://135931094841392'
-                local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
-                throwTrack:Play()
-                throwTrack:AdjustSpeed(3.0)
-                
-                -- TIRAR CABEZA HACIA EL SUELO
-                local throwDirection = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 0.3) + Vector3.new(0, -0.7, 0)
-                local throwForce = throwDirection * 25
-                
-                headInWorkspace.Velocity = throwForce
-                headInWorkspace.RotVelocity = Vector3.new(
-                    math.random(-10, 10), 
-                    math.random(-10, 10), 
-                    math.random(-10, 10)
-                )
-                
-                -- SANGRE AL TIRAR CABEZA
-                CreateBloodSplash(
-                    headInWorkspace.Position,
-                    throwDirection,
-                    15
-                )
-                
-                wait(0.5)
-                throwTrack:Stop()
-                
-                -- ESPERAR A QUE LA CABEZA CAIGA AL SUELO
-                wait(2)
-                
-                -- EL USUARIO DEBERÁ ACERCARSE MANUALMENTE A LA CABEZA
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '💀 Cabeza Cortada',
-                    Text = 'Acércate a la cabeza para pisarla',
-                    Duration = 4
-                })
-                
-                -- ESPERAR A QUE EL JUGADOR SE ACERQUE A LA CABEZA
-                local function waitForPlayerNearHead()
-                    while headInWorkspace and headInWorkspace.Parent do
-                        local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - headInWorkspace.Position).magnitude
-                        
-                        if distance <= 3 then -- Si está a 3 studs o menos
-                            return true
-                        end
-                        wait(0.1)
-                    end
-                    return false
-                end
-                
-                -- ESPERAR MÁXIMO 10 SEGUNDOS PARA QUE SE ACERQUE
-                local startWait = tick()
-                local playerNearHead = false
-                
-                while tick() - startWait < 10 do
-                    if waitForPlayerNearHead() then
-                        playerNearHead = true
-                        break
-                    end
-                end
-                
-                if playerNearHead and headInWorkspace and headInWorkspace.Parent then
-                    -- DETENER AL JUGADOR
-                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
-                    
-                    -- ANIMACIÓN DE PISAR CABEZA
-                    local stompAnim = Instance.new('Animation')
-                    stompAnim.AnimationId = 'rbxassetid://72406748336709'
-                    local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
-                    stompTrack:Play()
-                    stompTrack:AdjustSpeed(1.5)
-                    
-                    -- POSICIONAR AL JUGADOR SOBRE LA CABEZA
-                    local headPosition = headInWorkspace.Position
-                    local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                    local newCF = CFrame.new(headPosition + Vector3.new(0, 2, 0), headPosition)
-                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = newCF
-                    
-                    wait(0.5)
-                    
-                    -- SANGRE AL PISAR CABEZA
-                    CreateBloodSplash(
-                        headInWorkspace.Position,
-                        Vector3.new(0, 0.5, 0),
-                        20
-                    )
-                    
-                    CreateBloodPool(headInWorkspace.Position, 2.5, 15)
-                    
-                    -- PRESIONAR CABEZA HACIA ABAJO
-                    headInWorkspace.CFrame = headInWorkspace.CFrame * CFrame.new(0, -0.3, 0)
-                    
-                    wait(1)
-                    
-                    -- TERMINAR ANIMACIÓN
-                    stompTrack:Stop()
-                    
-                    -- ESPERAR 2 SEGUNDOS
-                    wait(2)
-                    
-                    -- LANZAR CABEZA AL VACÍO
-                    headInWorkspace.Velocity = Vector3.new(0, 50, 0)
-                    
-                    -- ESPERAR A QUE LA CABEZA DESAPAREZCA
-                    wait(3)
-                    
-                    if headInWorkspace and headInWorkspace.Parent then
-                        headInWorkspace:Destroy()
-                    end
-                else
-                    -- SI NO SE ACERCA, DESTRUIR LA CABEZA DESPUÉS DE 10 SEGUNDOS
-                    if headInWorkspace and headInWorkspace.Parent then
-                        headInWorkspace:Destroy()
-                    end
-                end
-                
-                -- RESTAURAR VELOCIDAD
-                _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
-            end
-            
-            stopAlign = true
-            if alignConnection then alignConnection:Disconnect() end
-            
-            if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('UpperTorso') then
-                local bodyPos = knifeVictim.UpperTorso:FindFirstChild('BodyPosition')
-                local bodyGyro = knifeVictim.UpperTorso:FindFirstChild('BodyGyro')
-                if bodyPos then bodyPos:Destroy() end
-                if bodyGyro then bodyGyro:Destroy() end
-            end
-            
-            local args = {
-                "Grabbing",
-                false
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-            
-            if knife and knife.Parent == _LocalPlayer2.Character then
-                knife.Parent = _LocalPlayer2.Backpack
-            end
-            
-            freezeTrack:Stop()
-            freezeAnim:Destroy()
-            cutAnim:Destroy()
-            
-            if laughSound then
-                laughSound:Stop()
-            end
-            
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '💀 EXECUTION COMPLETE',
-                Text = victimPlayer.Name .. ' has been eliminated',
-                Duration = 4
-            })
-            
-            isKnifeActive = false
-            knifeVictim = nil
-        end)
-    end
+            headInWorkspace:Destroy()
+        end
         
-            -- ELIMINAR HERRAMIENTA EXISTENTE SI HAY
+        _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
+    end
+    
+    stopAlign = true
+    if alignConnection then alignConnection:Disconnect() end
+    
+    if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('UpperTorso') then
+        local bodyPos = knifeVictim.UpperTorso:FindFirstChild('BodyPosition')
+        local bodyGyro = knifeVictim.UpperTorso:FindFirstChild('BodyGyro')
+        if bodyPos then bodyPos:Destroy() end
+        if bodyGyro then bodyGyro:Destroy() end
+    end
+    
+    local args = {
+        "Grabbing",
+        false
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+    
+    if knife and knife.Parent == _LocalPlayer2.Character then
+        knife.Parent = _LocalPlayer2.Backpack
+    end
+    
+    freezeTrack:Stop()
+    freezeAnim:Destroy()
+    cutAnim:Destroy()
+    
+    if laughSound then
+        laughSound:Stop()
+    end
+    
+    game:GetService('StarterGui'):SetCore('SendNotification', {
+        Title = '💀 EXECUTION COMPLETE',
+        Text = victimPlayer.Name .. ' has been eliminated',
+        Duration = 4
+    })
+    
+    isKnifeActive = false
+    knifeVictim = nil
+end)
+
+    -- ELIMINAR HERRAMIENTA EXISTENTE SI HAY
     if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
         _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
     end
@@ -1505,7 +1178,7 @@ if table.find(v1, tostring(v2)) then
         _LocalPlayer2.Character:FindFirstChild('Idk'):Destroy()
     end
 
-    task.wait(0.1)
+    wait(0.1)
 
     local _Tool14 = Instance.new('Tool')
     _Tool14.RequiresHandle = false
@@ -1569,7 +1242,7 @@ if table.find(v1, tostring(v2)) then
             end
         end)
         
-        -- LOOP DE ALINEACIÓN (DEL CÓDIGO ORIGINAL)
+        -- LOOP DE ALINEACIÓN (MODIFICADO PARA QUE ESTÉ MÁS CERCA)
         spawn(function()
             while isIdkActive and _LocalPlayer2.Character.BodyEffects.Grabbed.Value and not getgenv().Furry_ do
                 task.wait()
@@ -1593,12 +1266,15 @@ if table.find(v1, tostring(v2)) then
                     end
 
                     local v422 = tick() * 133.33
-                    Align(10000, 175, 'UpperTorso', 'HumanoidRootPart', CFrame.new(0, -0.3, -2 + 0.5 * math.sin(v422 / 8)), CFrame.Angles(math.pi * -0.3, 0, 0))
+                    -- AJUSTADO PARA QUE ESTÉ MÁS CERCA: Cambié -2 a -1.2 y reduje la distancia del seno
+                    Align(10000, 175, 'UpperTorso', 'HumanoidRootPart', 
+                          CFrame.new(0, -0.3, -1.2 + 0.3 * math.sin(v422 / 8)), -- Más cerca
+                          CFrame.Angles(math.pi * -0.3, 0, 0))
                 end
             end
         end)
     end)
-        
+          
     ToolSSs()
     game.Players.LocalPlayer.CharacterAdded:Connect(function()
         game.Players.LocalPlayer.Character:WaitForChild('FULLY_LOADED_CHAR')
