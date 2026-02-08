@@ -1007,7 +1007,7 @@ if table.find(v1, tostring(v2)) then
         end)
         
         -- ============================================
-        -- TOOL: HOVERBOARD SURF - VERSIÓN CORREGIDA
+        -- TOOL: HOVERBOARD SURF - POR FASES COMO PEDISTE
         -- ============================================
         if _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab') then
             _LocalPlayer2.Backpack:FindFirstChild('Hoverboard Grab'):Destroy()
@@ -1018,75 +1018,72 @@ if table.find(v1, tostring(v2)) then
         local hoverboardTool = Instance.new('Tool')
         hoverboardTool.RequiresHandle = false
         hoverboardTool.Name = 'Hoverboard Grab'
-        hoverboardTool.ToolTip = '🏄 Surf on victim - Ride their back'
+        hoverboardTool.ToolTip = '🏄 Surf on victim - 3 phases'
         hoverboardTool.Parent = _LocalPlayer2.Backpack
         
         local isSurfing = false
+        local surfPhase = 0 -- 0=ninguno, 1=flotando, 2=acostada, 3=montado
         local surfVictim = nil
         local surfConnection = nil
         local surfAnim = nil
         local surfWeld = nil
+        local bodyPos = nil
+        local bodyGyro = nil
+        local floatParticles = nil
         local currentHeight = 3.5
-        local surfSpeed = 30
+        local surfSpeed = 35
         
         -- SONIDO DE SURF
-        local function PlaySurfSound()
+        local function PlaySurfSound(id)
             if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                _ReplicatedStorage.MainEvent:FireServer('Boombox', '4590662764')
+                _ReplicatedStorage.MainEvent:FireServer('Boombox', id)
             else
                 local sound = Instance.new("Sound")
-                sound.SoundId = "rbxassetid://4590662764"
-                sound.Volume = 0.3
+                sound.SoundId = "rbxassetid://" .. id
+                sound.Volume = 0.4
                 sound.Parent = workspace
                 sound:Play()
                 game.Debris:AddItem(sound, 3)
             end
         end
         
-        -- CONFIGURAR VÍCTIMA PARA SURF
-        local function SetupSurfVictim(victim)
+        -- FASE 1: HACER FLOTAR A LA VÍCTIMA
+        local function Phase1_FloatVictim(victim)
             if not victim or not victim.Parent then return false end
             
-            local humanoid = victim:FindFirstChild("Humanoid")
             local humanoidRoot = victim:FindFirstChild("HumanoidRootPart")
-            local lowerTorso = victim:FindFirstChild("LowerTorso")
-            
-            if not humanoid or not humanoidRoot or not lowerTorso then return false end
+            if not humanoidRoot then return false end
             
             -- Limpiar controles antiguos
-            for _, part in pairs({humanoidRoot, lowerTorso}) do
-                if part then
-                    local oldPos = part:FindFirstChild("SurfBodyPos")
-                    local oldGyro = part:FindFirstChild("SurfBodyGyro")
-                    if oldPos then oldPos:Destroy() end
-                    if oldGyro then oldGyro:Destroy() end
-                end
-            end
+            local oldPos = humanoidRoot:FindFirstChild("SurfBodyPos")
+            local oldGyro = humanoidRoot:FindFirstChild("SurfBodyGyro")
+            if oldPos then oldPos:Destroy() end
+            if oldGyro then oldGyro:Destroy() end
             
-            -- Crear BodyPosition en HumanoidRootPart para mejor control
-            local bodyPos = Instance.new("BodyPosition")
+            -- Crear BodyPosition para flotación
+            bodyPos = Instance.new("BodyPosition")
             bodyPos.Name = "SurfBodyPos"
             bodyPos.MaxForce = Vector3.new(90000, 90000, 90000)
-            bodyPos.P = 12000
-            bodyPos.D = 4000
+            bodyPos.P = 10000
+            bodyPos.D = 3000
             bodyPos.Position = humanoidRoot.Position + Vector3.new(0, currentHeight, 0)
             bodyPos.Parent = humanoidRoot
             
-            -- Crear BodyGyro en LowerTorso para rotación
-            local bodyGyro = Instance.new("BodyGyro")
+            -- Crear BodyGyro para estabilidad
+            bodyGyro = Instance.new("BodyGyro")
             bodyGyro.Name = "SurfBodyGyro"
             bodyGyro.MaxTorque = Vector3.new(90000, 90000, 90000)
             bodyGyro.P = 15000
             bodyGyro.D = 2000
+            bodyGyro.CFrame = humanoidRoot.CFrame
+            bodyGyro.Parent = humanoidRoot
             
-            -- Rotar 90 grados hacia adelante (posición acostada boca abajo)
-            local currentCFrame = lowerTorso.CFrame
-            bodyGyro.CFrame = currentCFrame * CFrame.Angles(math.rad(90), 0, 0)
-            bodyGyro.Parent = lowerTorso
-            
-            -- Configurar humanoide para posición acostada
-            humanoid.PlatformStand = true
-            humanoid:ChangeState("Physics")
+            -- Configurar humanoide
+            local humanoid = victim:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.PlatformStand = true
+                humanoid:ChangeState("Physics")
+            end
             
             -- Desactivar colisiones
             for _, part in pairs(victim:GetChildren()) do
@@ -1096,28 +1093,110 @@ if table.find(v1, tostring(v2)) then
                 end
             end
             
-            -- Ajustar extremidades para posición de surf
-            task.spawn(function()
-                wait(0.1)
-                -- Brazos extendidos
-                local leftUpperArm = victim:FindFirstChild("LeftUpperArm")
-                local rightUpperArm = victim:FindFirstChild("RightUpperArm")
+            -- Partículas de flotación
+            floatParticles = Instance.new("ParticleEmitter")
+            floatParticles.Name = "FloatParticles"
+            floatParticles.Size = NumberSequence.new(0.3)
+            floatParticles.Transparency = NumberSequence.new(0.6)
+            floatParticles.Color = ColorSequence.new(Color3.fromRGB(100, 200, 255))
+            floatParticles.Lifetime = NumberRange.new(0.5)
+            floatParticles.Rate = 40
+            floatParticles.Speed = NumberRange.new(2)
+            floatParticles.Acceleration = Vector3.new(0, 8, 0)
+            floatParticles.Parent = humanoidRoot
+            
+            PlaySurfSound("4590662764")
+            return true
+        end
+        
+        -- FASE 2: ACOSTAR A LA VÍCTIMA
+        local function Phase2_LayDownVictim()
+            if not surfVictim or not bodyGyro then return end
+            
+            local lowerTorso = surfVictim:FindFirstChild("LowerTorso")
+            if not lowerTorso then return end
+            
+            -- Rotar 90 grados para posición acostada boca abajo
+            local targetCFrame = CFrame.new(lowerTorso.Position) * CFrame.Angles(math.rad(90), 0, 0)
+            
+            -- Animación suave para rotación
+            local startCFrame = bodyGyro.CFrame
+            local startTime = tick()
+            local duration = 0.8
+            
+            local rotateConnection
+            rotateConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                local elapsed = tick() - startTime
+                local alpha = math.min(elapsed / duration, 1)
                 
-                if leftUpperArm then
-                    leftUpperArm.CFrame = leftUpperArm.CFrame * CFrame.Angles(math.rad(-30), 0, math.rad(15))
+                -- Interpolación suave
+                bodyGyro.CFrame = startCFrame:Lerp(targetCFrame, alpha)
+                
+                -- Movimiento de flotación suave
+                local hoverBob = math.sin(tick() * 2) * 0.1
+                if bodyPos then
+                    bodyPos.Position = Vector3.new(
+                        bodyPos.Position.X,
+                        currentHeight + hoverBob,
+                        bodyPos.Position.Z
+                    )
                 end
-                if rightUpperArm then
-                    rightUpperArm.CFrame = rightUpperArm.CFrame * CFrame.Angles(math.rad(-30), 0, math.rad(-15))
+                
+                if alpha >= 1 then
+                    rotateConnection:Disconnect()
+                    surfPhase = 2 -- Cambiar a fase 2
+                    
+                    -- Notificar que está lista para montar
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = 'Surf Ready',
+                        Text = 'Victim is lying down\nYou will mount in 1 second',
+                        Duration = 1
+                    })
                 end
             end)
             
-            PlaySurfSound()
-            return bodyPos, bodyGyro
+            return rotateConnection
         end
         
-        -- DETENER SURF
+        -- FASE 3: MONTARSE EN LA ESPALDA
+        local function Phase3_MountOnBack()
+            if not surfVictim then return false end
+            
+            local victimLowerTorso = surfVictim:FindFirstChild("LowerTorso")
+            if not victimLowerTorso then return false end
+            
+            -- Posicionar al jugador en la espalda
+            local mountCFrame = victimLowerTorso.CFrame * CFrame.new(0, 0.5, 0.3) * CFrame.Angles(math.rad(-5), 0, 0)
+            _LocalPlayer2.Character.HumanoidRootPart.CFrame = mountCFrame
+            
+            -- Crear weld para mantener posición
+            surfWeld = Instance.new("Weld")
+            surfWeld.Part0 = _LocalPlayer2.Character.HumanoidRootPart
+            surfWeld.Part1 = victimLowerTorso
+            surfWeld.C0 = CFrame.new(0, 0.5, 0.3) * CFrame.Angles(math.rad(-5), 0, 0)
+            surfWeld.Parent = _LocalPlayer2.Character.HumanoidRootPart
+            
+            -- TU ANIMACIÓN DE SURF
+            local animation = Instance.new("Animation")
+            animation.AnimationId = "rbxassetid://76573949416065"
+            surfAnim = _LocalPlayer2.Character.Humanoid:LoadAnimation(animation)
+            surfAnim:Play()
+            surfAnim:AdjustSpeed(1.0)
+            
+            -- Configurar jugador
+            _LocalPlayer2.Character.Humanoid.WalkSpeed = surfSpeed
+            _LocalPlayer2.Character.Humanoid.JumpPower = 0
+            _LocalPlayer2.Character.Humanoid.AutoRotate = false
+            
+            PlaySurfSound("9111866586") -- Sonido de montar
+            
+            return true
+        end
+        
+        -- DETENER TODO
         local function StopSurf()
             isSurfing = false
+            surfPhase = 0
             
             if surfConnection then
                 surfConnection:Disconnect()
@@ -1133,6 +1212,11 @@ if table.find(v1, tostring(v2)) then
             if surfWeld then
                 surfWeld:Destroy()
                 surfWeld = nil
+            end
+            
+            if floatParticles then
+                floatParticles:Destroy()
+                floatParticles = nil
             end
             
             -- RESTAURAR VÍCTIMA
@@ -1168,6 +1252,8 @@ if table.find(v1, tostring(v2)) then
             end
             
             surfVictim = nil
+            bodyPos = nil
+            bodyGyro = nil
             
             game:GetService('StarterGui'):SetCore('SendNotification', {
                 Title = 'Surf Stopped',
@@ -1176,7 +1262,79 @@ if table.find(v1, tostring(v2)) then
             })
         end
         
-        -- ACTIVAR/DESACTIVAR HOVERBOARD
+        -- SISTEMA DE MOVIMIENTO PARA FASE 3
+        local function StartSurfMovement()
+            surfConnection = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+                if not isSurfing or surfPhase ~= 3 or not surfVictim then
+                    return
+                end
+                
+                local humanoid = _LocalPlayer2.Character.Humanoid
+                local moveDirection = humanoid.MoveDirection
+                local isMoving = moveDirection.Magnitude > 0.05
+                
+                if bodyPos then
+                    local currentPos = bodyPos.Position
+                    
+                    if isMoving then
+                        -- MOVER RÁPIDO CON JOYSTICK
+                        local moveForce = moveDirection * surfSpeed * deltaTime * 25
+                        local newPos = currentPos + moveForce
+                        
+                        -- Mantener altura
+                        newPos = Vector3.new(newPos.X, currentHeight, newPos.Z)
+                        bodyPos.Position = newPos
+                        
+                        -- ROTAR HACIA LA DIRECCIÓN
+                        if bodyGyro then
+                            if moveDirection.Magnitude > 0 then
+                                local victimLowerTorso = surfVictim:FindFirstChild("LowerTorso")
+                                if victimLowerTorso then
+                                    local targetCFrame = CFrame.new(victimLowerTorso.Position, 
+                                        victimLowerTorso.Position + moveDirection) * CFrame.Angles(math.rad(90), 0, 0)
+                                    bodyGyro.CFrame = bodyGyro.CFrame:Lerp(targetCFrame, 0.1)
+                                end
+                            end
+                        end
+                        
+                        -- ANIMACIÓN RÁPIDA
+                        surfAnim:AdjustSpeed(1.3)
+                        
+                        -- EFECTOS DE VELOCIDAD
+                        if math.random(1, 5) == 1 then
+                            local trail = Instance.new("Part")
+                            trail.Size = Vector3.new(0.2, 0.1, 0.2)
+                            trail.Material = Enum.Material.Neon
+                            trail.BrickColor = BrickColor.new("Bright blue")
+                            trail.Transparency = 0.7
+                            trail.CanCollide = false
+                            trail.Anchored = true
+                            trail.Position = surfVictim.HumanoidRootPart.Position - Vector3.new(0, 0.5, 0)
+                            trail.Parent = workspace
+                            game.Debris:AddItem(trail, 0.5)
+                        end
+                    else
+                        -- FLOTACIÓN CON MOVIMIENTO SUAVE
+                        local hoverBob = math.sin(tick() * 2.5) * 0.08
+                        bodyPos.Position = Vector3.new(
+                            currentPos.X,
+                            currentHeight + hoverBob,
+                            currentPos.Z
+                        )
+                        surfAnim:AdjustSpeed(0.9)
+                    end
+                    
+                    -- CONTROL DE ALTURA (PC)
+                    if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                        currentHeight = math.min(currentHeight + deltaTime * 6, 8)
+                    elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+                        currentHeight = math.max(currentHeight - deltaTime * 6, 2)
+                    end
+                end
+            end)
+        end
+        
+        -- ACTIVAR HOVERBOARD
         hoverboardTool.Activated:Connect(function()
             if isSurfing then
                 StopSurf()
@@ -1204,128 +1362,73 @@ if table.find(v1, tostring(v2)) then
                 return
             end
             
-            print('[Hoverboard Surf] Starting surf on:', victimPlayer.Name)
+            print('[Hoverboard Surf] Starting 3-phase surf on:', victimPlayer.Name)
             
             -- Soltar agarre tradicional
             _ReplicatedStorage.MainEvent:FireServer('Grabbing')
             wait(0.2)
             
-            -- Configurar víctima
-            local bodyPos, bodyGyro = SetupSurfVictim(surfVictim)
-            if not bodyPos then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Hoverboard Surf',
-                    Text = 'Failed to setup surf',
-                    Duration = 2
-                })
-                return
-            end
+            -- FASE 1: HACER FLOTAR
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Phase 1/3',
+                Text = 'Making victim float...',
+                Duration = 2
+            })
             
-            -- Posicionar jugador ENCIMA de la víctima
-            local victimLowerTorso = surfVictim:FindFirstChild("LowerTorso")
-            if not victimLowerTorso then
+            if not Phase1_FloatVictim(surfVictim) then
                 StopSurf()
                 return
             end
             
-            -- Posicionar al jugador en la espalda de la víctima
-            _LocalPlayer2.Character.HumanoidRootPart.CFrame = victimLowerTorso.CFrame * CFrame.new(0, 0.8, 0.2)
-            
-            -- Crear weld para mantener posición
-            surfWeld = Instance.new("Weld")
-            surfWeld.Part0 = _LocalPlayer2.Character.HumanoidRootPart
-            surfWeld.Part1 = victimLowerTorso
-            surfWeld.C0 = CFrame.new(0, 0.8, 0.2)
-            surfWeld.Parent = _LocalPlayer2.Character.HumanoidRootPart
-            
-            -- TU ANIMACIÓN DE SURF
-            local animation = Instance.new("Animation")
-            animation.AnimationId = "rbxassetid://76573949416065"
-            surfAnim = _LocalPlayer2.Character.Humanoid:LoadAnimation(animation)
-            surfAnim:Play()
-            surfAnim:AdjustSpeed(1.0)
-            
-            -- Configurar jugador
-            _LocalPlayer2.Character.Humanoid.WalkSpeed = surfSpeed
-            _LocalPlayer2.Character.Humanoid.JumpPower = 0
-            _LocalPlayer2.Character.Humanoid.AutoRotate = false
-            
-            -- ACTIVAR MODO SURF
+            surfPhase = 1
             isSurfing = true
             
-            -- SISTEMA DE MOVIMIENTO SIMPLIFICADO
-            surfConnection = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
-                if not isSurfing or not surfVictim or not surfVictim.Parent then
-                    StopSurf()
-                    return
-                end
-                
-                local humanoidRoot = surfVictim:FindFirstChild("HumanoidRootPart")
-                local lowerTorso = surfVictim:FindFirstChild("LowerTorso")
-                if not humanoidRoot or not lowerTorso then
-                    StopSurf()
-                    return
-                end
-                
-                -- DETECTAR MOVIMIENTO PARA TELÉFONO
-                local humanoid = _LocalPlayer2.Character.Humanoid
-                local moveDirection = humanoid.MoveDirection
-                local isMoving = moveDirection.Magnitude > 0.05
-                
-                -- Obtener posición actual
-                local currentPos = bodyPos.Position
-                
-                if isMoving then
-                    -- MOVER VÍCTIMA EN DIRECCIÓN DEL JOYSTICK
-                    local moveForce = moveDirection * surfSpeed * deltaTime * 15
-                    local newPos = currentPos + moveForce
-                    
-                    -- Mantener altura
-                    newPos = Vector3.new(newPos.X, currentHeight, newPos.Z)
-                    bodyPos.Position = newPos
-                    
-                    -- ROTAR VÍCTIMA HACIA LA DIRECCIÓN
-                    if bodyGyro then
-                        if moveDirection.Magnitude > 0 then
-                            -- Calcular rotación hacia la dirección
-                            local targetCFrame = CFrame.new(lowerTorso.Position, 
-                                lowerTorso.Position + moveDirection) * CFrame.Angles(math.rad(90), 0, 0)
-                            bodyGyro.CFrame = bodyGyro.CFrame:Lerp(targetCFrame, 0.15)
-                        end
-                    end
-                    
-                    -- Ajustar velocidad de animación
-                    surfAnim:AdjustSpeed(1.2)
-                else
-                    -- FLOTACIÓN ESTÁTICA CON MOVIMIENTO SUAVE
-                    local hoverBob = math.sin(tick() * 2.5) * 0.05
-                    bodyPos.Position = Vector3.new(
-                        currentPos.X,
-                        currentHeight + hoverBob,
-                        currentPos.Z
-                    )
-                    surfAnim:AdjustSpeed(0.9)
-                end
-                
-                -- CONTROL DE ALTURA SIMPLE (solo para PC)
-                if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
-                    currentHeight = math.min(currentHeight + deltaTime * 5, 6)
-                elseif game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
-                    currentHeight = math.max(currentHeight - deltaTime * 5, 2)
-                end
-                
-                -- Ajustar posición del jugador constantemente
-                if surfWeld then
-                    -- Pequeño balanceo basado en movimiento
-                    local sway = math.sin(tick() * 3) * 0.05
-                    surfWeld.C0 = CFrame.new(0, 0.8 + sway, 0.2)
-                end
-            end)
+            -- ESPERAR 2 SEGUNDOS EN FASE 1
+            wait(2)
             
-            -- NOTIFICACIÓN
+            -- VERIFICAR SI ESTÁ FLOTANDO
+            if not surfVictim or not surfVictim.Parent then
+                StopSurf()
+                return
+            end
+            
+            -- FASE 2: ACOSTAR
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Phase 2/3',
+                Text = 'Laying victim down...',
+                Duration = 2
+            })
+            
+            Phase2_LayDownVictim()
+            
+            -- ESPERAR 1 SEGUNDO PARA ACOSTARSE COMPLETAMENTE
+            wait(1)
+            
+            if surfPhase ~= 2 then
+                wait(1) -- Esperar un poco más si no terminó
+            end
+            
+            -- FASE 3: MONTARSE
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = 'Phase 3/3',
+                Text = 'Mounting on back...',
+                Duration = 1
+            })
+            
+            if not Phase3_MountOnBack() then
+                StopSurf()
+                return
+            end
+            
+            surfPhase = 3
+            
+            -- INICIAR SISTEMA DE MOVIMIENTO
+            StartSurfMovement()
+            
+            -- NOTIFICACIÓN FINAL
             game:GetService('StarterGui'):SetCore('SendNotification', {
                 Title = '🏄 SURF ACTIVATED 🏄',
-                Text = 'Riding ' .. victimPlayer.Name .. '!\nUse joystick to move\nTap tool to stop',
+                Text = 'Riding ' .. victimPlayer.Name .. '!\nUse joystick to move FAST\nTap tool to stop',
                 Duration = 4
             })
         end)
