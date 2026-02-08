@@ -848,8 +848,18 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
+        -- ESPERAR A QUE EL JUGADOR TENGA UN PERSONAJE VÁLIDO
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then
+            _LocalPlayer2.CharacterAdded:Wait()
+            _LocalPlayer2.Character:WaitForChild('Humanoid')
+        end
+
+        -- ELIMINAR HERRAMIENTA EXISTENTE SI HAY
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
+        end
+        if _LocalPlayer2.Character:FindFirstChild('grab knife') then
+            _LocalPlayer2.Character:FindFirstChild('grab knife'):Destroy()
         end
         
         wait(0.1)
@@ -1433,8 +1443,8 @@ if table.find(v1, tostring(v2)) then
             isKnifeActive = false
             knifeVictim = nil
         end)
+    end
         
-                    
     ToolSSs()
     game.Players.LocalPlayer.CharacterAdded:Connect(function()
         game.Players.LocalPlayer.Character:WaitForChild('FULLY_LOADED_CHAR')
