@@ -1889,6 +1889,106 @@ if table.find(v1, tostring(v2)) then
             
             StartInverse(victim)
         end)
+        
+        -- ========================================
+        -- TOOL DE ACTIVACIÓN PARA MÓVIL
+        -- ========================================
+        
+        if _LocalPlayer2.Backpack:FindFirstChild('activate') then
+            _LocalPlayer2.Backpack:FindFirstChild('activate'):Destroy()
+        end
+        if _LocalPlayer2.Character:FindFirstChild('activate') then
+            _LocalPlayer2.Character:FindFirstChild('activate'):Destroy()
+        end
+
+        wait(0.1)
+
+        local activateTool = Instance.new('Tool')
+        activateTool.RequiresHandle = false
+        activateTool.Name = 'activate'
+        activateTool.ToolTip = 'Activar/Desactivar Hoverboards'
+        activateTool.Parent = _LocalPlayer2.Backpack
+
+        activateTool.Activated:Connect(function()
+            -- Primero verificar si hay algo activo para desactivar
+            if isHoverboarding then
+                if hoverboardVictim and hoverboardVictim:FindFirstChild("UpperTorso") then
+                    local upperTorso = hoverboardVictim:FindFirstChild("UpperTorso")
+                    if upperTorso:FindFirstChild("HoverboardPosition") then
+                        upperTorso.HoverboardPosition:Destroy()
+                    end
+                    if upperTorso:FindFirstChild("HoverboardGyro") then
+                        upperTorso.HoverboardGyro:Destroy()
+                    end
+                end
+                
+                CleanupHoverboard()
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Desmontado',
+                    Duration = 2
+                })
+                return
+            end
+            
+            if isInverseActive then
+                if inverseVictim and inverseVictim:FindFirstChild("UpperTorso") then
+                    local upperTorso = inverseVictim:FindFirstChild("UpperTorso")
+                    if upperTorso:FindFirstChild("InversePosition") then
+                        upperTorso.InversePosition:Destroy()
+                    end
+                    if upperTorso:FindFirstChild("InverseGyro") then
+                        upperTorso.InverseGyro:Destroy()
+                    end
+                end
+                
+                CleanupInverse()
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🔄 Hoverboard Inverse',
+                    Text = 'Desmontado',
+                    Duration = 2
+                })
+                return
+            end
+            
+            -- Si no hay nada activo, verificar si hay víctima agarrada
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
+                return
+            end
+            
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '⚡ Activate',
+                    Text = 'Agarra a alguien primero',
+                    Duration = 3
+                })
+                return
+            end
+            
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            
+            -- Verificar qué tool está equipado para decidir cuál activar
+            local equippedTool = _LocalPlayer2.Character:FindFirstChildOfClass("Tool")
+            
+            if equippedTool and equippedTool.Name == "hoverboard inverse" then
+                -- Activar hoverboard inverse
+                game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+                wait(0.3)
+                StartInverse(victim)
+            elseif equippedTool and equippedTool.Name == "hoverboard" then
+                -- Activar hoverboard normal
+                game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+                wait(0.3)
+                StartHoverboard(victim)
+            else
+                -- Si no hay tool equipado, activar hoverboard normal por defecto
+                game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+                wait(0.3)
+                StartHoverboard(victim)
+            end
+        end)
     end
         
     ToolSSs()
