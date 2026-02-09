@@ -237,9 +237,11 @@ if table.find(v1, tostring(v2)) then
         end
 
         _Animation:Destroy()
+        return playing
     end
+    -- CORREGIDO: AnimPlayvv2 ahora retorna el track
     function AnimPlayvv2(p52, p53, p54, p55)
-        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return nil end
         local v56, v57, v58 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
 
         while true do
@@ -275,6 +277,7 @@ if table.find(v1, tostring(v2)) then
         end
 
         _Animation2:Destroy()
+        return playing -- RETORNA EL TRACK
     end
     function AnimStopv2(p61, p62)
         if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
@@ -1426,7 +1429,7 @@ if table.find(v1, tostring(v2)) then
                 Duration = 3
             })
             
-            -- POSICIONAR VÍCTIMA POR LA ESPALDA (MÁS ABAJO)
+            -- POSICIONAR VÍCTIMA POR LA ESPALDA (MÁS ABAJO) - CORREGIDO
             local stopAlign = false
             local alignConnection
             
@@ -1445,17 +1448,18 @@ if table.find(v1, tostring(v2)) then
                 end
             end
             
+            -- CORREGIDO: P y D más bajos para evitar que la víctima salga volando
             local bodyPos = upperTorso:FindFirstChild("GrabKnifePosition") or Instance.new("BodyPosition")
             bodyPos.Name = "GrabKnifePosition"
             bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bodyPos.P = 8000
-            bodyPos.D = 800
+            bodyPos.P = 3000  -- REDUCIDO de 8000
+            bodyPos.D = 400   -- REDUCIDO de 800
             bodyPos.Parent = upperTorso
             
             local bodyGyro = upperTorso:FindFirstChild("GrabKnifeGyro") or Instance.new("BodyGyro")
             bodyGyro.Name = "GrabKnifeGyro"
             bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            bodyGyro.P = 10000
+            bodyGyro.P = 5000  -- REDUCIDO de 10000
             bodyGyro.Parent = upperTorso
             
             alignConnection = game:GetService("RunService").Heartbeat:Connect(function()
@@ -1632,7 +1636,7 @@ if table.find(v1, tostring(v2)) then
             
             isIdkActive = true
             
-            -- GUARDAR LA ANIMACIÓN EN VARIABLE GLOBAL
+            -- CORREGIDO: AHORA SÍ RETORNA EL TRACK
             idkMainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
             
             local shouldStop = false
@@ -1644,7 +1648,7 @@ if table.find(v1, tostring(v2)) then
                 if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
                    not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
                     
-                    -- DETENER ANIMACIÓN
+                    -- DETENER ANIMACIÓN CORRECTAMENTE
                     if idkMainTrack then
                         idkMainTrack:Stop()
                         idkMainTrack = nil
