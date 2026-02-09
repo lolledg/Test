@@ -874,106 +874,339 @@ if table.find(v1, tostring(v2)) then
         return true
     end
     
-    -- NUEVO SISTEMA DE EFECTOS Y VELOCIDADES
-    local whiteScreenEffect = nil
-    local activeAnimations = {}
+    -- ========================================
+    -- SISTEMA HOVERBOARD CORREGIDO - VERSION 2.0
+    -- ========================================
+    local isHoverboarding = false
+    local hoverboardVictim = nil
+    local hoverboardConnection = nil
+    local hoverboardGui = nil
+    local cleanupConnection = nil
     
-    local function ShowWhiteScreen(intensity)
-        if whiteScreenEffect then
-            whiteScreenEffect:Destroy()
+    -- CREAR GUI MEJORADO
+    local function CreateHoverboardGui()
+        if hoverboardGui then
+            hoverboardGui:Destroy()
         end
         
-        whiteScreenEffect = Instance.new("ScreenGui")
-        whiteScreenEffect.Name = "WhiteScreen"
-        whiteScreenEffect.ResetOnSpawn = false
-        whiteScreenEffect.Parent = game.CoreGui
+        hoverboardGui = Instance.new("ScreenGui")
+        hoverboardGui.Name = "HoverboardGui"
+        hoverboardGui.ResetOnSpawn = false
+        hoverboardGui.Parent = game.CoreGui
         
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundColor3 = Color3.new(1, 1, 1)
-        frame.BackgroundTransparency = 1 - intensity
-        frame.BorderSizePixel = 0
-        frame.ZIndex = 999
-        frame.Parent = whiteScreenEffect
+        local mainFrame = Instance.new("Frame")
+        mainFrame.Size = UDim2.new(0, 220, 0, 110)
+        mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
+        mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        mainFrame.BackgroundTransparency = 0.3
+        mainFrame.BorderSizePixel = 0
+        mainFrame.Parent = hoverboardGui
         
-        return whiteScreenEffect
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = mainFrame
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 35)
+        title.Position = UDim2.new(0, 0, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "🛹 HOVERBOARD ACTIVO"
+        title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        title.TextSize = 18
+        title.Font = Enum.Font.GothamBold
+        title.Parent = mainFrame
+        
+        local turboIndicator = Instance.new("Frame")
+        turboIndicator.Size = UDim2.new(0.85, 0, 0, 22)
+        turboIndicator.Position = UDim2.new(0.075, 0, 0.45, 0)
+        turboIndicator.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        turboIndicator.BorderSizePixel = 0
+        turboIndicator.Parent = mainFrame
+        
+        local turboCorner = Instance.new("UICorner")
+        turboCorner.CornerRadius = UDim.new(0, 5)
+        turboCorner.Parent = turboIndicator
+        
+        local turboFill = Instance.new("Frame")
+        turboFill.Size = UDim2.new(0.3, 0, 1, 0)
+        turboFill.Position = UDim2.new(0, 0, 0, 0)
+        turboFill.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
+        turboFill.BorderSizePixel = 0
+        turboFill.Name = "TurboFill"
+        turboFill.Parent = turboIndicator
+        
+        local turboFillCorner = Instance.new("UICorner")
+        turboFillCorner.CornerRadius = UDim.new(0, 5)
+        turboFillCorner.Parent = turboFill
+        
+        local controlsText = Instance.new("TextLabel")
+        controlsText.Size = UDim2.new(1, 0, 0, 30)
+        controlsText.Position = UDim2.new(0, 0, 0.72, 0)
+        controlsText.BackgroundTransparency = 1
+        controlsText.Text = "TURBO: Left Ctrl | VOLAR: Space/Shift"
+        controlsText.TextColor3 = Color3.fromRGB(180, 180, 200)
+        controlsText.TextSize = 12
+        controlsText.Font = Enum.Font.Gotham
+        controlsText.Parent = mainFrame
+        
+        return hoverboardGui
     end
     
-    local function HideWhiteScreen()
-        if whiteScreenEffect then
-            whiteScreenEffect:Destroy()
-            whiteScreenEffect = nil
-        end
-    end
-    
-    local function EnhancedAnimPlay(animId, speedMode, duration)
-        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then 
-            return nil 
-        end
-        
-        -- Detener animaciones similares
-        for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
-            if track.Animation.AnimationId:match('rbxassetid://' .. animId) then
-                track:Stop()
-            end
-        end
-        
-        local anim = Instance.new('Animation')
-        anim.AnimationId = 'rbxassetid://' .. animId
-        
-        local track = _LocalPlayer2.Character.Humanoid:LoadAnimation(anim)
-        track.Priority = Enum.AnimationPriority.Action4
-        
-        -- VELOCIDADES SEGÚN TUS ESPECIFICACIONES
-        if speedMode == "ultrafast" then
-            track:AdjustSpeed(100.0)  -- Velocidad rápida 100x
-        elseif speedMode == "veryfast" then
-            track:AdjustSpeed(3.0)    -- Velocidad normal predeterminada
-        elseif speedMode == "veryslow" then
-            track:AdjustSpeed(0.1)    -- Velocidad lenta
-            ShowWhiteScreen(0.8)      -- Pantalla blanca intensa pero visible
-        else
-            track:AdjustSpeed(1.0)
-        end
-        
-        track:Play()
-        anim:Destroy()
-        
-        activeAnimations[animId] = track
-        
-        if duration then
-            task.delay(duration, function()
-                if track and track.IsPlaying then
-                    track:Stop()
-                end
-            end)
-        end
-        
-        return track
-    end
-    
-    -- Función para enviar partes al vacío
-    local function SendToVoid(partsList)
-        if not u19 then return end
-        
-        for _, partName in ipairs(partsList) do
-            local part = u19:FindFirstChild(partName)
-            if part then
-                -- Desconectar motores
-                for _, motor in ipairs(part:GetChildren()) do
-                    if motor:IsA("Motor6D") then
-                        motor:Destroy()
+    -- ACTUALIZAR BARRA DE TURBO
+    local function UpdateTurboBar(isTurbo)
+        if hoverboardGui then
+            local mainFrame = hoverboardGui:FindFirstChild("Frame")
+            if mainFrame then
+                local turboIndicator = mainFrame:FindFirstChild("Frame")
+                if turboIndicator then
+                    local turboFill = turboIndicator:FindFirstChild("TurboFill")
+                    if turboFill then
+                        if isTurbo then
+                            turboFill.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
+                            TweenService:Create(turboFill, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+                        else
+                            turboFill.BackgroundColor3 = Color3.fromRGB(0, 220, 100)
+                            TweenService:Create(turboFill, TweenInfo.new(0.3), {Size = UDim2.new(0.3, 0, 1, 0)}):Play()
+                        end
                     end
                 end
-                
-                -- Enviar al vacío
-                part.CFrame = CFrame.new(0, -50000, 0)
-                part.Transparency = 1
-                part.CanCollide = false
-                part.Anchored = true
-                game.Debris:AddItem(part, 0.5)
             end
         end
+    end
+    
+    -- LIMPIAR TODO
+    local function CleanupHoverboard()
+        isHoverboarding = false
+        
+        if hoverboardConnection then
+            hoverboardConnection:Disconnect()
+            hoverboardConnection = nil
+        end
+        
+        if cleanupConnection then
+            cleanupConnection:Disconnect()
+            cleanupConnection = nil
+        end
+        
+        if hoverboardGui then
+            hoverboardGui:Destroy()
+            hoverboardGui = nil
+        end
+        
+        hoverboardVictim = nil
+    end
+    
+    -- INICIAR HOVERBOARD
+    local function StartHoverboard(victim)
+        if isHoverboarding or not victim then return end
+        
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+        
+        isHoverboarding = true
+        hoverboardVictim = victim
+        
+        -- Crear GUI
+        CreateHoverboardGui()
+        
+        -- Obtener partes de la víctima
+        local upperTorso = victim:FindFirstChild("UpperTorso")
+        local victimHRP = victim:FindFirstChild("HumanoidRootPart")
+        
+        if not upperTorso or not victimHRP then
+            CleanupHoverboard()
+            return
+        end
+        
+        -- CREAR CONTROLES PARA LA VÍCTIMA
+        local bodyPos = upperTorso:FindFirstChild("HoverboardPosition") or Instance.new("BodyPosition")
+        bodyPos.Name = "HoverboardPosition"
+        bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyPos.P = 30000
+        bodyPos.D = 3000
+        bodyPos.Parent = upperTorso
+        
+        local bodyGyro = upperTorso:FindFirstChild("HoverboardGyro") or Instance.new("BodyGyro")
+        bodyGyro.Name = "HoverboardGyro"
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.P = 40000
+        bodyGyro.D = 2000
+        bodyGyro.Parent = upperTorso
+        
+        -- POSICIÓN Y ROTACIÓN INICIAL CORRECTA
+        -- La víctima debe estar BOCA ABAJO (prone) como tabla de surf
+        local startCFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+        bodyPos.Position = startCFrame.Position + Vector3.new(0, -2, 0)
+        bodyGyro.CFrame = startCFrame * CFrame.Angles(math.rad(90), 0, 0) -- Rotación correcta: boca abajo
+        
+        -- POSICIONAR JUGADOR ENCIMA DE LA VÍCTIMA
+        _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
+            upperTorso.Position.X,
+            upperTorso.Position.Y + 3,
+            upperTorso.Position.Z
+        )
+        
+        -- REPRODUCIR ANIMACIÓN DE HOVERBOARD
+        local hoverAnim = Instance.new("Animation")
+        hoverAnim.AnimationId = "rbxassetid://13157862997"
+        local hoverTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(hoverAnim)
+        hoverTrack:Play()
+        hoverTrack:AdjustSpeed(1.2)
+        
+        -- VARIABLES DE CONTROL
+        local normalSpeed = 60
+        local turboSpeed = 180
+        local flySpeed = 40
+        local smoothFactor = 0.15
+        
+        -- SISTEMA DE MOVIMIENTO
+        hoverboardConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
+            if not isHoverboarding or not victim or not victim.Parent then
+                CleanupHoverboard()
+                if hoverTrack then hoverTrack:Stop() end
+                return
+            end
+            
+            -- VERIFICAR SI LA VÍCTIMA SALIÓ DEL RAGDOLL
+            local victimHumanoid = victim:FindFirstChild("Humanoid")
+            if victimHumanoid then
+                local bodyEffects = victim:FindFirstChild("BodyEffects")
+                if bodyEffects then
+                    local ragdoll = bodyEffects:FindFirstChild("Ragdoll")
+                    if ragdoll and not ragdoll.Value then
+                        -- VÍCTIMA SALIÓ DEL RAGDOLL - LIMPIAR TODO
+                        CleanupHoverboard()
+                        if hoverTrack then hoverTrack:Stop() end
+                        
+                        -- Destruir controles de la víctima
+                        if upperTorso:FindFirstChild("HoverboardPosition") then
+                            upperTorso.HoverboardPosition:Destroy()
+                        end
+                        if upperTorso:FindFirstChild("HoverboardGyro") then
+                            upperTorso.HoverboardGyro:Destroy()
+                        end
+                        
+                        game:GetService('StarterGui'):SetCore('SendNotification', {
+                            Title = '🛹 Hoverboard',
+                            Text = 'Víctima se liberó',
+                            Duration = 3
+                        })
+                        return
+                    end
+                end
+            end
+            
+            local userInputService = game:GetService("UserInputService")
+            local playerHRP = _LocalPlayer2.Character.HumanoidRootPart
+            
+            -- DETECTAR TURBO
+            local isTurboActive = userInputService:IsKeyDown(Enum.KeyCode.LeftControl)
+            UpdateTurboBar(isTurboActive)
+            
+            -- CALCULAR DIRECCIÓN DE MOVIMIENTO
+            local moveDirection = Vector3.zero
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
+            
+            -- Movimiento basado en la cámara
+            if userInputService:IsKeyDown(Enum.KeyCode.W) then
+                moveDirection = moveDirection + cameraCFrame.LookVector
+            end
+            if userInputService:IsKeyDown(Enum.KeyCode.S) then
+                moveDirection = moveDirection - cameraCFrame.LookVector
+            end
+            if userInputService:IsKeyDown(Enum.KeyCode.A) then
+                moveDirection = moveDirection - cameraCFrame.RightVector
+            end
+            if userInputService:IsKeyDown(Enum.KeyCode.D) then
+                moveDirection = moveDirection + cameraCFrame.RightVector
+            end
+            
+            -- Vuelo vertical
+            local verticalMove = 0
+            if userInputService:IsKeyDown(Enum.KeyCode.Space) then
+                verticalMove = 1
+            elseif userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                verticalMove = -1
+            end
+            
+            -- CALCULAR VELOCIDAD
+            local currentSpeed = isTurboActive and turboSpeed or normalSpeed
+            if verticalMove ~= 0 then
+                currentSpeed = flySpeed
+            end
+            
+            -- APLICAR MOVIMIENTO SUAVE
+            if moveDirection.Magnitude > 0 then
+                moveDirection = (moveDirection.Unit * Vector3.new(1, 0, 1)) + Vector3.new(0, verticalMove, 0)
+                
+                if moveDirection.Magnitude > 0 then
+                    moveDirection = moveDirection.Unit
+                end
+                
+                local targetPos = bodyPos.Position + (moveDirection * currentSpeed * delta)
+                bodyPos.Position = bodyPos.Position:Lerp(targetPos, smoothFactor)
+                
+                -- MANTENER ROTACIÓN CORRECTA (BOCA ABAJO)
+                local lookDirection = Vector3.new(moveDirection.X, 0, moveDirection.Z)
+                if lookDirection.Magnitude > 0 then
+                    local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + lookDirection)
+                    bodyGyro.CFrame = targetCFrame * CFrame.Angles(math.rad(90), 0, 0)
+                end
+            else
+                -- Sin movimiento, agregar pequeño movimiento vertical
+                bodyPos.Position = bodyPos.Position + Vector3.new(0, verticalMove * flySpeed * delta, 0)
+            end
+            
+            -- MANTENER JUGADOR SOBRE LA VÍCTIMA
+            local offsetY = 3
+            playerHRP.CFrame = CFrame.new(
+                upperTorso.Position.X,
+                upperTorso.Position.Y + offsetY,
+                upperTorso.Position.Z
+            )
+            
+            -- Mantener velocidad del jugador
+            playerHRP.AssemblyLinearVelocity = Vector3.zero
+            playerHRP.AssemblyAngularVelocity = Vector3.zero
+            
+            -- MANTENER ALTURA MÍNIMA SOBRE EL SUELO
+            if verticalMove == 0 then
+                local ray = Ray.new(upperTorso.Position, Vector3.new(0, -20, 0))
+                local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, {victim, _LocalPlayer2.Character})
+                
+                if hit then
+                    local minHeight = position.Y + 1.5
+                    if bodyPos.Position.Y < minHeight then
+                        bodyPos.Position = Vector3.new(bodyPos.Position.X, minHeight, bodyPos.Position.Z)
+                    end
+                end
+            end
+        end)
+        
+        -- CONEXIÓN PARA DETECTAR CAMBIOS EN RAGDOLL
+        cleanupConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if not isHoverboarding or not victim or not victim.Parent then
+                CleanupHoverboard()
+                if hoverTrack then hoverTrack:Stop() end
+                
+                -- Limpiar controles
+                if upperTorso:FindFirstChild("HoverboardPosition") then
+                    upperTorso.HoverboardPosition:Destroy()
+                end
+                if upperTorso:FindFirstChild("HoverboardGyro") then
+                    upperTorso.HoverboardGyro:Destroy()
+                end
+            end
+        end)
+        
+        -- Notificación
+        game:GetService('StarterGui'):SetCore('SendNotification', {
+            Title = '🛹 HOVERBOARD ACTIVADO',
+            Text = 'Usa WASD para moverte, Space/Shift para volar, Ctrl para turbo',
+            Duration = 5
+        })
     end
     
     function ToolSSs()
@@ -1015,7 +1248,7 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
-        -- TOOL 1: GRAB KNIFE (ENVÍA TODO AL VACÍO)
+        -- TOOL: GRAB KNIFE (VERSIÓN SIMPLE SIN LAG)
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -1028,13 +1261,13 @@ if table.find(v1, tostring(v2)) then
         local grabKnifeTool = Instance.new('Tool')
         grabKnifeTool.RequiresHandle = false
         grabKnifeTool.Name = 'grab knife'
-        grabKnifeTool.ToolTip = 'Grab Knife - Eliminación completa al vacío'
+        grabKnifeTool.ToolTip = 'Grab Knife - Simple sin lag'
         grabKnifeTool.Parent = _LocalPlayer2.Backpack
         
-        local isGrabKnifeActive = false
+        local isKnifeActive = false
         
         grabKnifeTool.Activated:Connect(function()
-            if isGrabKnifeActive then return end
+            if isKnifeActive then return end
             if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
                 return
             end
@@ -1048,274 +1281,32 @@ if table.find(v1, tostring(v2)) then
                 return
             end
             
-            isGrabKnifeActive = true
+            isKnifeActive = true
             
             local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
             local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
             
             if not victimPlayer or victimPlayer == _LocalPlayer2 then
-                isGrabKnifeActive = false
+                isKnifeActive = false
                 return
             end
             
-            -- ANIMACIÓN DE INICIO CON VELOCIDAD 3x
-            local freezeTrack = EnhancedAnimPlay("74694286613254", "veryfast", 10)
+            -- PROCESO SIMPLIFICADO
+            local freezeTrack = AnimPlayvv2("74694286613254", 3.0, 0, 0.3)
             
-            -- CONTROL DE VÍCTIMA
-            local stopControl = false
+            wait(1)
             
-            local controlConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                if stopControl or not victim or not victim.Parent then
-                    controlConnection:Disconnect()
-                    return
-                end
-                
-                local upperTorso = victim:FindFirstChild('UpperTorso')
-                if not upperTorso then return end
-                
-                local bodyPos = upperTorso:FindFirstChild('BodyPosition')
-                if not bodyPos then
-                    bodyPos = Instance.new('BodyPosition')
-                    bodyPos.MaxForce = Vector3.new(900000, 900000, 900000)
-                    bodyPos.P = 20000
-                    bodyPos.D = 2000
-                    bodyPos.Parent = upperTorso
-                end
-                
-                local bodyGyro = upperTorso:FindFirstChild('BodyGyro')
-                if not bodyGyro then
-                    bodyGyro = Instance.new('BodyGyro')
-                    bodyGyro.MaxTorque = Vector3.new(900000, 900000, 900000)
-                    bodyGyro.P = 30000
-                    bodyGyro.Parent = upperTorso
-                end
-                
-                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                local frontPos = playerCF.Position + (playerCF.LookVector * 1.5)
-                
-                bodyPos.Position = frontPos
-                bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(math.rad(-90), math.pi, 0)
-            end)
-            
-            -- CORTAR MIEMBROS CON VELOCIDAD 3x
-            local limbs = {'RightUpperArm', 'LeftUpperArm', 'LeftUpperLeg', 'RightUpperLeg'}
-            
-            for i = 1, 4 do
-                local cutTrack = EnhancedAnimPlay("126796684932532", "veryfast", 1.5)
-                
-                if victim and victim.Parent then
-                    local part = victim:FindFirstChild(limbs[i])
-                    if part then 
-                        wait(0.3)
-                        -- Enviar al vacío
-                        part.CFrame = CFrame.new(0, -50000, 0)
-                        part.Transparency = 1
-                        part.CanCollide = false
-                        part.Anchored = true
-                        game.Debris:AddItem(part, 0.5)
-                    end
-                end
-                
-                wait(1.5)
-            end
-            
-            -- ENVIAR LOWERTORSO AL VACÍO
-            SendToVoid({"LowerTorso"})
-            
-            -- DEJAR SOLO CABEZA VISIBLE, TORSO BAJO SUELO
-            if victim and victim.Parent then
-                local head = victim:FindFirstChild("Head")
-                local upperTorso = victim:FindFirstChild("UpperTorso")
-                
-                if head then
-                    head.Transparency = 0
-                    head.BrickColor = BrickColor.new("Really red")
-                end
-                
-                if upperTorso then
-                    upperTorso.CFrame = CFrame.new(0, -10, 0)  -- Bajo el suelo
-                    upperTorso.Transparency = 1
-                    upperTorso.CanCollide = false
-                    upperTorso.Anchored = true
-                end
-            end
-            
-            -- ANIMACIÓN DE TIRAR CABEZA CON VELOCIDAD 100x
-            local throwTrack = EnhancedAnimPlay("135931094841392", "ultrafast", 8)
-            
-            -- ESPERAR Y CAMBIAR A VELOCIDAD LENTA 0.1x
-            wait(4)
-            
-            if victim and victim.Parent and victim:FindFirstChild("Head") then
-                local head = victim.Head
-                local throwForce = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 200) + Vector3.new(0, 50, 0)
-                head.Velocity = throwForce
-                
-                -- CAMBIAR A VELOCIDAD LENTA CON PANTALLA BLANCA
-                EnhancedAnimPlay("135931094841392", "veryslow", nil)
-                
-                -- DETECTAR ACERCAMIENTO
-                local startTime = tick()
-                local playerNearHead = false
-                
-                while tick() - startTime < 15 do
-                    if not head or not head.Parent then break end
-                    
-                    local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - head.Position).magnitude
-                    
-                    if distance <= 8 then
-                        playerNearHead = true
-                        break
-                    end
-                    task.wait(0.1)
-                end
-                
-                if playerNearHead and head and head.Parent then
-                    -- ANIMACIÓN DE PISAR
-                    local stompTrack = EnhancedAnimPlay("72406748336709", "normal", 2)
-                    
-                    -- APLASTAR CABEZA
-                    head.Velocity = Vector3.new(0, -150, 0)
-                    wait(1)
-                    
-                    -- ENVIAR VÍCTIMA COMPLETA AL VACÍO
-                    if victim and victim.Parent then
-                        for _, part in ipairs(victim:GetChildren()) do
-                            if part:IsA("BasePart") then
-                                part.CFrame = CFrame.new(0, -100000, 0)
-                                part.Transparency = 1
-                                game.Debris:AddItem(part, 1)
-                            end
-                        end
-                    end
-                    
-                    stompTrack:Stop()
-                    
-                    game:GetService('StarterGui'):SetCore('SendNotification', {
-                        Title = '💀 ELIMINACIÓN COMPLETA',
-                        Text = victimPlayer.Name .. ' enviado al vacío',
-                        Duration = 5
-                    })
-                else
-                    -- Enviar al vacío automáticamente
-                    if victim and victim.Parent then
-                        victim:Destroy()
-                    end
-                end
-            end
-            
-            -- LIMPIAR
-            stopControl = true
-            controlConnection:Disconnect()
-            
+            -- SOLTAR VÍCTIMA
             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
             
             if freezeTrack then
                 freezeTrack:Stop()
             end
             
-            HideWhiteScreen()
-            isGrabKnifeActive = false
+            isKnifeActive = false
         end)
         
-        -- TOOL 2: DISMEMBER (SOLO ELIMINA PARTES)
-        if _LocalPlayer2.Backpack:FindFirstChild('dismember') then
-            _LocalPlayer2.Backpack:FindFirstChild('dismember'):Destroy()
-        end
-        if _LocalPlayer2.Character:FindFirstChild('dismember') then
-            _LocalPlayer2.Character:FindFirstChild('dismember'):Destroy()
-        end
-        
-        wait(0.1)
-        
-        local dismemberTool = Instance.new('Tool')
-        dismemberTool.RequiresHandle = false
-        dismemberTool.Name = 'dismember'
-        dismemberTool.ToolTip = 'Dismember - Solo elimina partes al vacío'
-        dismemberTool.Parent = _LocalPlayer2.Backpack
-        
-        local isDismemberActive = false
-        
-        dismemberTool.Activated:Connect(function()
-            if isDismemberActive then return end
-            
-            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
-                return
-            end
-            
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Dismember',
-                    Text = 'No victim grabbed',
-                    Duration = 2
-                })
-                return
-            end
-            
-            isDismemberActive = true
-            
-            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            
-            -- ANIMACIÓN CON VELOCIDAD 3x
-            local startTrack = EnhancedAnimPlay("126796684932532", "veryfast", 2)
-            
-            -- LISTA DE PARTES A ELIMINAR (SOLO ESTAS)
-            local partsToRemove = {
-                "LeftUpperArm", "RightUpperArm",
-                "LeftLowerArm", "RightLowerArm", 
-                "LeftUpperLeg", "RightUpperLeg",
-                "LeftLowerLeg", "RightLowerLeg",
-                "LowerTorso"
-            }
-            
-            -- ELIMINAR CADA PARTE
-            for _, partName in ipairs(partsToRemove) do
-                local part = victim:FindFirstChild(partName)
-                if part then
-                    -- ENVIAR PARTE AL VACÍO
-                    task.wait(0.2)
-                    part.CFrame = CFrame.new(0, -50000, 0)
-                    part.Transparency = 1
-                    part.CanCollide = false
-                    part.Anchored = true
-                    game.Debris:AddItem(part, 0.5)
-                end
-            end
-            
-            -- DEJAR SOLO CABEZA Y UPPERTORSO
-            local head = victim:FindFirstChild("Head")
-            local upperTorso = victim:FindFirstChild("UpperTorso")
-            
-            if head then
-                head.Transparency = 0
-                head.BrickColor = BrickColor.new("Really red")
-            end
-            
-            if upperTorso then
-                upperTorso.CFrame = CFrame.new(0, -5, 0)
-                upperTorso.Transparency = 0.8
-                upperTorso.CanCollide = false
-                upperTorso.Anchored = true
-            end
-            
-            -- NOTIFICACIÓN
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '🩸 DISMEMBER COMPLETADO',
-                Text = 'Partes eliminadas al vacío',
-                Duration = 4
-            })
-            
-            -- SOLTAR VÍCTIMA
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
-            
-            if startTrack then
-                startTrack:Stop()
-            end
-            
-            isDismemberActive = false
-        end)
-        
-        -- TOOL: IDK - VERSIÓN CORREGIDA
+        -- TOOL: IDK (CON EFECTOS)
         if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
             _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
         end
@@ -1328,7 +1319,7 @@ if table.find(v1, tostring(v2)) then
         local idkTool = Instance.new('Tool')
         idkTool.RequiresHandle = false
         idkTool.Name = 'Idk'
-        idkTool.ToolTip = 'Idk - Control simple'
+        idkTool.ToolTip = 'Idk - Efectos de velocidad'
         idkTool.Parent = _LocalPlayer2.Backpack
 
         local isIdkActive = false
@@ -1351,13 +1342,12 @@ if table.find(v1, tostring(v2)) then
             
             isIdkActive = true
             
-            -- ANIMACIÓN SIMPLE SIN EFECTOS
+            -- ANIMACIÓN CON VELOCIDAD 3x
             local mainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
             
-            -- VARIABLE DE CONTROL
+            -- CONTROL
             local shouldStop = false
             
-            -- CONEXIÓN PARA DETENER
             local checkConnection
             checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
                 if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
@@ -1375,22 +1365,22 @@ if table.find(v1, tostring(v2)) then
                 end
             end)
             
-            -- LOOP DE ALINEACIÓN
+            -- ALINEACIÓN
             task.spawn(function()
                 while isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
                       _LocalPlayer2.Character.BodyEffects.Grabbed.Value do
                     task.wait()
                     
                     if u19 then
-                        local timeOffset = tick() * 100
-                        Align(20000, 500, 'UpperTorso', 'HumanoidRootPart', 
-                              CFrame.new(0, -0.3, -1.2 + 0.1 * math.sin(timeOffset / 4)),
+                        local timeOffset = tick() * 200
+                        Align(30000, 800, 'UpperTorso', 'HumanoidRootPart', 
+                              CFrame.new(0, -0.3, -1.2 + 0.15 * math.sin(timeOffset / 3)),
                               CFrame.Angles(math.pi * -0.3, 0, 0))
                     end
                 end
             end)
             
-            -- CONEXIÓN PARA DETENER AL SOLTAR
+            -- DETENER AL SOLTAR
             local releaseConnection
             releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
                 if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
@@ -1399,6 +1389,59 @@ if table.find(v1, tostring(v2)) then
             end)
             
             table.insert(u22, releaseConnection)
+        end)
+        
+        -- TOOL: HOVERBOARD (CORREGIDO)
+        if _LocalPlayer2.Backpack:FindFirstChild('hoverboard') then
+            _LocalPlayer2.Backpack:FindFirstChild('hoverboard'):Destroy()
+        end
+        if _LocalPlayer2.Character:FindFirstChild('hoverboard') then
+            _LocalPlayer2.Character:FindFirstChild('hoverboard'):Destroy()
+        end
+        
+        wait(0.1)
+        
+        local hoverboardTool = Instance.new('Tool')
+        hoverboardTool.RequiresHandle = false
+        hoverboardTool.Name = 'hoverboard'
+        hoverboardTool.ToolTip = 'Hoverboard - Monta víctimas como tabla'
+        hoverboardTool.Parent = _LocalPlayer2.Backpack
+        
+        hoverboardTool.Activated:Connect(function()
+            if isHoverboarding then
+                -- DETENER HOVERBOARD
+                isHoverboarding = false
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Desmontado',
+                    Duration = 2
+                })
+                return
+            end
+            
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
+                return
+            end
+            
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Hoverboard',
+                    Text = 'Agarra a alguien primero',
+                    Duration = 2
+                })
+                return
+            end
+            
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            
+            -- SOLTAR PARA PODER MONTAR
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+            
+            -- ESPERAR UN MOMENTO
+            wait(0.3)
+            
+            -- INICIAR HOVERBOARD
+            StartHoverboard(victim)
         end)
     end
         
