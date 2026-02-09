@@ -883,6 +883,7 @@ if table.find(v1, tostring(v2)) then
     local cleanupConnection = nil
     local animSpeedConnection = nil
     local currentAnimSpeed = 0.5
+    local hoverTrack = nil
     
     local function CreateHoverboardGui()
         if hoverboardGui then
@@ -1025,6 +1026,12 @@ if table.find(v1, tostring(v2)) then
     local function CleanupHoverboard()
         isHoverboarding = false
         
+        -- DETENER ANIMACIÓN
+        if hoverTrack then
+            hoverTrack:Stop()
+            hoverTrack = nil
+        end
+        
         if hoverboardConnection then
             hoverboardConnection:Disconnect()
             hoverboardConnection = nil
@@ -1098,7 +1105,7 @@ if table.find(v1, tostring(v2)) then
         -- ANIMACIÓN NUEVA
         local hoverAnim = Instance.new("Animation")
         hoverAnim.AnimationId = "rbxassetid://76573949416065"
-        local hoverTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(hoverAnim)
+        hoverTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(hoverAnim)
         hoverTrack:Play()
         hoverTrack:AdjustSpeed(currentAnimSpeed)
         
@@ -1179,7 +1186,14 @@ if table.find(v1, tostring(v2)) then
             -- VERIFICAR SI VÍCTIMA EXISTE
             if not isHoverboarding or not victim or not victim.Parent then
                 CleanupHoverboard()
-                if hoverTrack then hoverTrack:Stop() end
+                
+                -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                if upperTorso:FindFirstChild("HoverboardPosition") then
+                    upperTorso.HoverboardPosition:Destroy()
+                end
+                if upperTorso:FindFirstChild("HoverboardGyro") then
+                    upperTorso.HoverboardGyro:Destroy()
+                end
                 
                 game:GetService('StarterGui'):SetCore('SendNotification', {
                     Title = '🛹 Hoverboard',
@@ -1197,7 +1211,6 @@ if table.find(v1, tostring(v2)) then
                     local ragdoll = bodyEffects:FindFirstChild("Ragdoll")
                     if ragdoll and not ragdoll.Value then
                         CleanupHoverboard()
-                        if hoverTrack then hoverTrack:Stop() end
                         
                         if upperTorso:FindFirstChild("HoverboardPosition") then
                             upperTorso.HoverboardPosition:Destroy()
@@ -1252,26 +1265,34 @@ if table.find(v1, tostring(v2)) then
                 local targetPos = bodyPos.Position + (moveDirection * currentSpeed * delta)
                 bodyPos.Position = bodyPos.Position:Lerp(targetPos, smoothFactor)
                 
-                -- ROTAR VÍCTIMA HACIA DONDE MIRA (BOCA ABAJO)
+                -- ROTAR VÍCTIMA HACIA ADELANTE (BOCA ABAJO MIRANDO ADELANTE)
                 local lookDirection = Vector3.new(moveDirection.X, 0, moveDirection.Z)
                 if lookDirection.Magnitude > 0 then
                     local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + lookDirection)
-                    bodyGyro.CFrame = targetCFrame * CFrame.Angles(math.rad(180), 0, 0)
+                    -- CORREGIDO: Víctima mira ADELANTE boca abajo
+                    bodyGyro.CFrame = targetCFrame * CFrame.Angles(math.rad(90), 0, 0)
                 end
             else
                 bodyPos.Position = bodyPos.Position + Vector3.new(0, verticalMove * flySpeed * delta, 0)
             end
             
-            -- MANTENER JUGADOR ENCIMA
+            -- MANTENER JUGADOR ENCIMA MIRANDO ADELANTE
             local offsetY = 3
-            playerHRP.CFrame = CFrame.new(
-                upperTorso.Position.X,
-                upperTorso.Position.Y + offsetY,
-                upperTorso.Position.Z
-            )
-            
-            -- ROTAR JUGADOR HACIA DONDE MIRA LA CÁMARA
-            playerHRP.CFrame = CFrame.new(playerHRP.Position) * CFrame.Angles(0, math.atan2(cameraCFrame.LookVector.X, cameraCFrame.LookVector.Z), 0)
+            local lookDirection = Vector3.new(cameraCFrame.LookVector.X, 0, cameraCFrame.LookVector.Z)
+            if lookDirection.Magnitude > 0 then
+                -- JUGADOR MIRA HACIA ADELANTE (DIRECCIÓN DE LA CÁMARA)
+                playerHRP.CFrame = CFrame.new(
+                    upperTorso.Position.X,
+                    upperTorso.Position.Y + offsetY,
+                    upperTorso.Position.Z
+                ) * CFrame.lookAt(Vector3.zero, lookDirection)
+            else
+                playerHRP.CFrame = CFrame.new(
+                    upperTorso.Position.X,
+                    upperTorso.Position.Y + offsetY,
+                    upperTorso.Position.Z
+                )
+            end
             
             playerHRP.AssemblyLinearVelocity = Vector3.zero
             playerHRP.AssemblyAngularVelocity = Vector3.zero
@@ -1293,7 +1314,6 @@ if table.find(v1, tostring(v2)) then
         cleanupConnection = game:GetService("RunService").Heartbeat:Connect(function()
             if not isHoverboarding or not victim or not victim.Parent then
                 CleanupHoverboard()
-                if hoverTrack then hoverTrack:Stop() end
                 
                 if upperTorso:FindFirstChild("HoverboardPosition") then
                     upperTorso.HoverboardPosition:Destroy()
@@ -1419,6 +1439,7 @@ if table.find(v1, tostring(v2)) then
         idkTool.Parent = _LocalPlayer2.Backpack
 
         local isIdkActive = false
+        local idkMainTrack = nil
 
         idkTool.Activated:Connect(function()
             if isIdkActive then return end
@@ -1438,42 +1459,66 @@ if table.find(v1, tostring(v2)) then
             
             isIdkActive = true
             
-            local mainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
+            -- GUARDAR LA ANIMACIÓN EN VARIABLE GLOBAL
+            idkMainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
             
             local shouldStop = false
-            
             local checkConnection
+            local alignConnection
+            local releaseConnection
+            
             checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
                 if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
                    not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
                     
-                    if mainTrack then
-                        mainTrack:Stop()
+                    -- DETENER ANIMACIÓN
+                    if idkMainTrack then
+                        idkMainTrack:Stop()
+                        idkMainTrack = nil
                     end
                     
+                    -- DESCONECTAR TODAS LAS CONEXIONES
                     if checkConnection then
                         checkConnection:Disconnect()
+                        checkConnection = nil
+                    end
+                    
+                    if alignConnection then
+                        alignConnection:Disconnect()
+                        alignConnection = nil
+                    end
+                    
+                    if releaseConnection then
+                        releaseConnection:Disconnect()
+                        releaseConnection = nil
+                    end
+                    
+                    -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                    if u19 and u19:FindFirstChild('UpperTorso') then
+                        Destroy('UpperTorso')
                     end
                     
                     isIdkActive = false
-                end
-            end)
-            
-            task.spawn(function()
-                while isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
-                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value do
-                    task.wait()
                     
-                    if u19 then
-                        local timeOffset = tick() * 200
-                        Align(30000, 800, 'UpperTorso', 'HumanoidRootPart', 
-                              CFrame.new(0, -0.3, -1.2 + 0.15 * math.sin(timeOffset / 3)),
-                              CFrame.Angles(math.pi * -0.3, 0, 0))
-                    end
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = 'Idk',
+                        Text = 'Desactivado - víctima liberada',
+                        Duration = 2
+                    })
                 end
             end)
             
-            local releaseConnection
+            alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
+                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value and u19 then
+                    
+                    local timeOffset = tick() * 200
+                    Align(30000, 800, 'UpperTorso', 'HumanoidRootPart', 
+                          CFrame.new(0, -0.3, -1.2 + 0.15 * math.sin(timeOffset / 3)),
+                          CFrame.Angles(math.pi * -0.3, 0, 0))
+                end
+            end)
+            
             releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
                 if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
                     shouldStop = true
