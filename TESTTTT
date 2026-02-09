@@ -874,6 +874,60 @@ if table.find(v1, tostring(v2)) then
         return true
     end
     
+    -- Función para desacoplar completamente una cabeza del cuerpo
+    local function DetachHeadCompletely(head, character)
+        if not head or not character then return end
+        
+        -- 1. Destruir TODOS los motores conectados a la cabeza
+        for _, part in ipairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                for _, motor in ipairs(part:GetChildren()) do
+                    if motor:IsA("Motor6D") then
+                        if motor.Part0 == head or motor.Part1 == head then
+                            motor:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- 2. Destruir motores dentro de la cabeza
+        for _, motor in ipairs(head:GetChildren()) do
+            if motor:IsA("Motor6D") then
+                motor:Destroy()
+            end
+        end
+        
+        -- 3. Deshabilitar constraints de ragdoll
+        local bodyEffects = character:FindFirstChild("BodyEffects")
+        if bodyEffects then
+            local ragdollConstraints = bodyEffects:FindFirstChild("RagdollConstraints")
+            if ragdollConstraints then
+                for _, constraint in ipairs(ragdollConstraints:GetChildren()) do
+                    if constraint:IsA("BallSocketConstraint") then
+                        local att0 = constraint.Attachment0
+                        local att1 = constraint.Attachment1
+                        if (att0 and att0.Parent == head) or (att1 and att1.Parent == head) then
+                            constraint:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+        
+        -- 4. Hacer la cabeza completamente física
+        head.CanCollide = true
+        head.Anchored = false
+        head.Massless = false
+        
+        -- 5. Limpiar cualquier otra conexión
+        for _, weld in ipairs(head:GetChildren()) do
+            if weld:IsA("Weld") or weld:IsA("WeldConstraint") then
+                weld:Destroy()
+            end
+        end
+    end
+    
     function ToolSSs()
         -- ESPERAR A QUE EL JUGADOR TENGA UN PERSONAJE VÁLIDO
         if not _LocalPlayer2 then
@@ -913,7 +967,7 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
-        -- TOOL: GRAB KNIFE (TIRE LA CABEZA REAL) - ARREGLADO
+        -- TOOL: GRAB KNIFE - CORREGIDO COMPLETAMENTE
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -930,22 +984,6 @@ if table.find(v1, tostring(v2)) then
         _ToolGrabKnife.Parent = _LocalPlayer2.Backpack
         
         local isKnifeActive = false
-        local knifeVictim = nil
-        local laughSound = nil
-        
-        local function PlayLaugh()
-            if not _LocalPlayer2.Character then return end
-            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                _ReplicatedStorage.MainEvent:FireServer('Boombox', '4810729995')
-            else
-                laughSound = Instance.new("Sound")
-                laughSound.SoundId = "rbxassetid://4810729995"
-                laughSound.Volume = 1.0
-                laughSound.Parent = workspace
-                laughSound:Play()
-                game.Debris:AddItem(laughSound, 10)
-            end
-        end
         
         _ToolGrabKnife.Activated:Connect(function()
             if isKnifeActive then return end
@@ -969,7 +1007,7 @@ if table.find(v1, tostring(v2)) then
             
             isKnifeActive = true
             
-            knifeVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            local knifeVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
             local victimPlayer = game.Players:GetPlayerFromCharacter(knifeVictim)
             
             if not victimPlayer or victimPlayer == _LocalPlayer2 then
@@ -984,14 +1022,14 @@ if table.find(v1, tostring(v2)) then
             
             print('[Grab Knife] Starting execution on:', victimPlayer.Name)
             
-            PlayLaugh()
-            
+            -- OBTENER CUCHILLO
             local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
                          _LocalPlayer2.Backpack:FindFirstChild('knife')
             if knife then
                 knife.Parent = _LocalPlayer2.Character
             end
             
+            -- ANIMACIÓN DE CONGELAMIENTO
             local freezeAnim = Instance.new('Animation')
             freezeAnim.AnimationId = 'rbxassetid://74694286613254'
             local freezeTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(freezeAnim)
@@ -999,6 +1037,23 @@ if table.find(v1, tostring(v2)) then
             freezeTrack:AdjustSpeed(0)
             freezeTrack.TimePosition = 1.66
             
+            -- SONIDO DE RISA
+            local function PlayLaugh()
+                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                    _ReplicatedStorage.MainEvent:FireServer('Boombox', '4810729995')
+                else
+                    local laughSound = Instance.new("Sound")
+                    laughSound.SoundId = "rbxassetid://4810729995"
+                    laughSound.Volume = 1.0
+                    laughSound.Parent = workspace
+                    laughSound:Play()
+                    game.Debris:AddItem(laughSound, 10)
+                end
+            end
+            
+            PlayLaugh()
+            
+            -- CONTROLAR LA VÍCTIMA
             local stopAlign = false
             local alignConnection
             
@@ -1011,6 +1066,7 @@ if table.find(v1, tostring(v2)) then
                 local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
                 if not upperTorso then return end
                 
+                -- Crear controles si no existen
                 local bodyPos = upperTorso:FindFirstChild('BodyPosition')
                 if not bodyPos then
                     bodyPos = Instance.new('BodyPosition')
@@ -1028,6 +1084,7 @@ if table.find(v1, tostring(v2)) then
                     bodyGyro.Parent = upperTorso
                 end
                 
+                -- Posicionar frente al jugador
                 local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
                 local frontPos = playerCF.Position + (playerCF.LookVector * 1.5)
                 
@@ -1035,9 +1092,11 @@ if table.find(v1, tostring(v2)) then
                 bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(0, math.pi, 0)
             end)
             
+            -- ANIMACIÓN DE CORTAR
             local cutAnim = Instance.new('Animation')
             cutAnim.AnimationId = 'rbxassetid://126796684932532'
             
+            -- LISTA DE MIEMBROS A CORTAR
             local limbsToSever = {
                 'RightUpperArm',
                 'LeftUpperArm', 
@@ -1045,9 +1104,11 @@ if table.find(v1, tostring(v2)) then
                 'RightUpperLeg'
             }
             
+            -- CORTAR MIEMBROS
             for i = 1, 4 do
                 local soundId = i == 4 and '91676414066995' or '125856818464345'
                 
+                -- SONIDO DE CORTE
                 if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
                     _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
                 else
@@ -1059,10 +1120,12 @@ if table.find(v1, tostring(v2)) then
                     game.Debris:AddItem(cutSound, 3)
                 end
                 
+                -- ANIMACIÓN DE CORTE
                 local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(cutAnim)
                 cutTrack:Play()
                 cutTrack:AdjustSpeed(1.2)
                 
+                -- DESTRUIR MIEMBRO
                 if knifeVictim and knifeVictim.Parent then
                     local part = knifeVictim:FindFirstChild(limbsToSever[i])
                     if part then 
@@ -1071,6 +1134,7 @@ if table.find(v1, tostring(v2)) then
                     end
                 end
                 
+                -- RISAS ALEATORIAS
                 if math.random(1, 3) == 1 then
                     PlayLaugh()
                 end
@@ -1079,93 +1143,89 @@ if table.find(v1, tostring(v2)) then
                 cutTrack:Stop()
             end
             
-            -- IMPORTANTE: ESPERAR A QUE SE ACTUALICE EL RAGDOLL
-            wait(1)
+            -- ESPERAR PARA QUE SE ACTUALICE EL RAGDOLL
+            wait(1.5)
             
-            -- DESCONECTAR LA CABEZA REAL DEL CUERPO
+            -- **PASO CRUCIAL: DESTRUIR EL GRABBING CONSTRAINT ANTES DE TIRAR LA CABEZA**
+            if knifeVictim and knifeVictim.Parent then
+                local grabbingConstraint = knifeVictim:FindFirstChild('GRABBING_CONSTRAINT')
+                if grabbingConstraint then
+                    grabbingConstraint:Destroy()
+                end
+            end
+            
+            -- **DESACOPLAR Y TIRAR LA CABEZA REAL**
             if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
                 local head = knifeVictim.Head
                 
-                -- 1. Buscar y destruir todos los motores que conectan la cabeza
-                local neckMotor = head:FindFirstChildOfClass('Motor6D')
-                if neckMotor then
-                    neckMotor:Destroy()
-                end
+                -- 1. Desacoplar completamente la cabeza
+                DetachHeadCompletely(head, knifeVictim)
                 
-                -- 2. Buscar motores desde el torso hacia la cabeza
-                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
-                if upperTorso then
-                    for _, motor in ipairs(upperTorso:GetChildren()) do
-                        if motor:IsA('Motor6D') and motor.Part1 == head then
-                            motor:Destroy()
-                        end
-                    end
-                end
-                
-                -- 3. Hacer la cabeza física y visible
+                -- 2. Hacer la cabeza visible y física
                 head.Transparency = 0
                 head.CanCollide = true
                 head.Anchored = false
                 head.Massless = false
                 
-                -- 4. Limpiar constraints de ragdoll
-                local bodyEffects = knifeVictim:FindFirstChild('BodyEffects')
-                if bodyEffects then
-                    local ragdollConstraints = bodyEffects:FindFirstChild('RagdollConstraints')
-                    if ragdollConstraints then
-                        for _, constraint in ipairs(ragdollConstraints:GetChildren()) do
-                            if constraint:IsA('BallSocketConstraint') and 
-                               constraint.Attachment1 and constraint.Attachment1.Parent == head then
-                                constraint:Destroy()
-                            end
-                        end
-                    end
-                end
-                
-                -- 5. ESCONDER EL TORSO (pero no la cabeza)
-                if upperTorso then
-                    upperTorso.Transparency = 1
-                    upperTorso.CanCollide = false
-                end
-                
+                -- 3. **ESCONDER EL TORSO BAJO EL PISO**
+                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
                 local lowerTorso = knifeVictim:FindFirstChild('LowerTorso')
-                if lowerTorso then
-                    lowerTorso.Transparency = 1
-                    lowerTorso.CanCollide = false
+                local humanoidRootPart = knifeVictim:FindFirstChild('HumanoidRootPart')
+                
+                if upperTorso then
+                    upperTorso.CFrame = CFrame.new(0, -1000, 0)  -- BAJO EL PISO
+                    upperTorso.CanCollide = false
+                    upperTorso.Transparency = 1
+                    upperTorso.Anchored = true
                 end
                 
-                -- 6. ANIMACIÓN DE TIRAR LA CABEZA
+                if lowerTorso then
+                    lowerTorso.CFrame = CFrame.new(0, -1000, 0)  -- BAJO EL PISO
+                    lowerTorso.CanCollide = false
+                    lowerTorso.Transparency = 1
+                    lowerTorso.Anchored = true
+                end
+                
+                if humanoidRootPart then
+                    humanoidRootPart.CFrame = CFrame.new(0, -1000, 0)  -- BAJO EL PISO
+                    humanoidRootPart.CanCollide = false
+                    humanoidRootPart.Transparency = 1
+                    humanoidRootPart.Anchored = true
+                end
+                
+                -- 4. ANIMACIÓN DE TIRAR LA CABEZA
                 local throwAnim = Instance.new('Animation')
                 throwAnim.AnimationId = 'rbxassetid://135931094841392'
                 local throwTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(throwAnim)
                 throwTrack:Play()
                 throwTrack:AdjustSpeed(2.0)
                 
-                -- 7. TIRAR LA CABEZA REAL
-                local throwForce = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 50) + Vector3.new(0, 25, 0)
+                -- 5. **TIRAR LA CABEZA CON FUERZA** (alejándola de tus manos)
+                local throwDirection = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 2) + Vector3.new(0, 0.5, 0)
+                local throwForce = throwDirection * 100  -- FUERZA MÁS ALTA
                 
                 head.Velocity = throwForce
                 head.RotVelocity = Vector3.new(
-                    math.random(-30, 30), 
-                    math.random(-30, 30), 
-                    math.random(-30, 30)
+                    math.random(-50, 50), 
+                    math.random(-50, 50), 
+                    math.random(-50, 50)
                 )
                 
                 PlayLaugh()
                 wait(0.5)
                 throwTrack:Stop()
                 
-                -- 8. AVISAR AL JUGADOR
+                -- 6. NOTIFICACIÓN
                 game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '💀 CABEZA REAL TIRADA',
+                    Title = '💀 CABEZA TIRADA',
                     Text = 'Acércate a la cabeza para pisarla',
                     Duration = 5
                 })
                 
-                -- 9. ESPERAR A QUE LA CABEZA CAIGA
+                -- 7. ESPERAR A QUE LA CABEZA CAIGA
                 wait(3)
                 
-                -- 10. DETECTAR CUANDO EL JUGADOR SE ACERCA
+                -- 8. DETECTAR CUANDO EL JUGADOR SE ACERCA
                 local startTime = tick()
                 local playerNearHead = false
                 
@@ -1174,7 +1234,7 @@ if table.find(v1, tostring(v2)) then
                     
                     local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - head.Position).magnitude
                     
-                    if distance <= 5 then
+                    if distance <= 6 then
                         playerNearHead = true
                         break
                     end
@@ -1182,37 +1242,37 @@ if table.find(v1, tostring(v2)) then
                 end
                 
                 if playerNearHead and head and head.Parent then
-                    -- 11. ANIMACIÓN DE PISAR
+                    -- 9. ANIMACIÓN DE PISAR
                     local stompAnim = Instance.new('Animation')
                     stompAnim.AnimationId = 'rbxassetid://72406748336709'
                     local stompTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(stompAnim)
                     stompTrack:Play()
                     
-                    -- 12. POSICIONAR SOBRE LA CABEZA
+                    -- 10. POSICIONAR SOBRE LA CABEZA
                     local headPos = head.Position
                     _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
                         headPos.X, 
-                        headPos.Y + 2.5, 
+                        headPos.Y + 3, 
                         headPos.Z
                     )
                     
                     wait(0.3)
                     
-                    -- 13. APLASTAR LA CABEZA
+                    -- 11. APLASTAR LA CABEZA
                     local originalWalkSpeed = _LocalPlayer2.Character.Humanoid.WalkSpeed
                     _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
                     
                     -- Aplicar fuerza hacia abajo
-                    head.Velocity = Vector3.new(0, -50, 0)
+                    head.Velocity = Vector3.new(0, -100, 0)
                     
                     wait(1)
                     
-                    -- 14. LANZAR AL VACÍO
-                    head.Velocity = Vector3.new(0, 100, 0)
+                    -- 12. LANZAR AL VACÍO
+                    head.Velocity = Vector3.new(0, 150, 0)
                     
                     wait(2)
                     
-                    -- 15. RESTAURAR VELOCIDAD
+                    -- 13. RESTAURAR VELOCIDAD
                     _LocalPlayer2.Character.Humanoid.WalkSpeed = originalWalkSpeed
                     
                     stompTrack:Stop()
@@ -1231,10 +1291,11 @@ if table.find(v1, tostring(v2)) then
                 end
             end
             
+            -- LIMPIAR
             stopAlign = true
             if alignConnection then alignConnection:Disconnect() end
             
-            -- LIMPIAR CONTROLES
+            -- DESTRUIR CONTROLES
             if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('UpperTorso') then
                 local bodyPos = knifeVictim.UpperTorso:FindFirstChild('BodyPosition')
                 local bodyGyro = knifeVictim.UpperTorso:FindFirstChild('BodyGyro')
@@ -1243,28 +1304,20 @@ if table.find(v1, tostring(v2)) then
             end
             
             -- SOLTAR VÍCTIMA
-            local args = {
-                "Grabbing",
-                false
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
             
             -- DEVOLVER CUCHILLO
             if knife and knife.Parent == _LocalPlayer2.Character then
                 knife.Parent = _LocalPlayer2.Backpack
             end
             
-            -- DETENER ANIMACIONES
+            -- DETENER ANIMACIÓN
             freezeTrack:Stop()
-            if laughSound then
-                laughSound:Stop()
-            end
             
             isKnifeActive = false
-            knifeVictim = nil
         end)
         
-        -- TOOL: IDK
+        -- TOOL: IDK - MODIFICADO CON SISTEMA DE VELOCIDAD SINCORNIZADA
         if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
             _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
         end
@@ -1281,6 +1334,9 @@ if table.find(v1, tostring(v2)) then
 
         local isIdkActive = false
         local currentAnimTrack = nil
+        local currentAlignSpeed = 1.0
+        local speedTimer = 0
+        local isFastMode = false
 
         _Tool14.Activated:Connect(function()
             if isIdkActive then return end
@@ -1304,13 +1360,13 @@ if table.find(v1, tostring(v2)) then
             
             isIdkActive = true
             
-            -- REPRODUCIR ANIMACIÓN A VELOCIDAD 3
+            -- REPRODUCIR ANIMACIÓN A VELOCIDAD 1 (INICIAL)
             local animId = 91859430011682
             local anim = Instance.new('Animation')
             anim.AnimationId = 'rbxassetid://' .. animId
             currentAnimTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(anim)
             currentAnimTrack:Play()
-            currentAnimTrack:AdjustSpeed(3)
+            currentAnimTrack:AdjustSpeed(currentAlignSpeed) -- Sincronizado con velocidad de alineación
             
             -- ANIMACIONES ADICIONALES DEL CÓDIGO ORIGINAL
             AnimPlay(4784557631)
@@ -1319,9 +1375,56 @@ if table.find(v1, tostring(v2)) then
             -- VARIABLE PARA CONTROLAR EL LOOP
             getgenv().Furry_ = false
             
+            -- TIMER PARA CONTROLAR CAMBIOS DE VELOCIDAD
+            speedTimer = 0
+            isFastMode = false
+            
             -- CONEXIÓN PARA DETECTAR CUANDO YA NO HAY VÍCTIMA
             local checkConnection
-            checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
+            checkConnection = game:GetService('RunService').Heartbeat:Connect(function(deltaTime)
+                -- ACTUALIZAR TIMER
+                speedTimer = speedTimer + deltaTime
+                
+                -- CAMBIAR VELOCIDAD DESPUÉS DE 20 SEGUNDOS
+                if speedTimer >= 20 and not isFastMode then
+                    isFastMode = true
+                    currentAlignSpeed = 3.0 -- VELOCIDAD RÁPIDA
+                    
+                    -- ACTUALIZAR VELOCIDAD DE ANIMACIÓN
+                    if currentAnimTrack then
+                        currentAnimTrack:AdjustSpeed(currentAlignSpeed)
+                    end
+                    AnimPlay(3119980985, currentAlignSpeed * 2) -- Ajustar animación adicional
+                    
+                    -- NOTIFICACIÓN
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = '⚡ IDK MODE',
+                        Text = 'High Speed Activated!',
+                        Duration = 3
+                    })
+                end
+                
+                -- VOLVER A VELOCIDAD NORMAL DESPUÉS DE 5 SEGUNDOS EN MODO RÁPIDO
+                if isFastMode and speedTimer >= 25 then
+                    isFastMode = false
+                    currentAlignSpeed = 1.0 -- VELOCIDAD NORMAL
+                    speedTimer = 0 -- REINICIAR TIMER
+                    
+                    -- ACTUALIZAR VELOCIDAD DE ANIMACIÓN
+                    if currentAnimTrack then
+                        currentAnimTrack:AdjustSpeed(currentAlignSpeed)
+                    end
+                    AnimPlay(3119980985, currentAlignSpeed * 2) -- Ajustar animación adicional
+                    
+                    -- NOTIFICACIÓN
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = '🐌 IDK MODE',
+                        Text = 'Normal Speed Activated',
+                        Duration = 3
+                    })
+                end
+                
+                -- DETENER SI YA NO HAY VÍCTIMA
                 if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or not _LocalPlayer2.Character.BodyEffects.Grabbed.Value or getgenv().Furry_ == true then
                     -- DETENER ANIMACIONES
                     if currentAnimTrack then
@@ -1345,7 +1448,7 @@ if table.find(v1, tostring(v2)) then
                 end
             end)
             
-            -- LOOP DE ALINEACIÓN (MODIFICADO PARA QUE ESTÉ MÁS CERCA)
+            -- LOOP DE ALINEACIÓN SINCORNIZADO CON VELOCIDAD
             spawn(function()
                 while isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and _LocalPlayer2.Character.BodyEffects.Grabbed.Value and not getgenv().Furry_ do
                     task.wait()
@@ -1368,10 +1471,10 @@ if table.find(v1, tostring(v2)) then
                             end
                         end
 
-                        local v422 = tick() * 133.33
-                        -- AJUSTADO PARA QUE ESTÉ MÁS CERCA
-                        Align(10000, 175, 'UpperTorso', 'HumanoidRootPart', 
-                              CFrame.new(0, -0.3, -1.2 + 0.3 * math.sin(v422 / 8)),
+                        local v422 = tick() * 133.33 * currentAlignSpeed -- MULTIPLICAR POR VELOCIDAD ACTUAL
+                        -- AJUSTADO PARA QUE ESTÉ MÁS CERCA Y SINCORNIZADO CON VELOCIDAD
+                        Align(10000 * currentAlignSpeed, 175 * currentAlignSpeed, 'UpperTorso', 'HumanoidRootPart', 
+                              CFrame.new(0, -0.3, -1.2 + 0.3 * math.sin(v422 / (8 / currentAlignSpeed))),
                               CFrame.Angles(math.pi * -0.3, 0, 0))
                     end
                 end
