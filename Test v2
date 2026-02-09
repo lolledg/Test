@@ -1380,7 +1380,7 @@ if table.find(v1, tostring(v2)) then
         local grabKnifeTool = Instance.new('Tool')
         grabKnifeTool.RequiresHandle = false
         grabKnifeTool.Name = 'grab knife'
-        grabKnifeTool.ToolTip = 'Grab Knife - Simple sin lag'
+        grabKnifeTool.ToolTip = 'Grab Knife - Remake con corte de boca'
         grabKnifeTool.Parent = _LocalPlayer2.Backpack
         
         local isKnifeActive = false
@@ -1410,15 +1410,188 @@ if table.find(v1, tostring(v2)) then
                 return
             end
             
-            local freezeTrack = AnimPlayvv2("74694286613254", 3.0, 0, 0.3)
+            -- EQUIPAR CUCHILLO
+            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or _LocalPlayer2.Backpack:FindFirstChild('knife')
+            if knife then
+                knife.Parent = _LocalPlayer2.Character
+            end
             
-            wait(1)
+            -- ============================================
+            -- FASE 1: AGARRAR POR LA ESPALDA Y CORTAR BOCA
+            -- ============================================
             
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '🔪 Grab Knife',
+                Text = 'Fase 1: Corte de boca',
+                Duration = 3
+            })
+            
+            -- POSICIONAR VÍCTIMA POR LA ESPALDA (MÁS ABAJO)
+            local stopAlign = false
+            local alignConnection
+            
+            local upperTorso = victim:FindFirstChild("UpperTorso")
+            if not upperTorso then
+                isKnifeActive = false
+                return
+            end
+            
+            -- HACER NOCLIP PARA QUE NO SE BUGEE
+            local originalCanCollide = {}
+            for _, part in pairs(victim:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    originalCanCollide[part] = part.CanCollide
+                    part.CanCollide = false
+                end
+            end
+            
+            local bodyPos = upperTorso:FindFirstChild("GrabKnifePosition") or Instance.new("BodyPosition")
+            bodyPos.Name = "GrabKnifePosition"
+            bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyPos.P = 8000
+            bodyPos.D = 800
+            bodyPos.Parent = upperTorso
+            
+            local bodyGyro = upperTorso:FindFirstChild("GrabKnifeGyro") or Instance.new("BodyGyro")
+            bodyGyro.Name = "GrabKnifeGyro"
+            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyGyro.P = 10000
+            bodyGyro.Parent = upperTorso
+            
+            alignConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if stopAlign or not victim or not victim.Parent then
+                    if alignConnection then alignConnection:Disconnect() end
+                    return
+                end
+                
+                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                -- POSICIÓN: Por la espalda y MÁS ABAJO
+                local backPos = playerCF.Position - (playerCF.LookVector * 1) + Vector3.new(0, -1.5, 0)
+                
+                bodyPos.Position = backPos
+                bodyGyro.CFrame = CFrame.new(backPos) * CFrame.Angles(0, math.pi, 0)
+            end)
+            
+            -- ANIMACIÓN DE CORTE DE BOCA
+            local mouthCutAnim = Instance.new('Animation')
+            mouthCutAnim.AnimationId = 'rbxassetid://126796684932532'
+            local mouthCutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
+            mouthCutTrack:Play()
+            mouthCutTrack:AdjustSpeed(0.8)
+            
+            -- SONIDO DE CORTE
+            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                _ReplicatedStorage.MainEvent:FireServer('Boombox', '125856818464345')
+            else
+                local cutSound = Instance.new("Sound")
+                cutSound.SoundId = "rbxassetid://125856818464345"
+                cutSound.Volume = 0.8
+                cutSound.Parent = workspace
+                cutSound:Play()
+                game.Debris:AddItem(cutSound, 3)
+            end
+            
+            -- ESPERAR 5 SEGUNDOS (CORTE DE BOCA)
+            wait(5)
+            
+            mouthCutTrack:Stop()
+            
+            -- ============================================
+            -- FASE 2: CORTAR BRAZOS Y PIERNAS
+            -- ============================================
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '🔪 Grab Knife',
+                Text = 'Fase 2: Cortando extremidades',
+                Duration = 3
+            })
+            
+            local limbsToSever = {
+                'RightUpperArm',
+                'LeftUpperArm', 
+                'LeftUpperLeg',
+                'RightUpperLeg'
+            }
+            
+            for i, limbName in ipairs(limbsToSever) do
+                local soundId = '125856818464345'
+                
+                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                    _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+                else
+                    local cutSound = Instance.new("Sound")
+                    cutSound.SoundId = "rbxassetid://" .. soundId
+                    cutSound.Volume = 0.8
+                    cutSound.Parent = workspace
+                    cutSound:Play()
+                    game.Debris:AddItem(cutSound, 3)
+                end
+                
+                local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
+                cutTrack:Play()
+                cutTrack:AdjustSpeed(1.5)
+                
+                if victim and victim.Parent then
+                    local part = victim:FindFirstChild(limbName)
+                    if part then 
+                        wait(0.2)
+                        
+                        -- HACER NOCLIP Y CAER AL VACÍO
+                        part.CanCollide = false
+                        part.Massless = true
+                        
+                        -- Separar del cuerpo
+                        for _, motor in pairs(part:GetDescendants()) do
+                            if motor:IsA("Motor6D") then
+                                motor:Destroy()
+                            end
+                        end
+                        
+                        -- Aplicar velocidad hacia abajo para que caiga al vacío
+                        part.Velocity = Vector3.new(0, -100, 0)
+                        
+                        -- Destruir después de 3 segundos (ya estará en el vacío)
+                        game.Debris:AddItem(part, 3)
+                    end
+                end
+                
+                wait(1.5)
+                cutTrack:Stop()
+            end
+            
+            -- ============================================
+            -- FASE 3: TIRAR TORSO (NO AL VACÍO)
+            -- ============================================
+            
+            stopAlign = true
+            if alignConnection then alignConnection:Disconnect() end
+            
+            if bodyPos then bodyPos:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            
+            -- SOLTAR VÍCTIMA
             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
             
-            if freezeTrack then
-                freezeTrack:Stop()
+            -- Restaurar CanCollide del torso y cabeza
+            if victim and victim.Parent then
+                for _, part in pairs(victim:GetDescendants()) do
+                    if part:IsA("BasePart") and (part.Name == "UpperTorso" or part.Name == "LowerTorso" or part.Name == "Head" or part.Name == "HumanoidRootPart") then
+                        if originalCanCollide[part] ~= nil then
+                            part.CanCollide = originalCanCollide[part]
+                        end
+                    end
+                end
             end
+            
+            if knife and knife.Parent == _LocalPlayer2.Character then
+                knife.Parent = _LocalPlayer2.Backpack
+            end
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '💀 EXECUTION COMPLETE',
+                Text = victimPlayer.Name .. ' desmembrado',
+                Duration = 4
+            })
             
             isKnifeActive = false
         end)
@@ -1545,7 +1718,19 @@ if table.find(v1, tostring(v2)) then
         
         hoverboardTool.Activated:Connect(function()
             if isHoverboarding then
+                -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                if hoverboardVictim and hoverboardVictim:FindFirstChild("UpperTorso") then
+                    local upperTorso = hoverboardVictim:FindFirstChild("UpperTorso")
+                    if upperTorso:FindFirstChild("HoverboardPosition") then
+                        upperTorso.HoverboardPosition:Destroy()
+                    end
+                    if upperTorso:FindFirstChild("HoverboardGyro") then
+                        upperTorso.HoverboardGyro:Destroy()
+                    end
+                end
+                
                 CleanupHoverboard()
+                
                 game:GetService('StarterGui'):SetCore('SendNotification', {
                     Title = '🛹 Hoverboard',
                     Text = 'Desmontado',
