@@ -791,21 +791,8 @@ if table.find(v1, tostring(v2)) then
             end
             u20 = false
 
-            local v146 = u19
-            local v147, v148, v149 = pairs(v146:GetChildren())
-
-            while true do
-                local v150
-
-                v149, v150 = v147(v148, v149)
-
-                if v149 == nil then
-                    break
-                end
-                if v150:IsA('BasePart') then
-                    v150.CanCollide = false
-                end
-            end
+            -- NO DESACTIVAR COLISIONES PARA EVITAR NOCLIP
+            -- Las colisiones se mantienen activas
             while true do
                 task.wait()
 
@@ -1019,19 +1006,19 @@ if table.find(v1, tostring(v2)) then
             return
         end
         
-        -- CREAR CONTROLES PARA LA VÍCTIMA
+        -- CREAR CONTROLES PARA LA VÍCTIMA - OPTIMIZADO PARA FLUIDEZ
         local bodyPos = upperTorso:FindFirstChild("HoverboardPosition") or Instance.new("BodyPosition")
         bodyPos.Name = "HoverboardPosition"
         bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyPos.P = 30000
-        bodyPos.D = 3000
+        bodyPos.P = 50000  -- Aumentado para más respuesta (antes 30000)
+        bodyPos.D = 1000   -- Reducido para menos resistencia (antes 3000)
         bodyPos.Parent = upperTorso
         
         local bodyGyro = upperTorso:FindFirstChild("HoverboardGyro") or Instance.new("BodyGyro")
         bodyGyro.Name = "HoverboardGyro"
         bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyGyro.P = 40000
-        bodyGyro.D = 2000
+        bodyGyro.P = 50000  -- Aumentado para rotación más rápida (antes 40000)
+        bodyGyro.D = 1500   -- Reducido para menos resistencia (antes 2000)
         bodyGyro.Parent = upperTorso
         
         -- POSICIÓN Y ROTACIÓN INICIAL CORRECTA
@@ -1054,11 +1041,11 @@ if table.find(v1, tostring(v2)) then
         hoverTrack:Play()
         hoverTrack:AdjustSpeed(1.2)
         
-        -- VARIABLES DE CONTROL
-        local normalSpeed = 60
-        local turboSpeed = 180
-        local flySpeed = 40
-        local smoothFactor = 0.15
+        -- VARIABLES DE CONTROL MEJORADAS
+        local normalSpeed = 120  -- Aumentado de 60 a 120
+        local turboSpeed = 280   -- Aumentado de 180 a 280
+        local flySpeed = 80      -- Aumentado de 40 a 80
+        local smoothFactor = 0.25 -- Aumentado de 0.15 a 0.25 para más respuesta
         
         -- SISTEMA DE MOVIMIENTO
         hoverboardConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
@@ -1137,47 +1124,53 @@ if table.find(v1, tostring(v2)) then
                 currentSpeed = flySpeed
             end
             
-            -- APLICAR MOVIMIENTO SUAVE
-            if moveDirection.Magnitude > 0 then
-                moveDirection = (moveDirection.Unit * Vector3.new(1, 0, 1)) + Vector3.new(0, verticalMove, 0)
-                
-                if moveDirection.Magnitude > 0 then
-                    moveDirection = moveDirection.Unit
+            -- APLICAR MOVIMIENTO DIRECTO Y FLUIDO
+            if moveDirection.Magnitude > 0 or verticalMove ~= 0 then
+                -- Combinar movimiento horizontal y vertical
+                local horizontalMove = Vector3.new(moveDirection.X, 0, moveDirection.Z)
+                if horizontalMove.Magnitude > 0 then
+                    horizontalMove = horizontalMove.Unit
                 end
                 
-                local targetPos = bodyPos.Position + (moveDirection * currentSpeed * delta)
-                bodyPos.Position = bodyPos.Position:Lerp(targetPos, smoothFactor)
-                
-                -- MANTENER ROTACIÓN CORRECTA (BOCA ABAJO)
-                local lookDirection = Vector3.new(moveDirection.X, 0, moveDirection.Z)
-                if lookDirection.Magnitude > 0 then
-                    local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + lookDirection)
-                    bodyGyro.CFrame = targetCFrame * CFrame.Angles(math.rad(90), 0, 0)
+                local finalMove = horizontalMove + Vector3.new(0, verticalMove, 0)
+                if finalMove.Magnitude > 0 then
+                    finalMove = finalMove.Unit
                 end
-            else
-                -- Sin movimiento, agregar pequeño movimiento vertical
-                bodyPos.Position = bodyPos.Position + Vector3.new(0, verticalMove * flySpeed * delta, 0)
+                
+                -- MOVIMIENTO DIRECTO - MÁS FLUIDO
+                local moveVector = finalMove * currentSpeed * delta
+                bodyPos.Position = bodyPos.Position + moveVector
+                
+                -- ROTACIÓN SUAVE HACIA LA DIRECCIÓN DE MOVIMIENTO HORIZONTAL
+                if horizontalMove.Magnitude > 0 then
+                    local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + horizontalMove)
+                    -- Interpolación suave de la rotación
+                    bodyGyro.CFrame = bodyGyro.CFrame:Lerp(targetCFrame * CFrame.Angles(math.rad(90), 0, 0), 0.3)
+                end
             end
             
-            -- MANTENER JUGADOR SOBRE LA VÍCTIMA
-            local offsetY = 3
-            playerHRP.CFrame = CFrame.new(
+            -- MANTENER JUGADOR SOBRE LA VÍCTIMA - MÁS ESTABLE
+            local offsetY = 2.5  -- Reducido un poco (antes 3)
+            local playerPos = Vector3.new(
                 upperTorso.Position.X,
                 upperTorso.Position.Y + offsetY,
                 upperTorso.Position.Z
             )
             
-            -- Mantener velocidad del jugador
+            -- Suavizar el movimiento del jugador
+            playerHRP.CFrame = playerHRP.CFrame:Lerp(CFrame.new(playerPos), 0.4)
+            
+            -- Mantener velocidad del jugador en cero para estabilidad
             playerHRP.AssemblyLinearVelocity = Vector3.zero
             playerHRP.AssemblyAngularVelocity = Vector3.zero
             
-            -- MANTENER ALTURA MÍNIMA SOBRE EL SUELO
-            if verticalMove == 0 then
-                local ray = Ray.new(upperTorso.Position, Vector3.new(0, -20, 0))
+            -- MANTENER ALTURA MÍNIMA SOBRE EL SUELO - OPTIMIZADO
+            if verticalMove == 0 and moveDirection.Magnitude > 0 then
+                local ray = Ray.new(upperTorso.Position, Vector3.new(0, -30, 0))
                 local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, {victim, _LocalPlayer2.Character})
                 
                 if hit then
-                    local minHeight = position.Y + 1.5
+                    local minHeight = position.Y + 2  -- Altura mínima sobre el suelo
                     if bodyPos.Position.Y < minHeight then
                         bodyPos.Position = Vector3.new(bodyPos.Position.X, minHeight, bodyPos.Position.Z)
                     end
