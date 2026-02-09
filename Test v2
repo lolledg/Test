@@ -874,13 +874,15 @@ if table.find(v1, tostring(v2)) then
     end
     
     -- ========================================
-    -- SISTEMA HOVERBOARD MÓVIL - BOCA ABAJO RÁPIDO
+    -- SISTEMA HOVERBOARD ULTRA RÁPIDO - VERSIÓN MEJORADA
     -- ========================================
     local isHoverboarding = false
     local hoverboardVictim = nil
     local hoverboardConnection = nil
     local hoverboardGui = nil
     local cleanupConnection = nil
+    local animSpeedConnection = nil
+    local currentAnimSpeed = 0.5
     
     local function CreateHoverboardGui()
         if hoverboardGui then
@@ -908,7 +910,7 @@ if table.find(v1, tostring(v2)) then
         title.Size = UDim2.new(1, 0, 0, 35)
         title.Position = UDim2.new(0, 0, 0, 0)
         title.BackgroundTransparency = 1
-        title.Text = "🛹 HOVERBOARD MÓVIL"
+        title.Text = "🛹 HOVERBOARD ULTRA"
         title.TextColor3 = Color3.fromRGB(255, 255, 255)
         title.TextSize = 18
         title.Font = Enum.Font.GothamBold
@@ -925,11 +927,22 @@ if table.find(v1, tostring(v2)) then
         speedLabel.Font = Enum.Font.GothamSemibold
         speedLabel.Parent = mainFrame
         
+        local animSpeedLabel = Instance.new("TextLabel")
+        animSpeedLabel.Name = "AnimSpeedLabel"
+        animSpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+        animSpeedLabel.Position = UDim2.new(0, 0, 0.55, 0)
+        animSpeedLabel.BackgroundTransparency = 1
+        animSpeedLabel.Text = "🎬 Anim: 0.5x"
+        animSpeedLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+        animSpeedLabel.TextSize = 12
+        animSpeedLabel.Font = Enum.Font.Gotham
+        animSpeedLabel.Parent = mainFrame
+        
         local controlsText = Instance.new("TextLabel")
         controlsText.Size = UDim2.new(1, 0, 0, 30)
         controlsText.Position = UDim2.new(0, 0, 0.7, 0)
         controlsText.BackgroundTransparency = 1
-        controlsText.Text = "Mira donde quieres ir"
+        controlsText.Text = "Mira hacia donde quieres ir"
         controlsText.TextColor3 = Color3.fromRGB(180, 180, 200)
         controlsText.TextSize = 11
         controlsText.Font = Enum.Font.Gotham
@@ -944,12 +957,12 @@ if table.find(v1, tostring(v2)) then
         
         local turboButton = Instance.new("TextButton")
         turboButton.Name = "TurboButton"
-        turboButton.Size = UDim2.new(0, 80, 0, 80)
-        turboButton.Position = UDim2.new(0.5, -40, 0.5, -40)
+        turboButton.Size = UDim2.new(0, 90, 0, 90)
+        turboButton.Position = UDim2.new(0.5, -45, 0.5, -45)
         turboButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
         turboButton.Text = "🔥\nTURBO"
         turboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        turboButton.TextSize = 16
+        turboButton.TextSize = 18
         turboButton.Font = Enum.Font.GothamBold
         turboButton.Parent = buttonFrame
         
@@ -986,19 +999,24 @@ if table.find(v1, tostring(v2)) then
         return hoverboardGui
     end
     
-    local function UpdateSpeedIndicator(isTurbo)
+    local function UpdateSpeedIndicator(isTurbo, animSpeed)
         if hoverboardGui then
             local mainFrame = hoverboardGui:FindFirstChild("Frame")
             if mainFrame then
                 local speedLabel = mainFrame:FindFirstChild("SpeedLabel")
                 if speedLabel then
                     if isTurbo then
-                        speedLabel.Text = "🔥 TURBO ACTIVO"
+                        speedLabel.Text = "🔥 TURBO MÁXIMO"
                         speedLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
                     else
                         speedLabel.Text = "⚡ Velocidad: Normal"
                         speedLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
                     end
+                end
+                
+                local animSpeedLabel = mainFrame:FindFirstChild("AnimSpeedLabel")
+                if animSpeedLabel then
+                    animSpeedLabel.Text = string.format("🎬 Anim: %.2fx", animSpeed)
                 end
             end
         end
@@ -1017,11 +1035,17 @@ if table.find(v1, tostring(v2)) then
             cleanupConnection = nil
         end
         
+        if animSpeedConnection then
+            animSpeedConnection:Disconnect()
+            animSpeedConnection = nil
+        end
+        
         if hoverboardGui then
             hoverboardGui:Destroy()
             hoverboardGui = nil
         end
         
+        currentAnimSpeed = 0.5
         hoverboardVictim = nil
     end
     
@@ -1034,6 +1058,7 @@ if table.find(v1, tostring(v2)) then
         
         isHoverboarding = true
         hoverboardVictim = victim
+        currentAnimSpeed = 0.5
         
         CreateHoverboardGui()
         
@@ -1045,18 +1070,19 @@ if table.find(v1, tostring(v2)) then
             return
         end
         
+        -- CONTROLES DE FÍSICA MÁS FUERTES
         local bodyPos = upperTorso:FindFirstChild("HoverboardPosition") or Instance.new("BodyPosition")
         bodyPos.Name = "HoverboardPosition"
         bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyPos.P = 30000
-        bodyPos.D = 3000
+        bodyPos.P = 50000
+        bodyPos.D = 5000
         bodyPos.Parent = upperTorso
         
         local bodyGyro = upperTorso:FindFirstChild("HoverboardGyro") or Instance.new("BodyGyro")
         bodyGyro.Name = "HoverboardGyro"
         bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyGyro.P = 40000
-        bodyGyro.D = 2000
+        bodyGyro.P = 60000
+        bodyGyro.D = 3000
         bodyGyro.Parent = upperTorso
         
         local startCFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame
@@ -1069,16 +1095,18 @@ if table.find(v1, tostring(v2)) then
             upperTorso.Position.Z
         )
         
+        -- ANIMACIÓN NUEVA
         local hoverAnim = Instance.new("Animation")
-        hoverAnim.AnimationId = "rbxassetid://13157862997"
+        hoverAnim.AnimationId = "rbxassetid://76573949416065"
         local hoverTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(hoverAnim)
         hoverTrack:Play()
-        hoverTrack:AdjustSpeed(1.2)
+        hoverTrack:AdjustSpeed(currentAnimSpeed)
         
-        local normalSpeed = 250
-        local turboSpeed = 450
-        local flySpeed = 150
-        local smoothFactor = 0.15
+        -- VELOCIDADES ULTRA RÁPIDAS
+        local normalSpeed = 400
+        local turboSpeed = 800
+        local flySpeed = 200
+        local smoothFactor = 0.25
         
         local isTurboPressed = false
         local isUpPressed = false
@@ -1123,13 +1151,45 @@ if table.find(v1, tostring(v2)) then
             end
         end
         
+        -- SISTEMA DE VELOCIDAD PROGRESIVA DE ANIMACIÓN
+        local timeMoving = 0
+        animSpeedConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+            if not isHoverboarding then return end
+            
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
+            local moveDirection = cameraCFrame.LookVector
+            
+            -- Si se está moviendo, aumentar velocidad de animación
+            if moveDirection.Magnitude > 0.1 then
+                timeMoving = timeMoving + dt
+                -- Aumentar velocidad progresivamente hasta 1.5
+                currentAnimSpeed = math.min(0.5 + (timeMoving * 0.3), 1.5)
+            else
+                timeMoving = math.max(0, timeMoving - dt * 2)
+                currentAnimSpeed = math.max(0.5, 0.5 + (timeMoving * 0.3))
+            end
+            
+            if hoverTrack then
+                hoverTrack:AdjustSpeed(currentAnimSpeed)
+            end
+        end)
+        
         hoverboardConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
+            -- VERIFICAR SI VÍCTIMA EXISTE
             if not isHoverboarding or not victim or not victim.Parent then
                 CleanupHoverboard()
                 if hoverTrack then hoverTrack:Stop() end
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Víctima perdida - desactivado',
+                    Duration = 2
+                })
                 return
             end
             
+            -- VERIFICAR RAGDOLL
             local victimHumanoid = victim:FindFirstChild("Humanoid")
             if victimHumanoid then
                 local bodyEffects = victim:FindFirstChild("BodyEffects")
@@ -1160,13 +1220,14 @@ if table.find(v1, tostring(v2)) then
             local playerHRP = _LocalPlayer2.Character.HumanoidRootPart
             
             local isTurboActive = userInputService:IsKeyDown(Enum.KeyCode.LeftControl) or isTurboPressed
-            UpdateSpeedIndicator(isTurboActive)
+            UpdateSpeedIndicator(isTurboActive, currentAnimSpeed)
             
-            local moveDirection = Vector3.zero
+            -- MOVIMIENTO BASADO EN CÁMARA (SHIFTLOCK STYLE)
             local camera = workspace.CurrentCamera
             local cameraCFrame = camera.CFrame
             
-            moveDirection = cameraCFrame.LookVector
+            -- SIEMPRE AVANZAR HACIA DONDE MIRA LA CÁMARA
+            local moveDirection = cameraCFrame.LookVector
             
             local verticalMove = 0
             if userInputService:IsKeyDown(Enum.KeyCode.Space) or isUpPressed then
@@ -1180,6 +1241,7 @@ if table.find(v1, tostring(v2)) then
                 currentSpeed = flySpeed
             end
             
+            -- MOVIMIENTO ULTRA FLUIDO Y RÁPIDO
             if moveDirection.Magnitude > 0 then
                 moveDirection = (moveDirection.Unit * Vector3.new(1, 0, 1)) + Vector3.new(0, verticalMove, 0)
                 
@@ -1190,6 +1252,7 @@ if table.find(v1, tostring(v2)) then
                 local targetPos = bodyPos.Position + (moveDirection * currentSpeed * delta)
                 bodyPos.Position = bodyPos.Position:Lerp(targetPos, smoothFactor)
                 
+                -- ROTAR VÍCTIMA HACIA DONDE MIRA (BOCA ABAJO)
                 local lookDirection = Vector3.new(moveDirection.X, 0, moveDirection.Z)
                 if lookDirection.Magnitude > 0 then
                     local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + lookDirection)
@@ -1199,6 +1262,7 @@ if table.find(v1, tostring(v2)) then
                 bodyPos.Position = bodyPos.Position + Vector3.new(0, verticalMove * flySpeed * delta, 0)
             end
             
+            -- MANTENER JUGADOR ENCIMA
             local offsetY = 3
             playerHRP.CFrame = CFrame.new(
                 upperTorso.Position.X,
@@ -1206,9 +1270,13 @@ if table.find(v1, tostring(v2)) then
                 upperTorso.Position.Z
             )
             
+            -- ROTAR JUGADOR HACIA DONDE MIRA LA CÁMARA
+            playerHRP.CFrame = CFrame.new(playerHRP.Position) * CFrame.Angles(0, math.atan2(cameraCFrame.LookVector.X, cameraCFrame.LookVector.Z), 0)
+            
             playerHRP.AssemblyLinearVelocity = Vector3.zero
             playerHRP.AssemblyAngularVelocity = Vector3.zero
             
+            -- ALTURA MÍNIMA
             if verticalMove == 0 then
                 local ray = Ray.new(upperTorso.Position, Vector3.new(0, -20, 0))
                 local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, {victim, _LocalPlayer2.Character})
@@ -1237,8 +1305,8 @@ if table.find(v1, tostring(v2)) then
         end)
         
         game:GetService('StarterGui'):SetCore('SendNotification', {
-            Title = '🛹 HOVERBOARD MÓVIL',
-            Text = 'Mira hacia donde quieres ir. Usa los botones',
+            Title = '🛹 HOVERBOARD ULTRA',
+            Text = 'Mira hacia donde quieres ir | Turbo para máxima velocidad',
             Duration = 5
         })
     end
