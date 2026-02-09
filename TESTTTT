@@ -125,10 +125,8 @@ if table.find(v1, tostring(v2)) then
     })
 
     local _ReplicatedStorage = game:GetService('ReplicatedStorage')
-    local RunService = game:GetService('RunService')
-    local Lighting = game:GetService("Lighting")
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
+
+    game:GetService('RunService')
 
     local _ = game:GetService('Players').LocalPlayer
     local u19 = nil
@@ -137,84 +135,51 @@ if table.find(v1, tostring(v2)) then
     local u22 = {}
     local u23 = nil
 
-    -- SISTEMA DE EFECTO DE PANTALLA BLANCA MEJORADO
-    local screenEffect = nil
-    local currentEffectTween = nil
-    
-    function CreateWhiteScreenEffect(intensity, duration, fadeOut)
-        if screenEffect then
-            screenEffect:Destroy()
-            if currentEffectTween then
-                currentEffectTween:Cancel()
-            end
+    local function u27(p24, p25, p26)
+        if not p24 or not p25 then return end
+        p24.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        p24.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+        p24.Velocity = Vector3.new(0, 0, 0)
+        p24.CFrame = p25.CFrame * (p26 or CFrame.new())
+        p24.CanCollide = false
+        p25.CanCollide = false
+    end
+
+    local u28 = {
+        2788309317,
+        2788309982,
+        2788311138,
+        2788308661,
+    }
+
+    local function u31(p29, p30)
+        if type(p29) == 'table' and p30 then
+            p29[#p29 + 1] = p30
         end
-        
-        screenEffect = Instance.new("ScreenGui")
-        screenEffect.Name = "WhiteScreenEffect"
-        screenEffect.ResetOnSpawn = false
-        screenEffect.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        screenEffect.Parent = game.CoreGui
-        
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.Position = UDim2.new(0, 0, 0, 0)
-        frame.BackgroundColor3 = Color3.new(1, 1, 1)
-        frame.BackgroundTransparency = 1 - (intensity or 0.3)
-        frame.BorderSizePixel = 0
-        frame.ZIndex = 999
-        frame.Parent = screenEffect
-        
-        -- Efecto de bloom para hacerlo más suave
-        local uiCorner = Instance.new("UICorner")
-        uiCorner.CornerRadius = UDim.new(0, 0)
-        uiCorner.Parent = frame
-        
-        if duration then
-            task.delay(duration, function()
-                if screenEffect and fadeOut ~= false then
-                    local tween = TweenService:Create(
-                        frame,
-                        TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {BackgroundTransparency = 1}
-                    )
-                    tween:Play()
-                    tween.Completed:Connect(function()
-                        if screenEffect then
-                            screenEffect:Destroy()
-                            screenEffect = nil
-                        end
-                    end)
+    end
+    local function u37(p32, p33)
+        if game:GetService('RunService')[p32] then
+            local u34 = nil
+
+            u34 = game:GetService('RunService')[p32]:Connect(function()
+                local v35, v36 = pcall(p33)
+
+                if not v35 then
+                    u34:Disconnect()
+                    warn(v36)
                 end
             end)
-        end
-        
-        return screenEffect
-    end
-    
-    function RemoveScreenEffect()
-        if screenEffect then
-            local frame = screenEffect:FindFirstChildWhichIsA("Frame")
-            if frame then
-                local tween = TweenService:Create(
-                    frame,
-                    TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {BackgroundTransparency = 1}
-                )
-                tween:Play()
-                tween.Completed:Connect(function()
-                    if screenEffect then
-                        screenEffect:Destroy()
-                        screenEffect = nil
-                    end
-                end)
-            else
-                screenEffect:Destroy()
-                screenEffect = nil
-            end
+
+            return u34
         end
     end
 
-    -- [Funciones básicas existentes...]
+    function ZeroVelocity___(p38)
+        if not p38 then return end
+        p38.Velocity = Vector3.zero
+        p38.AssemblyAngularVelocity = Vector3.zero
+        p38.AssemblyLinearVelocity = Vector3.zero
+    end
 
     TweenService = game:GetService('TweenService')
 
@@ -224,13 +189,724 @@ if table.find(v1, tostring(v2)) then
     function StopAudio()
         game:GetService('ReplicatedStorage'):WaitForChild('MainEvent'):FireServer('BoomboxStop')
     end
+    function stop(p41, p42)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('LowerTorso') then return end
+        coroutine.wrap(function()
+            wait(_LocalPlayer2.Character.LowerTorso.BOOMBOXSOUND.TimeLength - 0.1)
 
-    -- SISTEMA MEJORADO DE ANIMACIONES CON VELOCIDADES CORREGIDAS
-    local activeAnimations = {}
-    local currentSpeedMode = "normal"
-    local speedEffectsActive = false
+            if _LocalPlayer2.Character.LowerTorso.BOOMBOXSOUND.SoundId == 'rbxassetid://' .. p41 and u40 == p42 then
+                StopAudio()
+            end
+        end)()
+    end
+    function AnimPlay(p43, p44, p45, p46)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        local v47, v48, v49 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
+
+        while true do
+            local v50
+
+            v49, v50 = v47(v48, v49)
+
+            if v49 == nil then
+                break
+            end
+            if v50.Animation.AnimationId:match('rbxassetid://' .. p43) then
+                v50:Stop(0.5)
+            end
+        end
+
+        local _Animation = Instance.new('Animation', game:GetService('Workspace'))
+
+        _Animation.AnimationId = 'rbxassetid://' .. p43
+        playing = _LocalPlayer2.Character:WaitForChild('Humanoid'):LoadAnimation(_Animation)
+        playing.Priority = Enum.AnimationPriority.Action4
+
+        if tonumber(p46) then
+            playing:Play(p46)
+        else
+            playing:Play()
+        end
+        if tonumber(p44) then
+            playing:AdjustSpeed(p44)
+        else
+            playing:AdjustSpeed(1)
+        end
+        if tonumber(p45) then
+            playing.TimePosition = p45
+        end
+
+        _Animation:Destroy()
+    end
+    function AnimPlayvv2(p52, p53, p54, p55)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        local v56, v57, v58 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
+
+        while true do
+            local v59
+
+            v58, v59 = v56(v57, v58)
+
+            if v58 == nil then
+                break
+            end
+            if v59.Animation.AnimationId:match('rbxassetid://' .. p52) then
+                v59:Stop()
+            end
+        end
+
+        local _Animation2 = Instance.new('Animation', game:GetService('Workspace'))
+
+        _Animation2.AnimationId = 'rbxassetid://' .. p52
+        playing = _LocalPlayer2.Character:WaitForChild('Humanoid'):LoadAnimation(_Animation2)
+
+        if tonumber(p55) then
+            playing:Play(p55)
+        else
+            playing:Play()
+        end
+        if tonumber(p53) then
+            playing:AdjustSpeed(p53)
+        else
+            playing:AdjustSpeed(1)
+        end
+        if tonumber(p54) then
+            playing.TimePosition = p54
+        end
+
+        _Animation2:Destroy()
+    end
+    function AnimStopv2(p61, p62)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        local v63, v64, v65 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
+
+        while true do
+            local v66
+
+            v65, v66 = v63(v64, v65)
+
+            if v65 == nil then
+                break
+            end
+            if v66.Animation.AnimationId:match('rbxassetid://' .. p61) then
+                if tonumber(p62) then
+                    v66:Stop(p62)
+                else
+                    v66:Stop()
+                end
+            end
+        end
+    end
+    function CloneStopanim(p67, p68)
+        if not u21 or not u21:FindFirstChild('Humanoid') then return end
+        local v69, v70, v71 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
+
+        while true do
+            local v72
+
+            v71, v72 = v69(v70, v71)
+
+            if v71 == nil then
+                break
+            end
+            if v72.Animation.AnimationId:match('rbxassetid://' .. p67) then
+                if tonumber(p68) then
+                    v72:Stop(p68)
+                else
+                    v72:Stop()
+                end
+            end
+        end
+    end
+
+    game.Workspace.FallenPartsDestroyHeight = -1 / 0
+
+    local function u84(p73)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        local v74, v75, v76 = pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks())
+
+        while true do
+            local v77
+
+            v76, v77 = v74(v75, v76)
+
+            if v76 == nil then
+                break
+            end
+            if v77.Animation.AnimationId:match('rbxassetid://' .. p73) then
+                v77:Stop()
+
+                if u21 and not u21:FindFirstChild(p73) then
+                    local _Animation3 = Instance.new('Animation', u21)
+
+                    _Animation3.AnimationId = 'rbxassetid://' .. p73
+                    _Animation3.Name = '_____GYAT'
+                    playing = u21.Humanoid:LoadAnimation(_Animation3)
+
+                    playing:Play()
+                end
+            end
+        end
+
+        if u21 and u21.Humanoid and u21.Humanoid.MoveDirection.magnitude > 0 then
+            CloneStopanim(p73)
+
+            local v79 = u21
+            local v80, v81, v82 = pairs(v79:GetChildren())
+
+            while true do
+                local v83
+
+                v82, v83 = v80(v81, v82)
+
+                if v82 == nil then
+                    break
+                end
+                if v83.Name == '_____GYAT' then
+                    v83:Destroy()
+                end
+            end
+        end
+    end
+    local function u92(p85, p86)
+        if not u21 or not u21:FindFirstChild('Humanoid') then return end
+        local v87, v88, v89 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
+
+        while true do
+            local v90
+
+            v89, v90 = v87(v88, v89)
+
+            if v89 == nil then
+                break
+            end
+            if v90.Animation.AnimationId:match('rbxassetid://' .. p85) then
+                v90:Stop()
+
+                return
+            end
+        end
+
+        local _Animation4 = Instance.new('Animation', game:GetService('Workspace'))
+
+        _Animation4.AnimationId = 'rbxassetid://' .. p85
+        playing = u21.Humanoid:LoadAnimation(_Animation4)
+
+        playing:Play()
+
+        if tonumber(p86) then
+            playing:AdjustSpeed(p86)
+        else
+            playing:AdjustSpeed(1)
+        end
+
+        _Animation4:Destroy()
+    end
+    local function u100(p93, p94)
+        if not u21 or not u21:FindFirstChild('Humanoid') then return end
+        local v95, v96, v97 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
+
+        while true do
+            local v98
+
+            v97, v98 = v95(v96, v97)
+
+            if v97 == nil then
+                break
+            end
+            if v98.Animation.AnimationId:match('rbxassetid://' .. p93) then
+                v98:Stop()
+            end
+        end
+
+        local _Animation5 = Instance.new('Animation', game:GetService('Workspace'))
+
+        _Animation5.AnimationId = 'rbxassetid://' .. p93
+        playing = u21.Humanoid:LoadAnimation(_Animation5)
+
+        playing:Play()
+
+        if tonumber(p94) then
+            playing:AdjustSpeed(p94)
+        else
+            playing:AdjustSpeed(1)
+        end
+
+        _Animation5:Destroy()
+    end
+    local function u107(p101)
+        if not p101 then return nil end
+        p101.Archivable = true
+
+        local v102 = p101:Clone()
+
+        v102.HumanoidRootPart.Anchored = false
+        v102.Humanoid.MaxHealth = 9000000000
+        v102.Humanoid.Health = 9000000000
+
+        if v102:FindFirstChild('RagdollConstraints') then v102.RagdollConstraints:Destroy() end
+        if v102:FindFirstChild('BodyEffects') then v102.BodyEffects:Destroy() end
+        if v102:FindFirstChild('GRABBING_CONSTRAINT') then v102:WaitForChild('GRABBING_CONSTRAINT'):Destroy() end
+
+        local v103, v104, v105 = pairs(v102:GetDescendants())
+
+        while true do
+            local v106
+
+            v105, v106 = v103(v104, v105)
+
+            if v105 == nil then
+                break
+            end
+            if v106:IsA('BasePart') and (v106.Name ~= 'Head' and (v106.Name ~= 'HumanoidRootPart' and (v106.Name ~= 'UpperTorso' and (v106.Name ~= 'LowerTorso' and (v106.Name ~= 'LeftUpperArm' and (v106.Name ~= 'RightUpperArm' and (v106.Name ~= 'LeftLowerArm' and (v106.Name ~= 'RightLowerArm' and (v106.Name ~= 'LeftHand' and (v106.Name ~= 'RightHand' and (v106.Name ~= 'LeftUpperLeg' and (v106.Name ~= 'RightUpperLeg' and (v106.Name ~= 'LeftLowerLeg' and (v106.Name ~= 'RightLowerLeg' and (v106.Name ~= 'LeftFoot' and v106.Name ~= 'RightFoot'))))))))))))))) then
+                v106.Massless = false
+                v106:Destroy()
+            end
+            if v106:IsA('BasePart') or (v106:IsA('MeshPart') or v106:IsA('Part')) then
+                v106.CustomPhysicalProperties = PhysicalProperties.new(100, 2, 0.5, 100, 1)
+                v106.Transparency = 1
+                v106.CanCollide = false
+
+                if v106:FindFirstChildWhichIsA('BodyGyro') and v106:FindFirstChildWhichIsA('BodyPosition') then
+                    v106:Destroy()
+                end
+            end
+            if v106:IsA('Decal') then
+                v106.Transparency = 1
+            end
+            if v106:IsA('ForceField') then
+                v106:Destroy()
+            end
+            if v106:IsA('Motor6D') then
+                v106:Destroy()
+            end
+        end
+
+        v102.HumanoidRootPart.Transparency = 1
+        v102.Parent = _LocalPlayer2.Character
+
+        v102.Humanoid:ChangeState('GettingUp')
+
+        v102.HumanoidRootPart.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+        p101.Archivable = false
+        
+        local leftHandMotor = p101.LeftHand:FindFirstChildOfClass('Motor6D')
+        local rightHandMotor = p101.RightHand:FindFirstChildOfClass('Motor6D')
+        local leftFootMotor = p101.LeftFoot:FindFirstChildOfClass('Motor6D')
+        local rightFootMotor = p101.RightFoot:FindFirstChildOfClass('Motor6D')
+        
+        if leftHandMotor then leftHandMotor.Enabled = false end
+        if rightHandMotor then rightHandMotor.Enabled = false end
+        if leftFootMotor then leftFootMotor.Enabled = false end
+        if rightFootMotor then rightFootMotor.Enabled = true end
+
+        return v102
+    end
+
+    function AnimStop(p108, p109)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then return end
+        local v110, v111, v112 = pairs(_LocalPlayer2.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks())
+
+        while true do
+            local v113
+
+            v112, v113 = v110(v111, v112)
+
+            if v112 == nil then
+                break
+            end
+            if v113.Animation.AnimationId:match('rbxassetid://' .. p108) then
+                if tonumber(p109) then
+                    v113:Stop(p109)
+                else
+                    v113:Stop()
+                end
+            end
+        end
+    end
+
+    local function u127()
+        local u114 = nil
+
+        u31(u22, _LocalPlayer2:GetMouse().KeyDown:Connect(function(p115)
+            if not u21 then return end
+            if p115 == 'v' then
+                u92(7024352298)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(7024352298)
+            elseif p115 == 'q' then
+                u92(10370362157, 1.1)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(10370362157)
+            elseif p115 == 't' then
+                u92(10714068222)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(10714068222)
+            elseif p115 == 'y' then
+                u92(507770818)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(507770818)
+            elseif p115 == 'u' then
+                u92(10714340543, 1.3)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(10714340543)
+            elseif p115 == 'j' then
+                u92(14548619594)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(14548619594)
+            elseif p115 == 'e' then
+                u92(2816431506, 1.5)
+            elseif p115 == 'r' then
+                u92(11444443576, 1.1)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(11444443576)
+            elseif p115 == 'b' then
+                u92(10214314957)
+
+                repeat
+                    wait()
+                until game.Players.LocalPlayer.Character:WaitForChild('Humanoid').MoveDirection.magnitude > 0
+
+                CloneStopanim(10214314957)
+            elseif p115 == '2' then
+                u100(3152394906)
+            elseif p115 == 'f' then
+                u100(2788354405)
+            elseif p115 == '0' then
+                if u21 and u21.Humanoid then
+                    u21.Humanoid.WalkSpeed = 24
+                end
+            elseif p115 == 'c' then
+                _G.FlyClone = not _G.FlyClone
+            elseif p115 == 'x' then
+                u114 = not u114
+
+                if u114 == true then
+                    u92(3189777795)
+
+                    repeat
+                        task.wait()
+
+                        if u21 and u21.HumanoidRootPart and u21.Humanoid then
+                            u21.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame + u21.Humanoid.MoveDirection * getgenv().config.control.cframespeed
+                        end
+                    until u114 == false
+                end
+            end
+        end))
+        task.spawn(function()
+            while true do
+                repeat
+                    task.wait(0.2)
+                until _LocalPlayer2 and _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('BodyEffects')
+
+                local _Grabbed = _LocalPlayer2.Character.BodyEffects:FindFirstChild('Grabbed')
+
+                if _Grabbed and _Grabbed.Value == nil then
+                    _G.FlyClone = false
+                end
+            end
+        end)
+        u31(u22, _LocalPlayer2:GetMouse().KeyUp:Connect(function(p117)
+            if not u21 then return end
+            if p117 == '2' then
+                CloneStopanim(3152394906)
+            elseif p117 == 'f' then
+                CloneStopanim(2788354405)
+            elseif p117 == '0' then
+                if u21 and u21.Humanoid then
+                    u21.Humanoid.WalkSpeed = 16
+                end
+            end
+        end))
+        u31(u22, _LocalPlayer2.Backpack.Combat.Activated:Connect(function(_)
+            u100(u28[math.random(1, #u28)], 1.3)
+        end))
+
+        repeat
+            task.wait()
+        until _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil or u20 == true
+
+        if u21 then
+            _LocalPlayer2.Character.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame
+
+            ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
+
+            workspace.CurrentCamera.CameraSubject = _LocalPlayer2.Character
+
+            u21:Destroy()
+        end
+
+        if u19 then
+            local v118 = u19
+            local v119, v120, v121 = pairs(v118:GetDescendants())
+
+            while true do
+                local v122
+
+                v121, v122 = v119(v120, v121)
+
+                if v121 == nil then
+                    break
+                end
+                if v122:IsA('BodyPosition') then
+                    v122:Destroy()
+                end
+            end
+
+            local leftHandMotor = u19.LeftHand:FindFirstChildOfClass('Motor6D')
+            local rightHandMotor = u19.RightHand:FindFirstChildOfClass('Motor6D')
+            local leftFootMotor = u19.LeftFoot:FindFirstChildOfClass('Motor6D')
+            local rightFootMotor = u19.RightFoot:FindFirstChildOfClass('Motor6D')
+            
+            if leftHandMotor then leftHandMotor.Enabled = true end
+            if rightHandMotor then rightHandMotor.Enabled = true end
+            if leftFootMotor then leftFootMotor.Enabled = true end
+            if rightFootMotor then rightFootMotor.Enabled = true end
+        end
+
+        local v123, v124, v125 = pairs(u22)
+
+        while true do
+            local v126
+
+            v125, v126 = v123(v124, v125)
+
+            if v125 == nil then
+                break
+            end
+
+            v126:Disconnect()
+        end
+    end
+
+    _G.FlyCloneSpeed = getgenv().config.control.flyspeed
+
+    game:GetService('RunService').RenderStepped:Connect(function(p128)
+        if _G.FlyClone == true then
+            if u21 and u21:FindFirstChild('Humanoid') and u21:FindFirstChild('HumanoidRootPart') then
+                local _MoveDirection = u21.Humanoid.MoveDirection
+                local _HumanoidRootPart = u21.HumanoidRootPart
+                local _UserInputService = game:GetService('UserInputService')
+                local _flyspeed = getgenv().config.control.flyspeed
+                local v133 = _flyspeed * 6
+                local v134 = _flyspeed * 2
+                local _zero = Vector3.zero
+
+                if _UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    _zero = Vector3.new(0, 1, 0)
+                elseif _UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    _zero = Vector3.new(0, -1, 0)
+                end
+
+                _HumanoidRootPart.CFrame = _HumanoidRootPart.CFrame + _MoveDirection * p128 * v133 + _zero * p128 * v134
+                _HumanoidRootPart.Velocity = Vector3.new(_HumanoidRootPart.Velocity.X, 0, _HumanoidRootPart.Velocity.Z)
+            end
+        end
+    end)
+
+    function ZeroVelocity___(p136)
+        if not p136 then return end
+        p136.Velocity = Vector3.zero
+        p136.AssemblyAngularVelocity = Vector3.zero
+        p136.AssemblyLinearVelocity = Vector3.zero
+    end
+    function Align(p137, p138, p139, p140, p141, p142)
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+            return
+        end
+        if not u19 then return end
+        
+        if not (u19[p139]:FindFirstChildWhichIsA('BodyPosition') or u19[p139]:FindFirstChildWhichIsA('BodyGyro')) then
+            Instance.new('BodyPosition', u19[p139]).MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+            local _BodyGyro = Instance.new('BodyGyro', u19[p139])
+
+            _BodyGyro.maxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
+            _BodyGyro.P = 10000
+        end
+
+        if _LocalPlayer2.Character[p140] then
+            u19[p139].BodyGyro.CFrame = _LocalPlayer2.Character[p140].CFrame * p142
+            u19[p139].BodyPosition.Position = _LocalPlayer2.Character[p140].CFrame * p141.Position
+            u19[p139].BodyPosition.P = p137
+            u19[p139].BodyPosition.D = p138
+        end
+    end
+    function Destroy(p144)
+        if not u19 then return end
+        if u19[p144]:FindFirstChildOfClass('BodyGyro') or u19[p144]:FindFirstChildOfClass('BodyPosition') then
+            if u19[p144]:FindFirstChildOfClass('BodyGyro') then u19[p144]:FindFirstChildOfClass('BodyGyro'):Destroy() end
+            if u19[p144]:FindFirstChildOfClass('BodyPosition') then u19[p144]:FindFirstChildOfClass('BodyPosition'):Destroy() end
+        end
+    end
+    function Holding()
+        repeat
+            task.wait()
+            Align(10000, 175, 'UpperTorso', 'RightUpperArm', CFrame.new(-0.2, -1.7, 0.5), CFrame.Angles(math.pi * -0.5, math.pi * 1, math.pi * 0.07))
+        until not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects.Grabbed.Value or u20 == true
+    end
+    function Grab()
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then return end
+        if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+            u19 = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+
+            local _GRABBING_CONSTRAINT = u19:WaitForChild('GRABBING_CONSTRAINT')
+
+            if not _GRABBING_CONSTRAINT then
+                return
+            end
+
+            u23 = _GRABBING_CONSTRAINT:FindFirstChildOfClass('RopeConstraint')
+            if u23 then
+                u23.Length = 1 / 0
+            end
+            u20 = false
+
+            local v146 = u19
+            local v147, v148, v149 = pairs(v146:GetChildren())
+
+            while true do
+                local v150
+
+                v149, v150 = v147(v148, v149)
+
+                if v149 == nil then
+                    break
+                end
+                if v150:IsA('BasePart') then
+                    v150.CanCollide = false
+                end
+            end
+            while true do
+                task.wait()
+
+                if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then break end
+                local v151, v152, v153 = pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks())
+
+                while true do
+                    local v154
+
+                    v153, v154 = v151(v152, v153)
+
+                    if v153 == nil then
+                        break
+                    end
+                    if v154.Animation.AnimationId:match('rbxassetid://11075367458') then
+                        u20 = true
+                        v154:Stop()
+                    end
+                end
+
+                if u20 == true then
+                    local v155 = u19
+                    local v156, v157, v158 = pairs(v155:GetDescendants())
+
+                    while true do
+                        local v159
+
+                        v158, v159 = v156(v157, v158)
+
+                        if v158 == nil then
+                            break
+                        end
+                        if v159:IsA('BasePart') then
+                            v159.Velocity = Vector3.zero
+                            v159.AssemblyAngularVelocity = Vector3.zero
+                            v159.AssemblyLinearVelocity = Vector3.zero
+                        end
+                    end
+
+                    u20 = false
+
+                    AnimPlayvv2(3135389157, 0, 0.1, 0.3)
+                    Holding()
+                    AnimStopv2(3135389157)
+                    Destroy('UpperTorso')
+                end
+            end
+        else
+            return
+        end
+    end
     
-    function SyncAnimPlay(animId, speed, duration, priority)
+    -- Función para reproducir sonidos
+    local function PlaySound(soundId)
+        if not _LocalPlayer2.Character then return false end
+        if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+            _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+        else
+            local sound = Instance.new('Sound')
+            sound.SoundId = 'rbxassetid://' .. soundId
+            sound.Volume = 1
+            sound.Parent = workspace
+            sound:Play()
+            game.Debris:AddItem(sound, 6)
+        end
+        return true
+    end
+    
+    -- NUEVO SISTEMA DE EFECTOS Y VELOCIDADES
+    local whiteScreenEffect = nil
+    local activeAnimations = {}
+    
+    local function ShowWhiteScreen(intensity)
+        if whiteScreenEffect then
+            whiteScreenEffect:Destroy()
+        end
+        
+        whiteScreenEffect = Instance.new("ScreenGui")
+        whiteScreenEffect.Name = "WhiteScreen"
+        whiteScreenEffect.ResetOnSpawn = false
+        whiteScreenEffect.Parent = game.CoreGui
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundColor3 = Color3.new(1, 1, 1)
+        frame.BackgroundTransparency = 1 - intensity
+        frame.BorderSizePixel = 0
+        frame.ZIndex = 999
+        frame.Parent = whiteScreenEffect
+        
+        return whiteScreenEffect
+    end
+    
+    local function HideWhiteScreen()
+        if whiteScreenEffect then
+            whiteScreenEffect:Destroy()
+            whiteScreenEffect = nil
+        end
+    end
+    
+    local function EnhancedAnimPlay(animId, speedMode, duration)
         if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild('Humanoid') then 
             return nil 
         end
@@ -246,268 +922,60 @@ if table.find(v1, tostring(v2)) then
         anim.AnimationId = 'rbxassetid://' .. animId
         
         local track = _LocalPlayer2.Character.Humanoid:LoadAnimation(anim)
-        track.Priority = priority or Enum.AnimationPriority.Action4
+        track.Priority = Enum.AnimationPriority.Action4
         
-        -- VELOCIDADES CORREGIDAS SEGÚN TUS ESPECIFICACIONES
-        local actualSpeed = 1.0
-        currentSpeedMode = speed or "normal"
-        
-        if speed == "ultrafast" then
-            actualSpeed = 100.0  -- ¡VELOCIDAD 100X! (rápido)
-            ApplySpeedEffects("ultrafast")
-            speedEffectsActive = true
-        elseif speed == "veryfast" then
-            actualSpeed = 3.0    -- Velocidad normal predeterminada
-        elseif speed == "fast" then
-            actualSpeed = 2.0
-        elseif speed == "normal" then
-            actualSpeed = 1.0
-            RemoveSpeedEffects()
-        elseif speed == "slow" then
-            actualSpeed = 0.5
-        elseif speed == "veryslow" then
-            actualSpeed = 0.1    -- Velocidad lenta
-            -- Pantalla extremadamente blanca pero visible
-            CreateWhiteScreenEffect(0.15, duration, false)  -- 15% blanco, no se desvanece
-        elseif speed == "extremeslow" then
-            actualSpeed = 0.05
-            -- Pantalla más blanca pero todavía visible
-            CreateWhiteScreenEffect(0.25, duration, false)  -- 25% blanco
+        -- VELOCIDADES SEGÚN TUS ESPECIFICACIONES
+        if speedMode == "ultrafast" then
+            track:AdjustSpeed(100.0)  -- Velocidad rápida 100x
+        elseif speedMode == "veryfast" then
+            track:AdjustSpeed(3.0)    -- Velocidad normal predeterminada
+        elseif speedMode == "veryslow" then
+            track:AdjustSpeed(0.1)    -- Velocidad lenta
+            ShowWhiteScreen(0.8)      -- Pantalla blanca intensa pero visible
         else
-            actualSpeed = tonumber(speed) or 1.0
+            track:AdjustSpeed(1.0)
         end
         
-        track:AdjustSpeed(actualSpeed)
         track:Play()
         anim:Destroy()
         
-        -- Aplicar efectos según velocidad
-        ApplySpeedVisualEffects(actualSpeed)
+        activeAnimations[animId] = track
         
-        -- Si hay duración, detener después
         if duration then
             task.delay(duration, function()
-                if track then
+                if track and track.IsPlaying then
                     track:Stop()
-                    if speed == "veryslow" or speed == "extremeslow" then
-                        -- No remover pantalla blanca inmediatamente
-                        task.wait(1)
-                    end
-                    RemoveSpeedEffects()
-                    if speed ~= "veryslow" and speed ~= "extremeslow" then
-                        RemoveScreenEffect()
-                    end
-                    speedEffectsActive = false
                 end
             end)
         end
         
-        activeAnimations[animId] = track
         return track
     end
     
-    function ApplySpeedVisualEffects(speed)
-        local camera = game:GetService("Workspace").CurrentCamera
+    -- Función para enviar partes al vacío
+    local function SendToVoid(partsList)
+        if not u19 then return end
         
-        -- Limpiar efectos antiguos primero
-        RemoveSpeedEffects()
-        
-        if speed >= 50.0 then
-            -- Efectos para velocidad 100x
-            local blur = Instance.new("BlurEffect")
-            blur.Name = "SpeedBlur"
-            blur.Size = 35
-            blur.Parent = camera
-            
-            local colorCorrection = Instance.new("ColorCorrectionEffect")
-            colorCorrection.Name = "SpeedColor"
-            colorCorrection.TintColor = Color3.new(0.7, 0.8, 1)
-            colorCorrection.Brightness = 0.3
-            colorCorrection.Contrast = 0.4
-            colorCorrection.Saturation = -0.3
-            colorCorrection.Parent = camera
-            
-            -- Efecto de líneas de velocidad
-            local sunRays = Instance.new("SunRaysEffect")
-            sunRays.Name = "SpeedRays"
-            sunRays.Intensity = 0.2
-            sunRays.Spread = 1.0
-            sunRays.Parent = camera
-            
-        elseif speed >= 2.0 and speed < 50.0 then
-            -- Efectos para velocidad 3x
-            local blur = Instance.new("BlurEffect")
-            blur.Name = "SpeedBlur"
-            blur.Size = 8
-            blur.Parent = camera
-            
-        elseif speed <= 0.2 then
-            -- Para velocidad lenta, solo pantalla blanca (ya aplicada)
-            RemoveSpeedEffects()
-        end
-    end
-    
-    function ApplySpeedEffects(mode)
-        local camera = game:GetService("Workspace").CurrentCamera
-        
-        if mode == "ultrafast" then
-            -- Efecto de desenfoque extremo
-            local blur = Instance.new("BlurEffect")
-            blur.Name = "UltraFastBlur"
-            blur.Size = 40
-            blur.Parent = camera
-            
-            -- Efecto de color para velocidad extrema
-            local colorCorrection = Instance.new("ColorCorrectionEffect")
-            colorCorrection.Name = "UltraFastColor"
-            colorCorrection.TintColor = Color3.new(0.6, 0.8, 1)
-            colorCorrection.Brightness = 0.4
-            colorCorrection.Contrast = 0.5
-            colorCorrection.Saturation = -0.4
-            colorCorrection.Parent = camera
-            
-            -- Efecto de rayos solares intensos
-            local sunRays = Instance.new("SunRaysEffect")
-            sunRays.Name = "SpeedRays"
-            sunRays.Intensity = 0.3
-            sunRays.Spread = 1.5
-            sunRays.Parent = camera
-            
-            -- Efecto de bloom para brillo
-            local bloom = Instance.new("BloomEffect")
-            bloom.Name = "SpeedBloom"
-            bloom.Intensity = 0.8
-            bloom.Size = 24
-            bloom.Threshold = 0.9
-            bloom.Parent = camera
-        end
-    end
-    
-    function RemoveSpeedEffects()
-        local camera = game:GetService("Workspace").CurrentCamera
-        
-        local effectsToRemove = {
-            "SpeedBlur", "SpeedColor", "UltraFastBlur", 
-            "UltraFastColor", "SpeedRays", "SpeedBloom"
-        }
-        
-        for _, effectName in ipairs(effectsToRemove) do
-            local effect = camera:FindFirstChild(effectName)
-            if effect then
-                effect:Destroy()
-            end
-        end
-    end
-    
-    function SyncAnimStop(animId)
-        if activeAnimations[animId] then
-            activeAnimations[animId]:Stop()
-            activeAnimations[animId] = nil
-        end
-        -- No remover pantalla blanca aquí si estamos en modo lento
-        if currentSpeedMode ~= "veryslow" and currentSpeedMode ~= "extremeslow" then
-            RemoveSpeedEffects()
-            RemoveScreenEffect()
-        end
-    end
-    
-    -- SISTEMA DE ELIMINACIÓN DE PARTES AL VACÍO
-    function SendPartsToVoid(character, partsToRemove, instant)
-        if not character then return end
-        
-        local parts = {
-            "LeftUpperArm", "RightUpperArm",
-            "LeftLowerArm", "RightLowerArm", 
-            "LeftUpperLeg", "RightUpperLeg",
-            "LeftLowerLeg", "RightLowerLeg",
-            "LowerTorso"
-        }
-        
-        -- Si se especifican partes específicas, usar esas
-        if partsToRemove and #partsToRemove > 0 then
-            parts = partsToRemove
-        end
-        
-        for _, partName in ipairs(parts) do
-            local part = character:FindFirstChild(partName)
+        for _, partName in ipairs(partsList) do
+            local part = u19:FindFirstChild(partName)
             if part then
-                -- Desconectar motores primero
+                -- Desconectar motores
                 for _, motor in ipairs(part:GetChildren()) do
                     if motor:IsA("Motor6D") then
                         motor:Destroy()
                     end
                 end
                 
-                -- Hacer la parte física
+                -- Enviar al vacío
+                part.CFrame = CFrame.new(0, -50000, 0)
+                part.Transparency = 1
                 part.CanCollide = false
-                part.Anchored = false
-                part.Massless = false
-                
-                if instant then
-                    -- Destrucción inmediata
-                    part:Destroy()
-                else
-                    -- Enviar al vacío con efecto
-                    part.CFrame = CFrame.new(0, -10000, 0)
-                    part.Transparency = 1
-                    part.Anchored = true
-                    
-                    -- Destruir después de un tiempo
-                    game.Debris:AddItem(part, 0.5)
-                end
+                part.Anchored = true
+                game.Debris:AddItem(part, 0.5)
             end
         end
     end
     
-    -- FUNCIÓN PARA ELIMINACIÓN COMPLETA DE LA VÍCTIMA
-    function CompleteVictimElimination(victimChar, sendToVoid)
-        if not victimChar then return end
-        
-        -- 1. Enviar todas las partes excepto cabeza al vacío
-        SendPartsToVoid(victimChar, {
-            "LeftUpperArm", "RightUpperArm",
-            "LeftLowerArm", "RightLowerArm", 
-            "LeftUpperLeg", "RightUpperLeg",
-            "LeftLowerLeg", "RightLowerLeg",
-            "LowerTorso", "UpperTorso", "HumanoidRootPart"
-        }, false)
-        
-        -- 2. Solo dejar la cabeza visible
-        local head = victimChar:FindFirstChild("Head")
-        if head then
-            head.Transparency = 0
-            head.CanCollide = true
-            head.Anchored = false
-            
-            -- Aplicar textura de sangre
-            head.BrickColor = BrickColor.new("Really red")
-            
-            -- Si es envío al vacío completo
-            if sendToVoid then
-                wait(2)  -- Esperar antes de enviar al vacío
-                head.CFrame = CFrame.new(0, -50000, 0)
-                head.Anchored = true
-                game.Debris:AddItem(head, 1)
-            end
-        end
-        
-        -- 3. Si hay Humanoid, matarlo
-        local humanoid = victimChar:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.Health = 0
-        end
-        
-        -- 4. Eliminar el personaje completo después de tiempo
-        if sendToVoid then
-            game.Debris:AddItem(victimChar, 3)
-        end
-    end
-
-    game.Workspace.FallenPartsDestroyHeight = -100000
-
-    -- [Funciones de alineación y grab...]
-
-    -- SISTEMA DE HERRAMIENTAS COMPLETAMENTE REESCRITO
     function ToolSSs()
         -- ESPERAR A QUE EL JUGADOR TENGA UN PERSONAJE VÁLIDO
         if not _LocalPlayer2 then
@@ -522,7 +990,7 @@ if table.find(v1, tostring(v2)) then
             wait()
         until _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('Humanoid') and _LocalPlayer2.Character:FindFirstChild('BodyEffects')
 
-        -- TOOL: ACTIVATE (sin cambios)
+        -- TOOL: ACTIVATE
         if _LocalPlayer2.Backpack:FindFirstChild('Activate') then
             _LocalPlayer2.Backpack:FindFirstChild('Activate'):Destroy()
         end
@@ -547,7 +1015,7 @@ if table.find(v1, tostring(v2)) then
             Grab()
         end)
 
-        -- TOOL 1: GRAB KNIFE (ENVÍA AL VACÍO COMPLETO)
+        -- TOOL 1: GRAB KNIFE (ENVÍA TODO AL VACÍO)
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -557,23 +1025,17 @@ if table.find(v1, tostring(v2)) then
         
         wait(0.1)
         
-        local toolGrabKnife = Instance.new('Tool')
-        toolGrabKnife.RequiresHandle = false
-        toolGrabKnife.Name = 'grab knife'
-        toolGrabKnife.ToolTip = 'Grab Knife - Eliminación completa con vacío'
-        toolGrabKnife.Parent = _LocalPlayer2.Backpack
+        local grabKnifeTool = Instance.new('Tool')
+        grabKnifeTool.RequiresHandle = false
+        grabKnifeTool.Name = 'grab knife'
+        grabKnifeTool.ToolTip = 'Grab Knife - Eliminación completa al vacío'
+        grabKnifeTool.Parent = _LocalPlayer2.Backpack
         
-        local isKnifeActive = false
+        local isGrabKnifeActive = false
         
-        toolGrabKnife.Activated:Connect(function()
-            if isKnifeActive then return end
-            
+        grabKnifeTool.Activated:Connect(function()
+            if isGrabKnifeActive then return end
             if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Grab Knife',
-                    Text = 'Character not loaded',
-                    Duration = 2
-                })
                 return
             end
             
@@ -586,63 +1048,31 @@ if table.find(v1, tostring(v2)) then
                 return
             end
             
-            isKnifeActive = true
+            isGrabKnifeActive = true
             
-            local knifeVictim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local victimPlayer = game.Players:GetPlayerFromCharacter(knifeVictim)
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
             
             if not victimPlayer or victimPlayer == _LocalPlayer2 then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Grab Knife',
-                    Text = 'Cannot use on yourself',
-                    Duration = 2
-                })
-                isKnifeActive = false
+                isGrabKnifeActive = false
                 return
             end
             
-            print('[Grab Knife] Eliminación completa de:', victimPlayer.Name)
+            -- ANIMACIÓN DE INICIO CON VELOCIDAD 3x
+            local freezeTrack = EnhancedAnimPlay("74694286613254", "veryfast", 10)
             
-            -- OBTENER CUCHILLO
-            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or 
-                         _LocalPlayer2.Backpack:FindFirstChild('knife')
-            if knife then
-                knife.Parent = _LocalPlayer2.Character
-            end
+            -- CONTROL DE VÍCTIMA
+            local stopControl = false
             
-            -- FUNCIÓN DE RISA
-            local function PlayLaugh()
-                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                    _ReplicatedStorage.MainEvent:FireServer('Boombox', '4810729995')
-                else
-                    local laughSound = Instance.new("Sound")
-                    laughSound.SoundId = "rbxassetid://4810729995"
-                    laughSound.Volume = 1.0
-                    laughSound.Parent = workspace
-                    laughSound:Play()
-                    game.Debris:AddItem(laughSound, 10)
-                end
-            end
-            
-            PlayLaugh()
-            
-            -- CONGELAR ANIMACIÓN CON VELOCIDAD NORMAL (3x)
-            local freezeTrack = SyncAnimPlay("74694286613254", "veryfast", 10, Enum.AnimationPriority.Action4)
-            
-            -- CONTROL DE LA VÍCTIMA
-            local stopAlign = false
-            local alignConnection
-            
-            alignConnection = RunService.Heartbeat:Connect(function()
-                if stopAlign or not knifeVictim or not knifeVictim.Parent then
-                    if alignConnection then alignConnection:Disconnect() end
+            local controlConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if stopControl or not victim or not victim.Parent then
+                    controlConnection:Disconnect()
                     return
                 end
                 
-                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
+                local upperTorso = victim:FindFirstChild('UpperTorso')
                 if not upperTorso then return end
                 
-                -- Crear controles si no existen
                 local bodyPos = upperTorso:FindFirstChild('BodyPosition')
                 if not bodyPos then
                     bodyPos = Instance.new('BodyPosition')
@@ -660,46 +1090,25 @@ if table.find(v1, tostring(v2)) then
                     bodyGyro.Parent = upperTorso
                 end
                 
-                -- Posicionar frente al jugador
                 local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                local frontPos = playerCF.Position + (playerCF.LookVector * 1.5) + Vector3.new(0, -0.5, 0)
+                local frontPos = playerCF.Position + (playerCF.LookVector * 1.5)
                 
                 bodyPos.Position = frontPos
                 bodyGyro.CFrame = CFrame.new(frontPos) * CFrame.Angles(math.rad(-90), math.pi, 0)
             end)
             
-            -- ANIMACIÓN DE CORTAR CON VELOCIDAD 3x
-            local cutAnimId = "126796684932532"
-            
-            -- CORTAR MIEMBROS
+            -- CORTAR MIEMBROS CON VELOCIDAD 3x
             local limbs = {'RightUpperArm', 'LeftUpperArm', 'LeftUpperLeg', 'RightUpperLeg'}
             
             for i = 1, 4 do
-                -- SONIDO DE CORTE
-                local soundId = i == 4 and '91676414066995' or '125856818464345'
+                local cutTrack = EnhancedAnimPlay("126796684932532", "veryfast", 1.5)
                 
-                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                    _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
-                else
-                    local cutSound = Instance.new("Sound")
-                    cutSound.SoundId = "rbxassetid://" .. soundId
-                    cutSound.Volume = 1.0
-                    cutSound.Pitch = 1.5
-                    cutSound.Parent = workspace
-                    cutSound:Play()
-                    game.Debris:AddItem(cutSound, 1.5)
-                end
-                
-                -- ANIMACIÓN DE CORTE 3x
-                local cutTrack = SyncAnimPlay(cutAnimId, "veryfast", 1.2, Enum.AnimationPriority.Action)
-                
-                -- ELIMINAR MIEMBRO Y ENVIAR AL VACÍO
-                if knifeVictim and knifeVictim.Parent then
-                    local part = knifeVictim:FindFirstChild(limbs[i])
+                if victim and victim.Parent then
+                    local part = victim:FindFirstChild(limbs[i])
                     if part then 
-                        wait(0.2)
-                        -- Enviar esta parte al vacío
-                        part.CFrame = CFrame.new(0, -10000, 0)
+                        wait(0.3)
+                        -- Enviar al vacío
+                        part.CFrame = CFrame.new(0, -50000, 0)
                         part.Transparency = 1
                         part.CanCollide = false
                         part.Anchored = true
@@ -707,70 +1116,49 @@ if table.find(v1, tostring(v2)) then
                     end
                 end
                 
-                -- RISAS ALEATORIAS
-                if math.random(1, 2) == 1 then
-                    task.spawn(function()
-                        PlayLaugh()
-                    end)
-                end
-                
-                wait(1.2)
-                SyncAnimStop(cutAnimId)
+                wait(1.5)
             end
             
-            -- ESPERAR Y PREPARAR PARA TIRAR CABEZA
-            wait(1)
+            -- ENVIAR LOWERTORSO AL VACÍO
+            SendToVoid({"LowerTorso"})
             
-            -- ENVIAR TORSO Y PARTES RESTANTES AL VACÍO
-            SendPartsToVoid(knifeVictim, {"LowerTorso"}, false)
-            
-            -- DEJAR SOLO LA CABEZA VISIBLE
-            if knifeVictim and knifeVictim.Parent and knifeVictim:FindFirstChild('Head') then
-                local head = knifeVictim.Head
+            -- DEJAR SOLO CABEZA VISIBLE, TORSO BAJO SUELO
+            if victim and victim.Parent then
+                local head = victim:FindFirstChild("Head")
+                local upperTorso = victim:FindFirstChild("UpperTorso")
                 
-                -- Configurar cabeza visible
-                head.Transparency = 0
-                head.CanCollide = true
-                head.Anchored = false
-                head.BrickColor = BrickColor.new("Really red")
+                if head then
+                    head.Transparency = 0
+                    head.BrickColor = BrickColor.new("Really red")
+                end
                 
-                -- Esconder UpperTorso bajo el suelo
-                local upperTorso = knifeVictim:FindFirstChild('UpperTorso')
                 if upperTorso then
-                    upperTorso.CFrame = CFrame.new(0, -10, 0)  -- Justo bajo el suelo
+                    upperTorso.CFrame = CFrame.new(0, -10, 0)  -- Bajo el suelo
                     upperTorso.Transparency = 1
                     upperTorso.CanCollide = false
                     upperTorso.Anchored = true
                 end
-                
-                -- ANIMACIÓN DE TIRAR CABEZA CON VELOCIDAD 100x
-                local throwTrack = SyncAnimPlay("135931094841392", "ultrafast", 8, Enum.AnimationPriority.Action)
-                
-                -- TIRAR LA CABEZA
-                local throwForce = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 250) + Vector3.new(0, 60, 0)
+            end
+            
+            -- ANIMACIÓN DE TIRAR CABEZA CON VELOCIDAD 100x
+            local throwTrack = EnhancedAnimPlay("135931094841392", "ultrafast", 8)
+            
+            -- ESPERAR Y CAMBIAR A VELOCIDAD LENTA 0.1x
+            wait(4)
+            
+            if victim and victim.Parent and victim:FindFirstChild("Head") then
+                local head = victim.Head
+                local throwForce = (_LocalPlayer2.Character.HumanoidRootPart.CFrame.LookVector * 200) + Vector3.new(0, 50, 0)
                 head.Velocity = throwForce
                 
-                PlayLaugh()
+                -- CAMBIAR A VELOCIDAD LENTA CON PANTALLA BLANCA
+                EnhancedAnimPlay("135931094841392", "veryslow", nil)
                 
-                -- NOTIFICACIÓN
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '⚡ CABEZA LANZADA!',
-                    Text = 'Velocidad 100x activada',
-                    Duration = 4
-                })
-                
-                -- ESPERAR A QUE LA CABEZA CAIGA
-                wait(4)
-                
-                -- CAMBIAR A VELOCIDAD MUY LENTA (0.1x) CON PANTALLA BLANCA
-                SyncAnimStop("135931094841392")
-                local slowTrack = SyncAnimPlay("135931094841392", "veryslow", nil, Enum.AnimationPriority.Action)
-                
-                -- DETECTAR CUANDO EL JUGADOR SE ACERCA
+                -- DETECTAR ACERCAMIENTO
                 local startTime = tick()
                 local playerNearHead = false
                 
-                while tick() - startTime < 20 do
+                while tick() - startTime < 15 do
                     if not head or not head.Parent then break end
                     
                     local distance = (_LocalPlayer2.Character.HumanoidRootPart.Position - head.Position).magnitude
@@ -784,33 +1172,22 @@ if table.find(v1, tostring(v2)) then
                 
                 if playerNearHead and head and head.Parent then
                     -- ANIMACIÓN DE PISAR
-                    local stompTrack = SyncAnimPlay("72406748336709", "normal", 2, Enum.AnimationPriority.Action)
+                    local stompTrack = EnhancedAnimPlay("72406748336709", "normal", 2)
                     
-                    -- POSICIONAR SOBRE LA CABEZA
-                    local headPos = head.Position
-                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
-                        headPos.X, 
-                        headPos.Y + 3.5, 
-                        headPos.Z
-                    )
-                    
-                    wait(0.5)
-                    
-                    -- APLASTAR LA CABEZA
-                    local originalWalkSpeed = _LocalPlayer2.Character.Humanoid.WalkSpeed
-                    _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
-                    
+                    -- APLASTAR CABEZA
                     head.Velocity = Vector3.new(0, -150, 0)
-                    
                     wait(1)
                     
-                    -- ELIMINACIÓN COMPLETA: ENVIAR VÍCTIMA AL VACÍO
-                    CompleteVictimElimination(knifeVictim, true)
-                    
-                    wait(1)
-                    
-                    -- RESTAURAR VELOCIDAD
-                    _LocalPlayer2.Character.Humanoid.WalkSpeed = originalWalkSpeed
+                    -- ENVIAR VÍCTIMA COMPLETA AL VACÍO
+                    if victim and victim.Parent then
+                        for _, part in ipairs(victim:GetChildren()) do
+                            if part:IsA("BasePart") then
+                                part.CFrame = CFrame.new(0, -100000, 0)
+                                part.Transparency = 1
+                                game.Debris:AddItem(part, 1)
+                            end
+                        end
+                    end
                     
                     stompTrack:Stop()
                     
@@ -820,45 +1197,28 @@ if table.find(v1, tostring(v2)) then
                         Duration = 5
                     })
                 else
-                    -- Si no se acerca, igual enviar al vacío
-                    CompleteVictimElimination(knifeVictim, true)
-                    
-                    game:GetService('StarterGui'):SetCore('SendNotification', {
-                        Title = 'Grab Knife',
-                        Text = 'Víctima eliminada automáticamente',
-                        Duration = 3
-                    })
+                    -- Enviar al vacío automáticamente
+                    if victim and victim.Parent then
+                        victim:Destroy()
+                    end
                 end
-                
-                -- LIMPIAR EFECTOS
-                SyncAnimStop("135931094841392")
-                RemoveScreenEffect()
             end
             
             -- LIMPIAR
-            stopAlign = true
-            if alignConnection then alignConnection:Disconnect() end
+            stopControl = true
+            controlConnection:Disconnect()
             
-            -- SOLTAR VÍCTIMA
             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
             
-            -- DEVOLVER CUCHILLO
-            if knife and knife.Parent == _LocalPlayer2.Character then
-                knife.Parent = _LocalPlayer2.Backpack
-            end
-            
-            -- DETENER ANIMACIÓN
             if freezeTrack then
                 freezeTrack:Stop()
             end
             
-            RemoveSpeedEffects()
-            RemoveScreenEffect()
-            
-            isKnifeActive = false
+            HideWhiteScreen()
+            isGrabKnifeActive = false
         end)
         
-        -- TOOL 2: DISMEMBER (SOLO ELIMINA PARTES, NO ENVÍA AL VACÍO)
+        -- TOOL 2: DISMEMBER (SOLO ELIMINA PARTES)
         if _LocalPlayer2.Backpack:FindFirstChild('dismember') then
             _LocalPlayer2.Backpack:FindFirstChild('dismember'):Destroy()
         end
@@ -868,15 +1228,15 @@ if table.find(v1, tostring(v2)) then
         
         wait(0.1)
         
-        local toolDismember = Instance.new('Tool')
-        toolDismember.RequiresHandle = false
-        toolDismember.Name = 'dismember'
-        toolDismember.ToolTip = 'Dismember - Solo elimina partes al vacío'
-        toolDismember.Parent = _LocalPlayer2.Backpack
+        local dismemberTool = Instance.new('Tool')
+        dismemberTool.RequiresHandle = false
+        dismemberTool.Name = 'dismember'
+        dismemberTool.ToolTip = 'Dismember - Solo elimina partes al vacío'
+        dismemberTool.Parent = _LocalPlayer2.Backpack
         
         local isDismemberActive = false
         
-        toolDismember.Activated:Connect(function()
+        dismemberTool.Activated:Connect(function()
             if isDismemberActive then return end
             
             if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
@@ -895,17 +1255,9 @@ if table.find(v1, tostring(v2)) then
             isDismemberActive = true
             
             local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
             
-            if not victimPlayer or victimPlayer == _LocalPlayer2 then
-                isDismemberActive = false
-                return
-            end
-            
-            print('[Dismember] Eliminando partes de:', victimPlayer.Name)
-            
-            -- ANIMACIÓN DE INICIO CON VELOCIDAD 3x
-            local startTrack = SyncAnimPlay("126796684932532", "veryfast", 2, Enum.AnimationPriority.Action)
+            -- ANIMACIÓN CON VELOCIDAD 3x
+            local startTrack = EnhancedAnimPlay("126796684932532", "veryfast", 2)
             
             -- LISTA DE PARTES A ELIMINAR (SOLO ESTAS)
             local partsToRemove = {
@@ -916,35 +1268,21 @@ if table.find(v1, tostring(v2)) then
                 "LowerTorso"
             }
             
-            -- ELIMINAR CADA PARTE CON EFECTO
-            for i, partName in ipairs(partsToRemove) do
+            -- ELIMINAR CADA PARTE
+            for _, partName in ipairs(partsToRemove) do
                 local part = victim:FindFirstChild(partName)
                 if part then
-                    -- SONIDO DE DESMEMBRAMIENTO
-                    local sound = Instance.new("Sound")
-                    sound.SoundId = "rbxassetid://125856818464345"
-                    sound.Volume = 0.7
-                    sound.Parent = workspace
-                    sound:Play()
-                    game.Debris:AddItem(sound, 2)
-                    
-                    -- ANIMACIÓN RÁPIDA
-                    local animTrack = SyncAnimPlay("126796684932532", "veryfast", 0.5, Enum.AnimationPriority.Action)
-                    
                     -- ENVIAR PARTE AL VACÍO
-                    task.wait(0.1)
-                    part.CFrame = CFrame.new(0, -10000, 0)
+                    task.wait(0.2)
+                    part.CFrame = CFrame.new(0, -50000, 0)
                     part.Transparency = 1
                     part.CanCollide = false
                     part.Anchored = true
                     game.Debris:AddItem(part, 0.5)
-                    
-                    task.wait(0.4)
-                    SyncAnimStop("126796684932532")
                 end
             end
             
-            -- DEJAR SOLO CABEZA Y UPPERTORSO VISIBLES
+            -- DEJAR SOLO CABEZA Y UPPERTORSO
             local head = victim:FindFirstChild("Head")
             local upperTorso = victim:FindFirstChild("UpperTorso")
             
@@ -954,9 +1292,8 @@ if table.find(v1, tostring(v2)) then
             end
             
             if upperTorso then
-                -- Poner bajo el suelo pero no en el vacío
                 upperTorso.CFrame = CFrame.new(0, -5, 0)
-                upperTorso.Transparency = 0.8  -- Semi-transparente
+                upperTorso.Transparency = 0.8
                 upperTorso.CanCollide = false
                 upperTorso.Anchored = true
             end
@@ -971,11 +1308,14 @@ if table.find(v1, tostring(v2)) then
             -- SOLTAR VÍCTIMA
             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
             
-            SyncAnimStop("126796684932532")
+            if startTrack then
+                startTrack:Stop()
+            end
+            
             isDismemberActive = false
         end)
         
-        -- TOOL: IDK - CORREGIDO (SIN EFECTOS AUTOMÁTICOS)
+        -- TOOL: IDK - VERSIÓN CORREGIDA
         if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
             _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
         end
@@ -985,15 +1325,15 @@ if table.find(v1, tostring(v2)) then
 
         wait(0.1)
 
-        local toolIdk = Instance.new('Tool')
-        toolIdk.RequiresHandle = false
-        toolIdk.Name = 'Idk'
-        toolIdk.ToolTip = 'Idk - Control simple sin efectos'
-        toolIdk.Parent = _LocalPlayer2.Backpack
+        local idkTool = Instance.new('Tool')
+        idkTool.RequiresHandle = false
+        idkTool.Name = 'Idk'
+        idkTool.ToolTip = 'Idk - Control simple'
+        idkTool.Parent = _LocalPlayer2.Backpack
 
         local isIdkActive = false
 
-        toolIdk.Activated:Connect(function()
+        idkTool.Activated:Connect(function()
             if isIdkActive then return end
             
             if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
@@ -1011,25 +1351,20 @@ if table.find(v1, tostring(v2)) then
             
             isIdkActive = true
             
-            -- ANIMACIÓN SIMPLE SIN EFECTOS ESPECIALES
-            local mainTrack = SyncAnimPlay("91859430011682", "veryfast", nil, Enum.AnimationPriority.Action)
+            -- ANIMACIÓN SIMPLE SIN EFECTOS
+            local mainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
             
             -- VARIABLE DE CONTROL
-            getgenv().IdkActive = true
+            local shouldStop = false
             
-            -- CONEXIÓN SIMPLE
+            -- CONEXIÓN PARA DETENER
             local checkConnection
-            checkConnection = RunService.Heartbeat:Connect(function()
-                if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
-                   not _LocalPlayer2.Character.BodyEffects.Grabbed.Value or getgenv().IdkActive == false then
+            checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
+                   not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
                     
                     if mainTrack then
                         mainTrack:Stop()
-                    end
-                    
-                    -- DESTRUIR CONTROLES SIN EFECTOS
-                    if u19 and u19:FindFirstChild('UpperTorso') then
-                        Destroy('UpperTorso')
                     end
                     
                     if checkConnection then
@@ -1037,26 +1372,16 @@ if table.find(v1, tostring(v2)) then
                     end
                     
                     isIdkActive = false
-                    getgenv().IdkActive = nil
                 end
             end)
             
-            -- LOOP SIMPLE DE ALINEACIÓN
+            -- LOOP DE ALINEACIÓN
             task.spawn(function()
                 while isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
-                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value and getgenv().IdkActive == true do
+                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value do
                     task.wait()
                     
                     if u19 then
-                        -- Limpiar velocidades
-                        for _, part in ipairs(u19:GetDescendants()) do
-                            if part:IsA('BasePart') then
-                                part.Velocity = Vector3.zero
-                                part.AssemblyAngularVelocity = Vector3.zero
-                                part.AssemblyLinearVelocity = Vector3.zero
-                            end
-                        end
-
                         local timeOffset = tick() * 100
                         Align(20000, 500, 'UpperTorso', 'HumanoidRootPart', 
                               CFrame.new(0, -0.3, -1.2 + 0.1 * math.sin(timeOffset / 4)),
@@ -1064,18 +1389,17 @@ if table.find(v1, tostring(v2)) then
                     end
                 end
             end)
+            
+            -- CONEXIÓN PARA DETENER AL SOLTAR
+            local releaseConnection
+            releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
+                if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
+                    shouldStop = true
+                end
+            end)
+            
+            table.insert(u22, releaseConnection)
         end)
-        
-        -- CONEXIÓN PARA DETENER IDk AL SOLTAR
-        local releaseConnection
-        releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
-            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
-                getgenv().IdkActive = false
-            end
-        end)
-        
-        -- GUARDAR CONEXIÓN PARA LIMPIAR
-        table.insert(u22, releaseConnection)
     end
         
     ToolSSs()
