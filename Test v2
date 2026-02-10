@@ -1824,15 +1824,14 @@ if table.find(v1, tostring(v2)) then
             isInverseActive = true
             inverseVictim = victim
             
-            -- TÚ te acuestas con velocidad 0
-            inverseMainTrack = AnimPlayvv2("77646644732733", 0, 1, 0)
+            -- NO usamos animación para ti, solo flotas mirando al piso
+            -- La animación se maneja con la rotación del CFrame
             
-            -- VÍCTIMA se sienta con una de las 2 animaciones
-            local victimAnimId = math.random(1, 2) == 1 and "107864399491345" or "93120341268524"
+            -- VÍCTIMA usa SOLO la animación 93120341268524
             local victimHumanoid = victim:FindFirstChild("Humanoid")
             if victimHumanoid then
                 local victimAnim = Instance.new("Animation")
-                victimAnim.AnimationId = "rbxassetid://" .. victimAnimId
+                victimAnim.AnimationId = "rbxassetid://93120341268524"
                 inverseVictimTrack = victimHumanoid:LoadAnimation(victimAnim)
                 inverseVictimTrack:Play(0, 1, 1.0)
                 victimAnim:Destroy()
@@ -1847,7 +1846,7 @@ if table.find(v1, tostring(v2)) then
                 local victimTorso = inverseVictim:FindFirstChild("UpperTorso")
                 
                 if hrp and victimTorso then
-                    -- Víctima sentada en tu espalda mientras estás acostado
+                    -- Víctima sentada en tu espalda
                     Align(30000, 800, "UpperTorso", "HumanoidRootPart", 
                           CFrame.new(0, -1.2, 0), 
                           CFrame.Angles(math.pi * 0.5, 0, 0))
@@ -1862,6 +1861,11 @@ if table.find(v1, tostring(v2)) then
                 local humanoid = _LocalPlayer2.Character:FindFirstChild("Humanoid")
                 
                 if not hrp or not humanoid then return end
+                
+                -- Rotar tu personaje para que mire al piso (flotando)
+                local currentCFrame = hrp.CFrame
+                local targetRotation = CFrame.Angles(math.pi * 0.5, currentCFrame:ToEulerAnglesYXZ(), 0)
+                hrp.CFrame = CFrame.new(currentCFrame.Position) * CFrame.Angles(math.pi * 0.5, currentCFrame:ToEulerAnglesYXZ(), 0)
                 
                 -- Obtener la dirección de movimiento del joystick móvil
                 local moveDirection = humanoid.MoveDirection
@@ -1892,7 +1896,7 @@ if table.find(v1, tostring(v2)) then
             
             game:GetService('StarterGui'):SetCore('SendNotification', {
                 Title = '🔄 Hoverboard Inverse',
-                Text = 'Activado - Usa el joystick para moverte',
+                Text = 'Activado - Flotando con víctima',
                 Duration = 3
             })
         end
