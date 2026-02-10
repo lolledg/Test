@@ -1075,6 +1075,10 @@ if table.find(v1, tostring(v2)) then
         end)
         if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
             _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
+        if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
+            _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
+        if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
+            _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
         end
 
         task.wait(0.1)
@@ -1083,86 +1087,226 @@ if table.find(v1, tostring(v2)) then
         _Tool_Portal.RequiresHandle = false
         _Tool_Portal.Name = 'Portal'
 
+        -- Función mejorada para crear nubes volumétricas
+        local function CreatePortalClouds(position)
+            local cloudsModel = Instance.new('Model')
+            cloudsModel.Name = 'PortalClouds'
+            cloudsModel.Parent = workspace
+            
+            -- Crear múltiples capas de nubes para efecto volumétrico
+            for i = 1, 8 do
+                local cloud = Instance.new('Part')
+                cloud.Name = 'Cloud_' .. i
+                cloud.Size = Vector3.new(25 + (i * 2), 8, 25 + (i * 2))
+                cloud.Anchored = true
+                cloud.CanCollide = false
+                cloud.Material = Enum.Material.Neon
+                cloud.Color = Color3.fromRGB(120 + (i * 15), 0, 200 + (i * 5))
+                cloud.Transparency = 0.4 + (i * 0.05)
+                cloud.CFrame = position * CFrame.new(0, -i * 0.5, 0)
+                cloud.Parent = cloudsModel
+                
+                -- Hacer las nubes redondas
+                local mesh = Instance.new('SpecialMesh')
+                mesh.MeshType = Enum.MeshType.Sphere
+                mesh.Scale = Vector3.new(1, 0.3, 1)
+                mesh.Parent = cloud
+                
+                -- Añadir partículas a algunas capas
+                if i % 2 == 0 then
+                    local particles = Instance.new('ParticleEmitter')
+                    particles.Color = ColorSequence.new(Color3.fromRGB(200, 100, 255))
+                    particles.Size = NumberSequence.new(4, 6)
+                    particles.Lifetime = NumberRange.new(3, 5)
+                    particles.Rate = 20
+                    particles.Speed = NumberRange.new(3, 8)
+                    particles.SpreadAngle = Vector2.new(30, 30)
+                    particles.Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 0.5),
+                        NumberSequenceKeypoint.new(0.5, 0.3),
+                        NumberSequenceKeypoint.new(1, 1)
+                    })
+                    particles.Parent = cloud
+                end
+            end
+            
+            -- Añadir efecto de brillo central
+            local centerGlow = Instance.new('Part')
+            centerGlow.Name = 'CenterGlow'
+            centerGlow.Size = Vector3.new(15, 1, 15)
+            centerGlow.Anchored = true
+            centerGlow.CanCollide = false
+            centerGlow.Material = Enum.Material.Neon
+            centerGlow.Color = Color3.fromRGB(255, 150, 255)
+            centerGlow.Transparency = 0.2
+            centerGlow.CFrame = position
+            centerGlow.Parent = cloudsModel
+            
+            local glowMesh = Instance.new('SpecialMesh')
+            glowMesh.MeshType = Enum.MeshType.Sphere
+            glowMesh.Parent = centerGlow
+            
+            -- Partículas del centro
+            local centerParticles = Instance.new('ParticleEmitter')
+            centerParticles.Color = ColorSequence.new(Color3.fromRGB(255, 200, 255))
+            centerParticles.Size = NumberSequence.new(8, 10)
+            centerParticles.Lifetime = NumberRange.new(2, 4)
+            centerParticles.Rate = 40
+            centerParticles.Speed = NumberRange.new(10, 20)
+            centerParticles.SpreadAngle = Vector2.new(360, 360)
+            centerParticles.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.3),
+                NumberSequenceKeypoint.new(0.5, 0.5),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            centerParticles.Parent = centerGlow
+            
+            -- Animar las nubes (rotación y pulsación)
+            task.spawn(function()
+                local rotation = 0
+                local scale = 1
+                local growing = true
+                
+                while cloudsModel and cloudsModel.Parent do
+                    rotation = rotation + 0.02
+                    
+                    if growing then
+                        scale = scale + 0.005
+                        if scale >= 1.2 then growing = false end
+                    else
+                        scale = scale - 0.005
+                        if scale <= 0.9 then growing = true end
+                    end
+                    
+                    for _, cloud in pairs(cloudsModel:GetChildren()) do
+                        if cloud:IsA('Part') and cloud.Name:match('Cloud_') then
+                            cloud.CFrame = cloud.CFrame * CFrame.Angles(0, 0.01, 0)
+                        elseif cloud.Name == 'CenterGlow' then
+                            local baseCFrame = position
+                            cloud.CFrame = baseCFrame * CFrame.Angles(0, rotation, 0)
+                            if cloud:FindFirstChildOfClass('SpecialMesh') then
+                                cloud:FindFirstChildOfClass('SpecialMesh').Scale = Vector3.new(scale, scale, scale)
+                            end
+                        end
+                    end
+                    
+                    task.wait(0.05)
+                end
+            end)
+            
+            return cloudsModel
+        end
+
         _Tool_Portal.Activated:Connect(function()
             if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then return end
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then return end
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then 
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🌀 Portal',
+                    Text = 'Necesitas agarrar a alguien primero',
+                    Duration = 3
+                })
+                return 
+            end
             
             local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
-            
-            if not victimPlayer then return end
             
             -- Notificación de inicio
             game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '🌀 Portal',
-                Text = 'Creando portal...',
-                Duration = 3
+                Title = '🌀 Portal Dimensional',
+                Text = 'Abriendo portal al vacío...',
+                Duration = 4
             })
             
-            -- Guardar valores originales de lighting
+            -- Guardar valores originales
             local originalFogEnd = game:GetService('Lighting').FogEnd
             local originalFogColor = game:GetService('Lighting').FogColor
             local originalSky = game:GetService('Lighting'):FindFirstChildOfClass('Sky')
             
-            -- Crear portal visual
+            -- Crear portal en el suelo con efecto de espiral
             local portal = Instance.new('Part')
-            portal.Name = 'Portal'
-            portal.Size = Vector3.new(20, 0.5, 20)
+            portal.Name = 'DimensionalPortal'
+            portal.Size = Vector3.new(28, 0.5, 28)
             portal.Anchored = true
             portal.CanCollide = false
             portal.Material = Enum.Material.Neon
             portal.Color = Color3.fromRGB(100, 0, 255)
-            portal.Transparency = 0.3
-            portal.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3, -5)
+            portal.Transparency = 0.1
+            portal.CFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3, -10)
             portal.Parent = workspace
             
-            -- Añadir efecto de rotación al portal
-            local portalRotation = 0
+            -- Mesh circular para el portal
+            local portalMesh = Instance.new('SpecialMesh')
+            portalMesh.MeshType = Enum.MeshType.Cylinder
+            portalMesh.Parent = portal
+            portal.CFrame = portal.CFrame * CFrame.Angles(0, 0, math.pi/2)
+            
+            -- Rotación del portal
             local portalConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                portalRotation = portalRotation + 0.05
-                portal.CFrame = portal.CFrame * CFrame.Angles(0, 0.05, 0)
+                if portal and portal.Parent then
+                    portal.CFrame = portal.CFrame * CFrame.Angles(0, 0.08, 0)
+                end
             end)
             
-            -- Crear efectos de partículas
-            local particles = Instance.new('ParticleEmitter')
-            particles.Color = ColorSequence.new(Color3.fromRGB(150, 0, 255))
-            particles.Size = NumberSequence.new(2)
-            particles.Lifetime = NumberRange.new(1, 2)
-            particles.Rate = 50
-            particles.Speed = NumberRange.new(10)
-            particles.Parent = portal
+            -- Anillo exterior del portal
+            local outerRing = Instance.new('Part')
+            outerRing.Name = 'OuterRing'
+            outerRing.Size = Vector3.new(32, 0.8, 32)
+            outerRing.Anchored = true
+            outerRing.CanCollide = false
+            outerRing.Material = Enum.Material.Neon
+            outerRing.Color = Color3.fromRGB(150, 50, 255)
+            outerRing.Transparency = 0.3
+            outerRing.CFrame = portal.CFrame
+            outerRing.Parent = workspace
             
-            -- Cambiar lighting para efecto dimensional
-            game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(1.5), {
-                FogEnd = 100,
-                FogColor = Color3.fromRGB(50, 0, 100)
+            local ringMesh = Instance.new('SpecialMesh')
+            ringMesh.MeshType = Enum.MeshType.Cylinder
+            ringMesh.Parent = outerRing
+            
+            -- Partículas espirales del portal
+            local portalParticles = Instance.new('ParticleEmitter')
+            portalParticles.Color = ColorSequence.new(Color3.fromRGB(150, 0, 255))
+            portalParticles.Size = NumberSequence.new(3, 6)
+            portalParticles.Lifetime = NumberRange.new(2, 4)
+            portalParticles.Rate = 150
+            portalParticles.Speed = NumberRange.new(15, 30)
+            portalParticles.SpreadAngle = Vector2.new(360, 360)
+            portalParticles.Rotation = NumberRange.new(0, 360)
+            portalParticles.RotSpeed = NumberRange.new(100, 200)
+            portalParticles.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.2),
+                NumberSequenceKeypoint.new(0.5, 0.5),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            portalParticles.Parent = portal
+            
+            -- Cambiar ambiente dramáticamente
+            game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(2), {
+                FogEnd = 60,
+                FogColor = Color3.fromRGB(30, 0, 80),
+                Brightness = 0.5
             }):Play()
             
-            -- Crear cielo morado
-            local sky = Instance.new('Sky')
-            sky.SkyboxBk = 'rbxasset://sky/purple.jpg'
-            sky.SkyboxDn = 'rbxasset://sky/purple.jpg'
-            sky.SkyboxFt = 'rbxasset://sky/purple.jpg'
-            sky.SkyboxLf = 'rbxasset://sky/purple.jpg'
-            sky.SkyboxRt = 'rbxasset://sky/purple.jpg'
-            sky.SkyboxUp = 'rbxasset://sky/purple.jpg'
-            sky.Parent = game:GetService('Lighting')
-            
-            -- Detener animación de grab
-            for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
-                if track.Animation.AnimationId:match('3135389157') then
-                    track:Stop()
-                end
-            end
+            -- Crear cielo dimensional
+            local dimensionalSky = Instance.new('Sky')
+            dimensionalSky.SkyboxBk = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.SkyboxDn = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.SkyboxFt = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.SkyboxLf = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.SkyboxRt = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.SkyboxUp = 'rbxasset://sky/purple.jpg'
+            dimensionalSky.Parent = game:GetService('Lighting')
             
             -- Activar control del clon
+            task.wait(1)
+            _LocalPlayer2.Character.Portal.Parent = _LocalPlayer2.Backpack
             u20 = true
             task.wait()
             u20 = false
             u21 = u107(u19)
             workspace.CurrentCamera.CameraSubject = u21
             
-            -- Alinear y controlar el clon
+            -- Loop de control
             u31(u22, u37('Heartbeat', function()
                 -- Detener animaciones
                 for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
@@ -1173,7 +1317,7 @@ if table.find(v1, tostring(v2)) then
                 _LocalPlayer2.Character.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame * CFrame.new(0, -15, 0) * CFrame.Angles(math.pi / 2, 0, 0)
                 ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
                 
-                -- Alinear partes del clon
+                -- Alinear partes
                 local parts = {
                     'Head', 'HumanoidRootPart', 'UpperTorso', 'LowerTorso',
                     'LeftUpperArm', 'LeftLowerArm', 'RightUpperArm', 'RightLowerArm',
@@ -1187,7 +1331,7 @@ if table.find(v1, tostring(v2)) then
                     end
                 end
                 
-                -- Detener animaciones del clon
+                -- Detener animaciones específicas
                 local animsToStop = {
                     3152375249, 3152378852, 3189773368, 3189776546,
                     3189777795, 3189779152, 3487719500, 11710529975,
@@ -1197,10 +1341,9 @@ if table.find(v1, tostring(v2)) then
                     u84(animId)
                 end
                 
-                -- Controlar movimiento del clon
                 u127()
                 
-                -- Ajustar velocidad de animaciones
+                -- Ajustar animaciones
                 for _, track in ipairs(u21.Humanoid:GetPlayingAnimationTracks()) do
                     if track.Animation.AnimationId:find('3152394906') then
                         track:AdjustSpeed(u21.Humanoid.MoveDirection.Magnitude > 0 and 1 or 0)
@@ -1211,9 +1354,10 @@ if table.find(v1, tostring(v2)) then
                 u21.Humanoid:Move(_LocalPlayer2.Character.Humanoid.MoveDirection, false)
             end))
             
-            -- Animar entrada al portal
-            local portalClouds = u227(_LocalPlayer3.Character.HumanoidRootPart.CFrame + Vector3.new(0, 9, 0))
+            -- Crear NUBES VOLUMÉTRICAS FLOTANTES
+            local portalClouds = CreatePortalClouds(_LocalPlayer2.Character.HumanoidRootPart.CFrame + Vector3.new(0, 12, 0))
             
+            -- Animaciones
             u92(10714360343, 1)
             u100(10714360343, 1)
             task.wait(3)
@@ -1223,7 +1367,7 @@ if table.find(v1, tostring(v2)) then
             u92(4940561610, 1)
             
             task.delay(2, function()
-                -- Efectos de cámara
+                -- Modo cinemático
                 workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
                 
                 local hrp = u21.HumanoidRootPart
@@ -1236,7 +1380,7 @@ if table.find(v1, tostring(v2)) then
                 Instance.new('Humanoid', cameraPart)
                 
                 local startCF = workspace.CurrentCamera.CFrame
-                local targetCF = CFrame.new(hrp.Position + Vector3.new(0, 3, 15), hrp.Position)
+                local targetCF = CFrame.new(hrp.Position + Vector3.new(0, 5, 20), hrp.Position)
                 
                 workspace.CurrentCamera.CFrame = startCF
                 workspace.CurrentCamera.CameraSubject = cameraPart
@@ -1248,19 +1392,30 @@ if table.find(v1, tostring(v2)) then
                 task.wait(4)
                 cameraPart:Destroy()
                 
-                -- Levantar al clon
-                game:GetService('TweenService'):Create(hrp, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-                    CFrame = hrp.CFrame + Vector3.new(0, 10, 0)
+                -- Levantar con efecto dramático
+                game:GetService('TweenService'):Create(hrp, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+                    CFrame = hrp.CFrame + Vector3.new(0, 15, 0)
                 }):Play()
                 
-                task.wait(1.3)
+                task.wait(1.5)
                 
-                -- Eliminar extremidades de la víctima
+                -- Eliminar extremidades con efecto de desintegración
                 if victim and victim.Parent then
                     local limbs = {'RightUpperLeg', 'LeftUpperLeg', 'RightUpperArm', 'LeftUpperArm', 'UpperTorso'}
-                    for _, limbName in ipairs(limbs) do
+                    for i, limbName in ipairs(limbs) do
                         local limb = victim:FindFirstChild(limbName)
                         if limb and limb:IsA('BasePart') then
+                            -- Efecto de desintegración
+                            local disintegrate = Instance.new('ParticleEmitter')
+                            disintegrate.Color = ColorSequence.new(Color3.fromRGB(255, 100, 255))
+                            disintegrate.Size = NumberSequence.new(2, 0)
+                            disintegrate.Lifetime = NumberRange.new(1, 2)
+                            disintegrate.Rate = 100
+                            disintegrate.Speed = NumberRange.new(10, 20)
+                            disintegrate.Parent = limb
+                            
+                            task.wait(0.3)
+                            
                             for _, motor in ipairs(limb:GetChildren()) do
                                 if motor:IsA('Motor6D') then
                                     motor.Enabled = false
@@ -1271,45 +1426,59 @@ if table.find(v1, tostring(v2)) then
                     end
                 end
                 
-                task.wait(0.7)
+                task.wait(0.8)
                 game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
                 
                 -- Restaurar cámara
                 workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer3.Character:FindFirstChild('Humanoid') 
-                    or _LocalPlayer3.Character:FindFirstChild('HumanoidRootPart')
+                workspace.CurrentCamera.CameraSubject = _LocalPlayer2.Character:FindFirstChild('Humanoid') 
+                    or _LocalPlayer2.Character:FindFirstChild('HumanoidRootPart')
                 
-                -- Limpiar portal
+                -- Limpiar todo con transición suave
+                task.wait(1)
+                
                 if portalConnection then
                     portalConnection:Disconnect()
                 end
+                
+                -- Desvanecer portal
                 if portal then
+                    game:GetService('TweenService'):Create(portal, TweenInfo.new(2), {Transparency = 1}):Play()
+                    task.wait(0.5)
                     portal:Destroy()
                 end
+                if outerRing then
+                    game:GetService('TweenService'):Create(outerRing, TweenInfo.new(2), {Transparency = 1}):Play()
+                    task.wait(0.5)
+                    outerRing:Destroy()
+                end
                 if portalClouds then
+                    for _, cloud in pairs(portalClouds:GetChildren()) do
+                        if cloud:IsA('Part') then
+                            game:GetService('TweenService'):Create(cloud, TweenInfo.new(1.5), {Transparency = 1}):Play()
+                        end
+                    end
+                    task.wait(2)
                     portalClouds:Destroy()
                 end
-                
-                -- Limpiar efectos visuales
-                if sky then
-                    sky:Destroy()
+                if dimensionalSky then
+                    dimensionalSky:Destroy()
                 end
-                
                 if originalSky then
                     originalSky:Clone().Parent = game:GetService('Lighting')
                 end
                 
                 -- Restaurar lighting
-                game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(2), {
+                game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(3), {
                     FogColor = originalFogColor,
-                    FogEnd = originalFogEnd
+                    FogEnd = originalFogEnd,
+                    Brightness = 1
                 }):Play()
                 
-                -- Notificación final
                 game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '🌀 Portal',
-                    Text = 'Portal cerrado',
-                    Duration = 3
+                    Title = '🌀 Portal Dimensional',
+                    Text = 'El portal al vacío se ha cerrado',
+                    Duration = 4
                 })
             end)
         end)
