@@ -1,6 +1,7 @@
 local v1 = loadstring(game:HttpGet('https://pastebin.com/raw/Ydn8T4Md'))()
 local v2 = game:GetService('RbxAnalyticsService'):GetClientId()
 
+
 if table.find(v1, tostring(v2)) then
     if getgenv().config.antimod then
         local u3 = {
