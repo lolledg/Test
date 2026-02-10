@@ -902,6 +902,7 @@ if table.find(v1, tostring(v2)) then
                 Destroy('UpperTorso')
             end
         end)
+
         if _LocalPlayer2.Backpack:FindFirstChild('Floar Slam') then
             _LocalPlayer2.Backpack:FindFirstChild('Floar Slam'):Destroy()
         end
@@ -951,6 +952,7 @@ if table.find(v1, tostring(v2)) then
             wait(0.7)
             game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', false)
         end)
+
         if _LocalPlayer2.Backpack:FindFirstChild('Hado 90') then
             _LocalPlayer2.Backpack:FindFirstChild('Hado 90'):Destroy()
         end
@@ -1007,6 +1009,7 @@ if table.find(v1, tostring(v2)) then
                 end
             end
         end)
+
         if _LocalPlayer2.Backpack:FindFirstChild('C Moon') then
             _LocalPlayer2.Backpack:FindFirstChild('C Moon'):Destroy()
         end
@@ -1073,10 +1076,7 @@ if table.find(v1, tostring(v2)) then
                 u192 = true
             end
         end)
-        if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
-            _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
-        if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
-            _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
+
         if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
             _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
         end
@@ -1720,6 +1720,7 @@ if table.find(v1, tostring(v2)) then
                 u305 = true
             end
         end)
+
         if _LocalPlayer2.Backpack:FindFirstChild('Heaven Throw') then
             _LocalPlayer2.Backpack:FindFirstChild('Heaven Throw'):Destroy()
         end
@@ -1776,137 +1777,118 @@ if table.find(v1, tostring(v2)) then
         end
     end)
 
-    -- ========================================
-    -- DOMAIN EXPANSION REMAKE
-    -- ========================================
-    
     if _LocalPlayer2.Backpack:FindFirstChild('Domain Expansion') then
-        _LocalPlayer2.Backpack:FindFirstChild('Domain Expansion'):Destroy()
-    end
-    
-    task.wait(0.1)
-    
-    local _Tool_DomainExpansion = Instance.new('Tool', _LocalPlayer2.Backpack)
-    _Tool_DomainExpansion.RequiresHandle = false
-    _Tool_DomainExpansion.Name = 'Domain Expansion'
-    
-    _Tool_DomainExpansion.Activated:Connect(function()
-        if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then return end
-        if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then return end
+        -- ========================================
+        -- DOMAIN EXPANSION REMAKE
+        -- ========================================
         
-        local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-        local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
-        
-        if not victimPlayer then return end
-        
-        -- Guardar valores originales de lighting
-        local originalFogEnd = game:GetService('Lighting').FogEnd
-        local originalFogColor = game:GetService('Lighting').FogColor
-        local originalBrightness = game:GetService('Lighting').Brightness
-        
-        local alignActive = false
-        local alignConnection
-        
-        -- Detener animación de grab
-        for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
-            if track.Animation.AnimationId:match('3135389157') or track.Animation.AnimationId:match('11075367458') then
-                track:Stop()
-            end
+        if _LocalPlayer2.Backpack:FindFirstChild('Domain Expansion') then
+            _LocalPlayer2.Backpack:FindFirstChild('Domain Expansion'):Destroy()
         end
         
-        -- Alinear víctima
-        alignActive = true
-        alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
-            if alignActive and victim and victim.Parent then
-                Align(8000, 800, 'UpperTorso', 'HumanoidRootPart', CFrame.new(0, 0, -10), CFrame.Angles(0, math.pi, 0))
+        task.wait(0.1)
+        
+        local _Tool_DomainExpansion = Instance.new('Tool', _LocalPlayer2.Backpack)
+        _Tool_DomainExpansion.RequiresHandle = false
+        _Tool_DomainExpansion.Name = 'Domain Expansion'
+        
+        _Tool_DomainExpansion.Activated:Connect(function()
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then return end
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then return end
+            
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
+            if not victimPlayer then return end
+            
+            local originalFogEnd = game:GetService('Lighting').FogEnd
+            local originalFogColor = game:GetService('Lighting').FogColor
+            local originalBrightness = game:GetService('Lighting').Brightness
+            local alignActive = false
+            local alignConnection
+            
+            for _, track in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
+                if track.Animation.AnimationId:match('3135389157') or track.Animation.AnimationId:match('11075367458') then
+                    track:Stop()
+                end
             end
+            
+            alignActive = true
+            alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if alignActive and victim and victim.Parent then
+                    Align(8000, 800, 'UpperTorso', 'HumanoidRootPart', CFrame.new(0, 0, -10), CFrame.Angles(0, math.pi, 0))
+                end
+            end)
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '⚫ Domain Expansion',
+                Text = 'Preparando dominio...',
+                Duration = 3
+            })
+            
+            AnimPlay('130906492091464', 0.8)
+            _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
+            task.wait(3)
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '⚫ Domain Expansion',
+                Text = 'DOMAIN EXPANSION!',
+                Duration = 2
+            })
+            
+            game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(1.5), {
+                FogColor = Color3.fromRGB(0, 0, 0),
+                FogEnd = 30,
+                Brightness = 0
+            }):Play()
+            
+            game:GetService('TweenService'):Create(_LocalPlayer2.Character.Humanoid, TweenInfo.new(1), {
+                HipHeight = 10
+            }):Play()
+            task.wait(2)
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '⚫ Infinite Void',
+                Text = 'Ejecutando cortes...',
+                Duration = 3
+            })
+            
+            for i = 1, 5 do
+                AnimPlay('126796684932532', 2)
+                task.wait(0.5)
+            end
+            task.wait(1)
+            
+            if victim and victim.Parent and victimPlayer then
+                local upperTorso = victim:FindFirstChild('UpperTorso')
+                if upperTorso then
+                    upperTorso.CFrame = CFrame.new(0, -120000, 0)
+                end
+            end
+            
+            alignActive = false
+            if alignConnection then alignConnection:Disconnect() end
+            task.wait(0.3)
+            game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
+            Destroy('UpperTorso')
+            
+            _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
+            game:GetService('TweenService'):Create(_LocalPlayer2.Character.Humanoid, TweenInfo.new(1), {
+                HipHeight = 2.008
+            }):Play()
+            
+            game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(2), {
+                FogColor = originalFogColor,
+                FogEnd = originalFogEnd,
+                Brightness = originalBrightness
+            }):Play()
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '⚫ Domain Expansion',
+                Text = 'Dominio completado',
+                Duration = 3
+            })
         end)
         
-        -- Fase 1: Animación de manos juntas
-        game:GetService('StarterGui'):SetCore('SendNotification', {
-            Title = '⚫ Domain Expansion',
-            Text = 'Preparando dominio...',
-            Duration = 3
-        })
-        
-        AnimPlay('130906492091464', 0.8) -- Animación de manos juntas
-        _LocalPlayer2.Character.Humanoid.WalkSpeed = 0
-        
-        task.wait(3)
-        
-        -- Fase 2: Expandir el dominio
-        game:GetService('StarterGui'):SetCore('SendNotification', {
-            Title = '⚫ Domain Expansion',
-            Text = 'DOMAIN EXPANSION!',
-            Duration = 2
-        })
-        
-        -- Efectos visuales
-        game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(1.5), {
-            FogColor = Color3.fromRGB(0, 0, 0),
-            FogEnd = 30,
-            Brightness = 0
-        }):Play()
-        
-        -- Levantar al jugador
-        game:GetService('TweenService'):Create(_LocalPlayer2.Character.Humanoid, TweenInfo.new(1), {
-            HipHeight = 10
-        }):Play()
-        
-        task.wait(2)
-        
-        -- Fase 3: Cortes infinitos
-        game:GetService('StarterGui'):SetCore('SendNotification', {
-            Title = '⚫ Infinite Void',
-            Text = 'Ejecutando cortes...',
-            Duration = 3
-        })
-        
-        -- Múltiples cortes
-        for i = 1, 5 do
-            AnimPlay('126796684932532', 2) -- Animación de corte rápido
-            task.wait(0.5)
-        end
-        
-        task.wait(1)
-        
-        -- Fase 4: Eliminar víctima
-        if victim and victim.Parent and victimPlayer then
-            local upperTorso = victim:FindFirstChild('UpperTorso')
-            if upperTorso then
-                upperTorso.CFrame = CFrame.new(0, -120000, 0)
-            end
-        end
-        
-        -- Cleanup
-        alignActive = false
-        if alignConnection then
-            alignConnection:Disconnect()
-        end
-        
-        task.wait(0.3)
-        game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
-        Destroy('UpperTorso')
-        
-        -- Restaurar lighting
-        _LocalPlayer2.Character.Humanoid.WalkSpeed = 16
-        game:GetService('TweenService'):Create(_LocalPlayer2.Character.Humanoid, TweenInfo.new(1), {
-            HipHeight = 2.008
-        }):Play()
-        
-        game:GetService('TweenService'):Create(game:GetService('Lighting'), TweenInfo.new(2), {
-            FogColor = originalFogColor,
-            FogEnd = originalFogEnd,
-            Brightness = originalBrightness
-        }):Play()
-        
-        game:GetService('StarterGui'):SetCore('SendNotification', {
-            Title = '⚫ Domain Expansion',
-            Text = 'Dominio completado',
-            Duration = 3
-        })
-    end)
-    
     if _LocalPlayer2.Backpack:FindFirstChild('Made in Heaven') then
         _LocalPlayer2.Backpack:FindFirstChild('Made in Heaven'):Destroy()
     end
@@ -2399,6 +2381,7 @@ if table.find(v1, tostring(v2)) then
             return
         end
     end)
+
     if _LocalPlayer6.Backpack:FindFirstChild('fly punch') then
         _LocalPlayer6.Backpack:FindFirstChild('fly punch'):Destroy()
     end
@@ -2554,6 +2537,7 @@ if table.find(v1, tostring(v2)) then
             end
         end
     end)
+
     if _LocalPlayer6.Backpack:FindFirstChild('Boxing') then
         _LocalPlayer6.Backpack:FindFirstChild('Boxing'):Destroy()
     end
@@ -2921,6 +2905,7 @@ if table.find(v1, tostring(v2)) then
             Destroy('UpperTorso')
         end
     end)
+
     if _LocalPlayer6.Backpack:FindFirstChild('Stand') then
         _LocalPlayer6.Backpack:FindFirstChild('Stand'):Destroy()
     end
@@ -2960,10 +2945,11 @@ if table.find(v1, tostring(v2)) then
             end)
         end
     end)
-    
-    -- ========================================
-    -- FUNCIONES DE SOPORTE PARA NUEVOS TOOLS
-    -- ========================================
+
+    -- Tool: Grab Knife (REEMPLAZA A "Rip In Half")
+        -- ========================================
+        -- FUNCIONES DE SOPORTE
+        -- ========================================
     local function PlaySound(soundId)
         if not _LocalPlayer2.Character then return false end
         if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
@@ -2978,10 +2964,10 @@ if table.find(v1, tostring(v2)) then
         end
         return true
     end
-    
-    -- ========================================
-    -- SISTEMA HOVERBOARD COMPLETO
-    -- ========================================
+        
+        -- ========================================
+        -- SISTEMA HOVERBOARD COMPLETO
+        -- ========================================
     -- ========================================
     -- SISTEMA HOVERBOARD ULTRA RÁPIDO - VERSIÓN MEJORADA
     -- ========================================
@@ -3440,10 +3426,10 @@ if table.find(v1, tostring(v2)) then
         })
     end
 
-    
-    -- ========================================
-    -- GRAB KNIFE TOOL (NUEVO)
-    -- ========================================
+        
+        -- ========================================
+        -- GRAB KNIFE TOOL (NUEVO)
+        -- ========================================
         if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
             _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
         end
@@ -3672,10 +3658,10 @@ if table.find(v1, tostring(v2)) then
             
             isKnifeActive = false
         end)
-    
-    -- ========================================
-    -- IDK TOOL (NUEVO)
-    -- ========================================
+        
+        -- ========================================
+        -- IDK TOOL (NUEVO)
+        -- ========================================
             _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
         end
         if _LocalPlayer2.Character:FindFirstChild('Idk') then
@@ -3779,10 +3765,10 @@ if table.find(v1, tostring(v2)) then
             
             table.insert(u22, releaseConnection)
         end)
-    
-    -- ========================================
-    -- HOVERBOARD TOOL (NUEVO)
-    -- ========================================
+        
+        -- ========================================
+        -- HOVERBOARD TOOL (NUEVO)
+        -- ========================================
             _LocalPlayer2.Backpack:FindFirstChild('hoverboard'):Destroy()
         end
         if _LocalPlayer2.Character:FindFirstChild('hoverboard') then
@@ -3841,7 +3827,7 @@ if table.find(v1, tostring(v2)) then
             
             StartHoverboard(victim)
         end)
-    
+        
     if _LocalPlayer6.Backpack:FindFirstChild('Punch') then
         _LocalPlayer6.Backpack:FindFirstChild('Punch'):Destroy()
     end
@@ -4098,6 +4084,7 @@ if table.find(v1, tostring(v2)) then
         end
     end)
 
+    end
     end
     
     ToolSSs()
