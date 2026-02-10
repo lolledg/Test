@@ -1839,8 +1839,6 @@ if table.find(v1, tostring(v2)) then
             end
             
             local speed = 40
-            local lastInputTime = tick()
-            local currentVelocity = Vector3.zero
             
             inverseConnection = game:GetService("RunService").Heartbeat:Connect(function()
                 if not isInverseActive or not _LocalPlayer2.Character or not inverseVictim then return end
@@ -1849,57 +1847,29 @@ if table.find(v1, tostring(v2)) then
                 local victimTorso = inverseVictim:FindFirstChild("UpperTorso")
                 
                 if hrp and victimTorso then
-                    -- Víctima sentada en tu espalda
+                    -- Víctima sentada en tu espalda mientras estás acostado
                     Align(30000, 800, "UpperTorso", "HumanoidRootPart", 
                           CFrame.new(0, -1.2, 0), 
                           CFrame.Angles(math.pi * 0.5, 0, 0))
                 end
             end)
             
-            local UserInputService = game:GetService("UserInputService")
-            
+            -- CONTROLES MÓVILES - Usa el movimiento del Humanoid
             inverseMoveConnection = game:GetService("RunService").Heartbeat:Connect(function()
                 if not isInverseActive or not _LocalPlayer2.Character then return end
                 
                 local hrp = _LocalPlayer2.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
+                local humanoid = _LocalPlayer2.Character:FindFirstChild("Humanoid")
                 
-                local moveDirection = Vector3.new(0, 0, 0)
-                local hasInput = false
+                if not hrp or not humanoid then return end
                 
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    moveDirection = moveDirection + (hrp.CFrame.LookVector)
-                    hasInput = true
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    moveDirection = moveDirection - (hrp.CFrame.LookVector)
-                    hasInput = true
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    moveDirection = moveDirection - (hrp.CFrame.RightVector)
-                    hasInput = true
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    moveDirection = moveDirection + (hrp.CFrame.RightVector)
-                    hasInput = true
-                end
+                -- Obtener la dirección de movimiento del joystick móvil
+                local moveDirection = humanoid.MoveDirection
                 
-                if hasInput then
-                    lastInputTime = tick()
-                    if moveDirection.Magnitude > 0 then
-                        moveDirection = moveDirection.Unit
-                    end
-                    currentVelocity = moveDirection * speed
-                else
-                    local timeSinceInput = tick() - lastInputTime
-                    if timeSinceInput < 0.5 then
-                        currentVelocity = currentVelocity * 0.85
-                    else
-                        currentVelocity = currentVelocity * 0.7
-                    end
+                if moveDirection.Magnitude > 0 then
+                    -- Mover en la dirección del joystick
+                    hrp.CFrame = hrp.CFrame + moveDirection * speed * (1/60)
                 end
-                
-                hrp.CFrame = hrp.CFrame + currentVelocity * (1/60)
             end)
             
             inverseReleaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
@@ -1922,7 +1892,7 @@ if table.find(v1, tostring(v2)) then
             
             game:GetService('StarterGui'):SetCore('SendNotification', {
                 Title = '🔄 Hoverboard Inverse',
-                Text = 'Activado - Víctima en tu espalda',
+                Text = 'Activado - Usa el joystick para moverte',
                 Duration = 3
             })
         end
@@ -1982,9 +1952,8 @@ if table.find(v1, tostring(v2)) then
             
             local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
             
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
-            
-            wait(0.3)
+            -- NO SOLTAR A LA VÍCTIMA - Solo esperar un poco
+            wait(0.1)
             
             StartInverse(victim)
         end)
