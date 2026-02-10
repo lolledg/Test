@@ -1,7 +1,6 @@
 local v1 = loadstring(game:HttpGet('https://pastebin.com/raw/Ydn8T4Md'))()
 local v2 = game:GetService('RbxAnalyticsService'):GetClientId()
 
-
 if table.find(v1, tostring(v2)) then
     if getgenv().config.antimod then
         local u3 = {
@@ -814,24 +813,881 @@ if table.find(v1, tostring(v2)) then
             return
         end
     end
+    
+    local function PlaySound(soundId)
+        if not _LocalPlayer2.Character then return false end
+        if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+            _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+        else
+            local sound = Instance.new('Sound')
+            sound.SoundId = 'rbxassetid://' .. soundId
+            sound.Volume = 1
+            sound.Parent = workspace
+            sound:Play()
+            game.Debris:AddItem(sound, 6)
+        end
+        return true
+    end
+    
+    -- ========================================
+    -- SISTEMA HOVERBOARD ULTRA RÁPIDO - VERSIÓN MEJORADA
+    -- ========================================
+    local isHoverboarding = false
+    local hoverboardVictim = nil
+    local hoverboardConnection = nil
+    local hoverboardGui = nil
+    local cleanupConnection = nil
+    local animSpeedConnection = nil
+    local currentAnimSpeed = 0.5
+    local hoverTrack = nil
+    
+    local function CreateHoverboardGui()
+        if hoverboardGui then
+            hoverboardGui:Destroy()
+        end
+        
+        hoverboardGui = Instance.new("ScreenGui")
+        hoverboardGui.Name = "HoverboardGui"
+        hoverboardGui.ResetOnSpawn = false
+        hoverboardGui.Parent = game.CoreGui
+        
+        local mainFrame = Instance.new("Frame")
+        mainFrame.Size = UDim2.new(0, 220, 0, 110)
+        mainFrame.Position = UDim2.new(0.5, -110, 0.1, 0)
+        mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        mainFrame.BackgroundTransparency = 0.3
+        mainFrame.BorderSizePixel = 0
+        mainFrame.Parent = hoverboardGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = mainFrame
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 35)
+        title.Position = UDim2.new(0, 0, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "🛹 HOVERBOARD ULTRA"
+        title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        title.TextSize = 18
+        title.Font = Enum.Font.GothamBold
+        title.Parent = mainFrame
+        
+        local speedLabel = Instance.new("TextLabel")
+        speedLabel.Name = "SpeedLabel"
+        speedLabel.Size = UDim2.new(1, 0, 0, 25)
+        speedLabel.Position = UDim2.new(0, 0, 0.35, 0)
+        speedLabel.BackgroundTransparency = 1
+        speedLabel.Text = "⚡ Velocidad: Normal"
+        speedLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+        speedLabel.TextSize = 14
+        speedLabel.Font = Enum.Font.GothamSemibold
+        speedLabel.Parent = mainFrame
+        
+        local animSpeedLabel = Instance.new("TextLabel")
+        animSpeedLabel.Name = "AnimSpeedLabel"
+        animSpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+        animSpeedLabel.Position = UDim2.new(0, 0, 0.55, 0)
+        animSpeedLabel.BackgroundTransparency = 1
+        animSpeedLabel.Text = "🎬 Anim: 0.5x"
+        animSpeedLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+        animSpeedLabel.TextSize = 12
+        animSpeedLabel.Font = Enum.Font.Gotham
+        animSpeedLabel.Parent = mainFrame
+        
+        local controlsText = Instance.new("TextLabel")
+        controlsText.Size = UDim2.new(1, 0, 0, 30)
+        controlsText.Position = UDim2.new(0, 0, 0.7, 0)
+        controlsText.BackgroundTransparency = 1
+        controlsText.Text = "Mira hacia donde quieres ir"
+        controlsText.TextColor3 = Color3.fromRGB(180, 180, 200)
+        controlsText.TextSize = 11
+        controlsText.Font = Enum.Font.Gotham
+        controlsText.Parent = mainFrame
+        
+        local buttonFrame = Instance.new("Frame")
+        buttonFrame.Name = "ButtonFrame"
+        buttonFrame.Size = UDim2.new(0, 200, 0, 200)
+        buttonFrame.Position = UDim2.new(0.5, -100, 1, -220)
+        buttonFrame.BackgroundTransparency = 1
+        buttonFrame.Parent = hoverboardGui
+        
+        local turboButton = Instance.new("TextButton")
+        turboButton.Name = "TurboButton"
+        turboButton.Size = UDim2.new(0, 90, 0, 90)
+        turboButton.Position = UDim2.new(0.5, -45, 0.5, -45)
+        turboButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
+        turboButton.Text = "🔥\nTURBO"
+        turboButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        turboButton.TextSize = 18
+        turboButton.Font = Enum.Font.GothamBold
+        turboButton.Parent = buttonFrame
+        
+        local turboCorner = Instance.new("UICorner")
+        turboCorner.CornerRadius = UDim.new(1, 0)
+        turboCorner.Parent = turboButton
+        
+        local upButton = Instance.new("TextButton")
+        upButton.Name = "UpButton"
+        upButton.Size = UDim2.new(0, 60, 0, 60)
+        upButton.Position = UDim2.new(0.5, -30, 0, 0)
+        upButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+        upButton.Text = "⬆️"
+        upButton.TextSize = 24
+        upButton.Parent = buttonFrame
+        
+        local upCorner = Instance.new("UICorner")
+        upCorner.CornerRadius = UDim.new(1, 0)
+        upCorner.Parent = upButton
+        
+        local downButton = Instance.new("TextButton")
+        downButton.Name = "DownButton"
+        downButton.Size = UDim2.new(0, 60, 0, 60)
+        downButton.Position = UDim2.new(0.5, -30, 1, -60)
+        downButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+        downButton.Text = "⬇️"
+        downButton.TextSize = 24
+        downButton.Parent = buttonFrame
+        
+        local downCorner = Instance.new("UICorner")
+        downCorner.CornerRadius = UDim.new(1, 0)
+        downCorner.Parent = downButton
+        
+        return hoverboardGui
+    end
+    
+    local function UpdateSpeedIndicator(isTurbo, animSpeed)
+        if hoverboardGui then
+            local mainFrame = hoverboardGui:FindFirstChild("Frame")
+            if mainFrame then
+                local speedLabel = mainFrame:FindFirstChild("SpeedLabel")
+                if speedLabel then
+                    if isTurbo then
+                        speedLabel.Text = "🔥 TURBO MÁXIMO"
+                        speedLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+                    else
+                        speedLabel.Text = "⚡ Velocidad: Normal"
+                        speedLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+                    end
+                end
+                
+                local animSpeedLabel = mainFrame:FindFirstChild("AnimSpeedLabel")
+                if animSpeedLabel then
+                    animSpeedLabel.Text = string.format("🎬 Anim: %.2fx", animSpeed)
+                end
+            end
+        end
+    end
+    
+    local function CleanupHoverboard()
+        isHoverboarding = false
+        
+        -- DETENER ANIMACIÓN
+        if hoverTrack then
+            hoverTrack:Stop()
+            hoverTrack = nil
+        end
+        
+        if hoverboardConnection then
+            hoverboardConnection:Disconnect()
+            hoverboardConnection = nil
+        end
+        
+        if cleanupConnection then
+            cleanupConnection:Disconnect()
+            cleanupConnection = nil
+        end
+        
+        if animSpeedConnection then
+            animSpeedConnection:Disconnect()
+            animSpeedConnection = nil
+        end
+        
+        if hoverboardGui then
+            hoverboardGui:Destroy()
+            hoverboardGui = nil
+        end
+        
+        currentAnimSpeed = 0.5
+        hoverboardVictim = nil
+    end
+    
+    local function StartHoverboard(victim)
+        if isHoverboarding or not victim then return end
+        
+        if not _LocalPlayer2.Character or not _LocalPlayer2.Character:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+        
+        isHoverboarding = true
+        hoverboardVictim = victim
+        currentAnimSpeed = 0.5
+        
+        CreateHoverboardGui()
+        
+        local upperTorso = victim:FindFirstChild("UpperTorso")
+        local victimHRP = victim:FindFirstChild("HumanoidRootPart")
+        
+        if not upperTorso or not victimHRP then
+            CleanupHoverboard()
+            return
+        end
+        
+        -- CONTROLES DE FÍSICA MÁS FUERTES
+        local bodyPos = upperTorso:FindFirstChild("HoverboardPosition") or Instance.new("BodyPosition")
+        bodyPos.Name = "HoverboardPosition"
+        bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyPos.P = 50000
+        bodyPos.D = 5000
+        bodyPos.Parent = upperTorso
+        
+        local bodyGyro = upperTorso:FindFirstChild("HoverboardGyro") or Instance.new("BodyGyro")
+        bodyGyro.Name = "HoverboardGyro"
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.P = 60000
+        bodyGyro.D = 3000
+        bodyGyro.Parent = upperTorso
+        
+        local startCFrame = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+        bodyPos.Position = startCFrame.Position + Vector3.new(0, -2, 0)
+        bodyGyro.CFrame = startCFrame * CFrame.Angles(math.rad(180), 0, 0)
+        
+        _LocalPlayer2.Character.HumanoidRootPart.CFrame = CFrame.new(
+            upperTorso.Position.X,
+            upperTorso.Position.Y + 3,
+            upperTorso.Position.Z
+        )
+        
+        -- ANIMACIÓN NUEVA
+        local hoverAnim = Instance.new("Animation")
+        hoverAnim.AnimationId = "rbxassetid://76573949416065"
+        hoverTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(hoverAnim)
+        hoverTrack:Play()
+        hoverTrack:AdjustSpeed(currentAnimSpeed)
+        
+        -- VELOCIDADES ULTRA RÁPIDAS
+        local normalSpeed = 400
+        local turboSpeed = 800
+        local flySpeed = 200
+        local smoothFactor = 0.25
+        
+        local isTurboPressed = false
+        local isUpPressed = false
+        local isDownPressed = false
+        
+        local buttonFrame = hoverboardGui:FindFirstChild("ButtonFrame")
+        if buttonFrame then
+            local turboButton = buttonFrame:FindFirstChild("TurboButton")
+            if turboButton then
+                turboButton.MouseButton1Down:Connect(function()
+                    isTurboPressed = true
+                    turboButton.BackgroundColor3 = Color3.fromRGB(255, 50, 0)
+                end)
+                turboButton.MouseButton1Up:Connect(function()
+                    isTurboPressed = false
+                    turboButton.BackgroundColor3 = Color3.fromRGB(255, 100, 50)
+                end)
+            end
+            
+            local upButton = buttonFrame:FindFirstChild("UpButton")
+            if upButton then
+                upButton.MouseButton1Down:Connect(function()
+                    isUpPressed = true
+                    upButton.BackgroundColor3 = Color3.fromRGB(30, 100, 200)
+                end)
+                upButton.MouseButton1Up:Connect(function()
+                    isUpPressed = false
+                    upButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+                end)
+            end
+            
+            local downButton = buttonFrame:FindFirstChild("DownButton")
+            if downButton then
+                downButton.MouseButton1Down:Connect(function()
+                    isDownPressed = true
+                    downButton.BackgroundColor3 = Color3.fromRGB(30, 100, 200)
+                end)
+                downButton.MouseButton1Up:Connect(function()
+                    isDownPressed = false
+                    downButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+                end)
+            end
+        end
+        
+        -- SISTEMA DE VELOCIDAD PROGRESIVA DE ANIMACIÓN
+        local timeMoving = 0
+        animSpeedConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+            if not isHoverboarding then return end
+            
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
+            local moveDirection = cameraCFrame.LookVector
+            
+            -- Si se está moviendo, aumentar velocidad de animación
+            if moveDirection.Magnitude > 0.1 then
+                timeMoving = timeMoving + dt
+                -- Aumentar velocidad progresivamente hasta 1.5
+                currentAnimSpeed = math.min(0.5 + (timeMoving * 0.3), 1.5)
+            else
+                timeMoving = math.max(0, timeMoving - dt * 2)
+                currentAnimSpeed = math.max(0.5, 0.5 + (timeMoving * 0.3))
+            end
+            
+            if hoverTrack then
+                hoverTrack:AdjustSpeed(currentAnimSpeed)
+            end
+        end)
+        
+        hoverboardConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
+            -- VERIFICAR SI VÍCTIMA EXISTE
+            if not isHoverboarding or not victim or not victim.Parent then
+                CleanupHoverboard()
+                
+                -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                if upperTorso:FindFirstChild("HoverboardPosition") then
+                    upperTorso.HoverboardPosition:Destroy()
+                end
+                if upperTorso:FindFirstChild("HoverboardGyro") then
+                    upperTorso.HoverboardGyro:Destroy()
+                end
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Víctima perdida - desactivado',
+                    Duration = 2
+                })
+                return
+            end
+            
+            -- VERIFICAR RAGDOLL
+            local victimHumanoid = victim:FindFirstChild("Humanoid")
+            if victimHumanoid then
+                local bodyEffects = victim:FindFirstChild("BodyEffects")
+                if bodyEffects then
+                    local ragdoll = bodyEffects:FindFirstChild("Ragdoll")
+                    if ragdoll and not ragdoll.Value then
+                        CleanupHoverboard()
+                        
+                        if upperTorso:FindFirstChild("HoverboardPosition") then
+                            upperTorso.HoverboardPosition:Destroy()
+                        end
+                        if upperTorso:FindFirstChild("HoverboardGyro") then
+                            upperTorso.HoverboardGyro:Destroy()
+                        end
+                        
+                        game:GetService('StarterGui'):SetCore('SendNotification', {
+                            Title = '🛹 Hoverboard',
+                            Text = 'Víctima se liberó',
+                            Duration = 3
+                        })
+                        return
+                    end
+                end
+            end
+            
+            local userInputService = game:GetService("UserInputService")
+            local playerHRP = _LocalPlayer2.Character.HumanoidRootPart
+            
+            local isTurboActive = userInputService:IsKeyDown(Enum.KeyCode.LeftControl) or isTurboPressed
+            UpdateSpeedIndicator(isTurboActive, currentAnimSpeed)
+            
+            -- MOVIMIENTO BASADO EN CÁMARA (SHIFTLOCK STYLE)
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
+            
+            -- SIEMPRE AVANZAR HACIA DONDE MIRA LA CÁMARA
+            local moveDirection = cameraCFrame.LookVector
+            
+            local verticalMove = 0
+            if userInputService:IsKeyDown(Enum.KeyCode.Space) or isUpPressed then
+                verticalMove = 1
+            elseif userInputService:IsKeyDown(Enum.KeyCode.LeftShift) or isDownPressed then
+                verticalMove = -1
+            end
+            
+            local currentSpeed = isTurboActive and turboSpeed or normalSpeed
+            if verticalMove ~= 0 then
+                currentSpeed = flySpeed
+            end
+            
+            -- MOVIMIENTO ULTRA FLUIDO Y RÁPIDO
+            if moveDirection.Magnitude > 0 then
+                moveDirection = (moveDirection.Unit * Vector3.new(1, 0, 1)) + Vector3.new(0, verticalMove, 0)
+                
+                if moveDirection.Magnitude > 0 then
+                    moveDirection = moveDirection.Unit
+                end
+                
+                local targetPos = bodyPos.Position + (moveDirection * currentSpeed * delta)
+                bodyPos.Position = bodyPos.Position:Lerp(targetPos, smoothFactor)
+                
+                -- ROTAR VÍCTIMA HACIA ADELANTE (BOCA ABAJO MIRANDO ADELANTE)
+                local lookDirection = Vector3.new(moveDirection.X, 0, moveDirection.Z)
+                if lookDirection.Magnitude > 0 then
+                    local targetCFrame = CFrame.lookAt(upperTorso.Position, upperTorso.Position + lookDirection)
+                    -- CORREGIDO: Víctima mira ADELANTE boca abajo
+                    bodyGyro.CFrame = targetCFrame * CFrame.Angles(math.rad(90), 0, 0)
+                end
+            else
+                bodyPos.Position = bodyPos.Position + Vector3.new(0, verticalMove * flySpeed * delta, 0)
+            end
+            
+            -- MANTENER JUGADOR ENCIMA MIRANDO ADELANTE
+            local offsetY = 3
+            local lookDirection = Vector3.new(cameraCFrame.LookVector.X, 0, cameraCFrame.LookVector.Z)
+            if lookDirection.Magnitude > 0 then
+                -- JUGADOR MIRA HACIA ADELANTE (DIRECCIÓN DE LA CÁMARA)
+                playerHRP.CFrame = CFrame.new(
+                    upperTorso.Position.X,
+                    upperTorso.Position.Y + offsetY,
+                    upperTorso.Position.Z
+                ) * CFrame.lookAt(Vector3.zero, lookDirection)
+            else
+                playerHRP.CFrame = CFrame.new(
+                    upperTorso.Position.X,
+                    upperTorso.Position.Y + offsetY,
+                    upperTorso.Position.Z
+                )
+            end
+            
+            playerHRP.AssemblyLinearVelocity = Vector3.zero
+            playerHRP.AssemblyAngularVelocity = Vector3.zero
+            
+            -- ALTURA MÍNIMA
+            if verticalMove == 0 then
+                local ray = Ray.new(upperTorso.Position, Vector3.new(0, -20, 0))
+                local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, {victim, _LocalPlayer2.Character})
+                
+                if hit then
+                    local minHeight = position.Y + 1.5
+                    if bodyPos.Position.Y < minHeight then
+                        bodyPos.Position = Vector3.new(bodyPos.Position.X, minHeight, bodyPos.Position.Z)
+                    end
+                end
+            end
+        end)
+        
+        cleanupConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if not isHoverboarding or not victim or not victim.Parent then
+                CleanupHoverboard()
+                
+                if upperTorso:FindFirstChild("HoverboardPosition") then
+                    upperTorso.HoverboardPosition:Destroy()
+                end
+                if upperTorso:FindFirstChild("HoverboardGyro") then
+                    upperTorso.HoverboardGyro:Destroy()
+                end
+            end
+        end)
+        
+        game:GetService('StarterGui'):SetCore('SendNotification', {
+            Title = '🛹 HOVERBOARD ULTRA',
+            Text = 'Mira hacia donde quieres ir | Turbo para máxima velocidad',
+            Duration = 5
+        })
+    end
+
     function ToolSSs()
-        if _LocalPlayer2.Backpack:FindFirstChild('Activate') then
-            _LocalPlayer2.Backpack:FindFirstChild('Activate'):Destroy()
+        -- ========================================
+        -- TOOL: GRAB KNIFE (REEMPLAZADO - Versión mejorada del archivo "Test v2 (1).txt")
+        -- ========================================
+        
+        if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
+            _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
+        end
+        
+        wait(0.1)
+        
+        local grabKnifeTool = Instance.new('Tool')
+        grabKnifeTool.RequiresHandle = false
+        grabKnifeTool.Name = 'grab knife'
+        grabKnifeTool.ToolTip = 'Grab Knife - Remake con corte de boca'
+        grabKnifeTool.Parent = _LocalPlayer2.Backpack
+        
+        local isKnifeActive = false
+        
+        grabKnifeTool.Activated:Connect(function()
+            if isKnifeActive then return end
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
+                return
+            end
+            
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Grab Knife',
+                    Text = 'No victim grabbed',
+                    Duration = 2
+                })
+                return
+            end
+            
+            isKnifeActive = true
+            
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
+            
+            if not victimPlayer or victimPlayer == _LocalPlayer2 then
+                isKnifeActive = false
+                return
+            end
+            
+            -- EQUIPAR CUCHILLO
+            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or _LocalPlayer2.Backpack:FindFirstChild('knife')
+            if knife then
+                knife.Parent = _LocalPlayer2.Character
+            end
+            
+            -- ============================================
+            -- FASE 1: AGARRAR POR LA ESPALDA Y CORTAR BOCA
+            -- ============================================
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '🔪 Grab Knife',
+                Text = 'Fase 1: Corte de boca',
+                Duration = 3
+            })
+            
+            -- POSICIONAR VÍCTIMA POR LA ESPALDA (MÁS ABAJO) - CORREGIDO
+            local stopAlign = false
+            local alignConnection
+            
+            local upperTorso = victim:FindFirstChild("UpperTorso")
+            if not upperTorso then
+                isKnifeActive = false
+                return
+            end
+            
+            -- HACER NOCLIP PARA QUE NO SE BUGEE
+            local originalCanCollide = {}
+            for _, part in pairs(victim:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    originalCanCollide[part] = part.CanCollide
+                    part.CanCollide = false
+                end
+            end
+            
+            -- CORREGIDO: P y D más bajos para evitar que la víctima salga volando
+            local bodyPos = upperTorso:FindFirstChild("GrabKnifePosition") or Instance.new("BodyPosition")
+            bodyPos.Name = "GrabKnifePosition"
+            bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyPos.P = 3000  -- REDUCIDO de 8000
+            bodyPos.D = 400   -- REDUCIDO de 800
+            bodyPos.Parent = upperTorso
+            
+            local bodyGyro = upperTorso:FindFirstChild("GrabKnifeGyro") or Instance.new("BodyGyro")
+            bodyGyro.Name = "GrabKnifeGyro"
+            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyGyro.P = 5000  -- REDUCIDO de 10000
+            bodyGyro.Parent = upperTorso
+            
+            alignConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if stopAlign or not victim or not victim.Parent then
+                    if alignConnection then alignConnection:Disconnect() end
+                    return
+                end
+                
+                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
+                -- POSICIÓN: Por la espalda y MÁS ABAJO
+                local backPos = playerCF.Position - (playerCF.LookVector * 1) + Vector3.new(0, -1.5, 0)
+                
+                bodyPos.Position = backPos
+                bodyGyro.CFrame = CFrame.new(backPos) * CFrame.Angles(0, math.pi, 0)
+            end)
+            
+            -- ANIMACIÓN DE CORTE DE BOCA
+            local mouthCutAnim = Instance.new('Animation')
+            mouthCutAnim.AnimationId = 'rbxassetid://126796684932532'
+            local mouthCutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
+            mouthCutTrack:Play()
+            mouthCutTrack:AdjustSpeed(0.8)
+            
+            -- SONIDO DE CORTE
+            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                _ReplicatedStorage.MainEvent:FireServer('Boombox', '125856818464345')
+            else
+                local cutSound = Instance.new("Sound")
+                cutSound.SoundId = "rbxassetid://125856818464345"
+                cutSound.Volume = 0.8
+                cutSound.Parent = workspace
+                cutSound:Play()
+                game.Debris:AddItem(cutSound, 3)
+            end
+            
+            -- ESPERAR 5 SEGUNDOS (CORTE DE BOCA)
+            wait(5)
+            
+            mouthCutTrack:Stop()
+            
+            -- ============================================
+            -- FASE 2: CORTAR BRAZOS Y PIERNAS
+            -- ============================================
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '🔪 Grab Knife',
+                Text = 'Fase 2: Cortando extremidades',
+                Duration = 3
+            })
+            
+            local limbsToSever = {
+                'RightUpperArm',
+                'LeftUpperArm', 
+                'LeftUpperLeg',
+                'RightUpperLeg'
+            }
+            
+            for i, limbName in ipairs(limbsToSever) do
+                local soundId = '125856818464345'
+                
+                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
+                    _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
+                else
+                    local cutSound = Instance.new("Sound")
+                    cutSound.SoundId = "rbxassetid://" .. soundId
+                    cutSound.Volume = 0.8
+                    cutSound.Parent = workspace
+                    cutSound:Play()
+                    game.Debris:AddItem(cutSound, 3)
+                end
+                
+                local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
+                cutTrack:Play()
+                cutTrack:AdjustSpeed(1.5)
+                
+                if victim and victim.Parent then
+                    local part = victim:FindFirstChild(limbName)
+                    if part then 
+                        wait(0.2)
+                        
+                        -- HACER NOCLIP Y CAER AL VACÍO
+                        part.CanCollide = false
+                        part.Massless = true
+                        
+                        -- Separar del cuerpo
+                        for _, motor in pairs(part:GetDescendants()) do
+                            if motor:IsA("Motor6D") then
+                                motor:Destroy()
+                            end
+                        end
+                        
+                        -- Aplicar velocidad hacia abajo para que caiga al vacío
+                        part.Velocity = Vector3.new(0, -100, 0)
+                        
+                        -- Destruir después de 3 segundos (ya estará en el vacío)
+                        game.Debris:AddItem(part, 3)
+                    end
+                end
+                
+                wait(1.5)
+                cutTrack:Stop()
+            end
+            
+            -- ============================================
+            -- FASE 3: TIRAR TORSO (NO AL VACÍO)
+            -- ============================================
+            
+            stopAlign = true
+            if alignConnection then alignConnection:Disconnect() end
+            
+            if bodyPos then bodyPos:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            
+            -- SOLTAR VÍCTIMA
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+            
+            -- Restaurar CanCollide del torso y cabeza
+            if victim and victim.Parent then
+                for _, part in pairs(victim:GetDescendants()) do
+                    if part:IsA("BasePart") and (part.Name == "UpperTorso" or part.Name == "LowerTorso" or part.Name == "Head" or part.Name == "HumanoidRootPart") then
+                        if originalCanCollide[part] ~= nil then
+                            part.CanCollide = originalCanCollide[part]
+                        end
+                    end
+                end
+            end
+            
+            if knife and knife.Parent == _LocalPlayer2.Character then
+                knife.Parent = _LocalPlayer2.Backpack
+            end
+            
+            game:GetService('StarterGui'):SetCore('SendNotification', {
+                Title = '💀 EXECUTION COMPLETE',
+                Text = victimPlayer.Name .. ' desmembrado',
+                Duration = 4
+            })
+            
+            isKnifeActive = false
+        end)
+        
+        -- ========================================
+        -- TOOL: Idk
+        -- ========================================
+        
+        if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
+            _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
         end
 
-        task.wait(0.1)
+        wait(0.1)
 
-        local _Tool = Instance.new('Tool')
+        local idkTool = Instance.new('Tool')
+        idkTool.RequiresHandle = false
+        idkTool.Name = 'Idk'
+        idkTool.ToolTip = 'Idk - Efectos de velocidad'
+        idkTool.Parent = _LocalPlayer2.Backpack
 
-        _Tool.RequiresHandle = false
-        _Tool.Name = 'Activate'
-        _Tool.Parent = _LocalPlayer2.Backpack
+        local isIdkActive = false
+        local idkMainTrack = nil
 
-        _Tool.Activated:Connect(function()
-            game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing', true)
-            wait(0.3)
-            Grab()
+        idkTool.Activated:Connect(function()
+            if isIdkActive then return end
+            
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
+                return
+            end
+            
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = 'Idk',
+                    Text = 'No victim grabbed',
+                    Duration = 2
+                })
+                return
+            end
+            
+            isIdkActive = true
+            
+            -- CORREGIDO: AHORA SÍ RETORNA EL TRACK
+            idkMainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
+            
+            local shouldStop = false
+            local checkConnection
+            local alignConnection
+            local releaseConnection
+            
+            checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
+                   not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                    
+                    -- DETENER ANIMACIÓN CORRECTAMENTE
+                    if idkMainTrack then
+                        idkMainTrack:Stop()
+                        idkMainTrack = nil
+                    end
+                    
+                    -- DESCONECTAR TODAS LAS CONEXIONES
+                    if checkConnection then
+                        checkConnection:Disconnect()
+                        checkConnection = nil
+                    end
+                    
+                    if alignConnection then
+                        alignConnection:Disconnect()
+                        alignConnection = nil
+                    end
+                    
+                    if releaseConnection then
+                        releaseConnection:Disconnect()
+                        releaseConnection = nil
+                    end
+                    
+                    -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                    if u19 and u19:FindFirstChild('UpperTorso') then
+                        Destroy('UpperTorso')
+                    end
+                    
+                    isIdkActive = false
+                    
+                    game:GetService('StarterGui'):SetCore('SendNotification', {
+                        Title = 'Idk',
+                        Text = 'Desactivado - víctima liberada',
+                        Duration = 2
+                    })
+                end
+            end)
+            
+            alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
+                if isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
+                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value and u19 then
+                    
+                    local timeOffset = tick() * 200
+                    Align(30000, 800, 'UpperTorso', 'HumanoidRootPart', 
+                          CFrame.new(0, -0.3, -1.2 + 0.15 * math.sin(timeOffset / 3)),
+                          CFrame.Angles(math.pi * -0.3, 0, 0))
+                end
+            end)
+            
+            releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
+                if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
+                    shouldStop = true
+                end
+            end)
+            
+            table.insert(u22, releaseConnection)
         end)
+        
+        -- ========================================
+        -- TOOL: Hoverboard (del archivo "Test v2 (1).txt")
+        -- ========================================
+        
+        if _LocalPlayer2.Backpack:FindFirstChild('hoverboard') then
+            _LocalPlayer2.Backpack:FindFirstChild('hoverboard'):Destroy()
+        end
+        
+        wait(0.1)
+        
+        local hoverboardTool = Instance.new('Tool')
+        hoverboardTool.RequiresHandle = false
+        hoverboardTool.Name = 'hoverboard'
+        hoverboardTool.ToolTip = 'Hoverboard Móvil - Ultra rápido'
+        hoverboardTool.Parent = _LocalPlayer2.Backpack
+        
+        hoverboardTool.Activated:Connect(function()
+            if isHoverboarding then
+                -- LIMPIAR CONTROLES DE LA VÍCTIMA
+                if hoverboardVictim and hoverboardVictim:FindFirstChild("UpperTorso") then
+                    local upperTorso = hoverboardVictim:FindFirstChild("UpperTorso")
+                    if upperTorso:FindFirstChild("HoverboardPosition") then
+                        upperTorso.HoverboardPosition:Destroy()
+                    end
+                    if upperTorso:FindFirstChild("HoverboardGyro") then
+                        upperTorso.HoverboardGyro:Destroy()
+                    end
+                end
+                
+                CleanupHoverboard()
+                
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Desmontado',
+                    Duration = 2
+                })
+                return
+            end
+            
+            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
+                return
+            end
+            
+            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                game:GetService('StarterGui'):SetCore('SendNotification', {
+                    Title = '🛹 Hoverboard',
+                    Text = 'Agarra a alguien primero',
+                    Duration = 3
+                })
+                return
+            end
+            
+            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
+            
+            wait(0.3)
+            
+            StartHoverboard(victim)
+        end)
+
+        -- ========================================
+        -- LOS TOOLS ORIGINALES DEL ARCHIVO "K (2).txt" SIGUEN AQUÍ
+        -- ========================================
 
         if _LocalPlayer2.Backpack:FindFirstChild('Throw') then
             _LocalPlayer2.Backpack:FindFirstChild('Throw'):Destroy()
@@ -1081,266 +1937,345 @@ if table.find(v1, tostring(v2)) then
         if _LocalPlayer2.Backpack:FindFirstChild('Portal') then
             _LocalPlayer2.Backpack:FindFirstChild('Portal'):Destroy()
         end
-        if _LocalPlayer2.Character and _LocalPlayer2.Character:FindFirstChild('Portal') then
-            _LocalPlayer2.Character:FindFirstChild('Portal'):Destroy()
-        end
 
         task.wait(0.1)
 
         local _Tool5 = Instance.new('Tool', _LocalPlayer2.Backpack)
+
         _Tool5.RequiresHandle = false
         _Tool5.Name = 'Portal'
 
+        local _ReplicatedStorage2 = game:GetService('ReplicatedStorage')
+        local _Players = game:GetService('Players')
+        local _Lighting = game:GetService('Lighting')
+        local _Workspace = game:GetService('Workspace')
+        local _TweenService = game:GetService('TweenService')
+        local _LocalPlayer3 = _Players.LocalPlayer
+        local u202 = {}
+        local u203 = nil
+        local u204 = {}
+        local v205 = _Lighting
+        local u206 = _Lighting.FindFirstChildOfClass(v205, 'Sky')
+
+        local function u213()
+            if _ReplicatedStorage2:FindFirstChild('Assets') then
+                u202 = _ReplicatedStorage2:FindFirstChild('Assets')
+            else
+                u202 = game:GetObjects('rbxassetid://81123099704912')[1]
+                u202.Parent = _ReplicatedStorage2
+            end
+            if _ReplicatedStorage2:FindFirstChild('Clouds') then
+                u203 = _ReplicatedStorage2:FindFirstChild('Clouds')
+            else
+                u203 = game:GetObjects('rbxassetid://96210417036558')[1]
+                u203.Parent = _ReplicatedStorage2
+            end
+
+            local v207 = u202
+            local v208, v209, v210 = ipairs(v207:GetChildren())
+
+            while true do
+                local v211
+
+                v210, v211 = v208(v209, v210)
+
+                if v210 == nil then
+                    break
+                end
+
+                local v212 = v211:Clone()
+
+                v212.Parent = _Lighting
+
+                table.insert(u204, v212)
+            end
+        end
+        local function u218()
+            local v214, v215, v216 = ipairs(u204)
+
+            while true do
+                local v217
+
+                v216, v217 = v214(v215, v216)
+
+                if v216 == nil then
+                    break
+                end
+                if v217 and v217.Parent then
+                    v217:Destroy()
+                end
+            end
+
+            u204 = {}
+        end
+        local function u224()
+            local v219 = _Lighting
+            local v220, v221, v222 = ipairs(v219:GetChildren())
+
+            while true do
+                local v223
+
+                v222, v223 = v220(v221, v222)
+
+                if v222 == nil then
+                    break
+                end
+                if v223:IsA('Sky') then
+                    v223:Destroy()
+                end
+            end
+
+            if u206 then
+                u206:Clone().Parent = _Lighting
+            end
+        end
+        local function u227(p225)
+            local v226 = u203:Clone()
+
+            v226.Name = 'Clouds'
+            v226.Parent = _Workspace
+            v226.CFrame = p225
+            v226.Anchored = true
+
+            return v226
+        end
+
         _Tool5.Activated:Connect(function()
-            if not _LocalPlayer2.Character then return end
-            if not _LocalPlayer2.Character:FindFirstChild('BodyEffects') then return end
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '🌀 Portal', Text = 'Agarra a alguien primero', Duration = 3
-                })
-                return
-            end
+            if _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
+                task.wait(1)
 
-            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local Lighting = game:GetService('Lighting')
-            local TweenSvc = game:GetService('TweenService')
-            local RS = game:GetService('RunService')
-
-            local origFogEnd   = Lighting.FogEnd
-            local origFogColor = Lighting.FogColor
-            local origBright   = Lighting.Brightness
-            local origSky      = Lighting:FindFirstChildOfClass('Sky')
-
-            -- ---- Portal visual en el suelo ----
-            local portalRoot = Instance.new('Part')
-            portalRoot.Name       = 'PortalFX'
-            portalRoot.Size       = Vector3.new(28, 0.5, 28)
-            portalRoot.Anchored   = true
-            portalRoot.CanCollide = false
-            portalRoot.Material   = Enum.Material.Neon
-            portalRoot.Color      = Color3.fromRGB(100, 0, 255)
-            portalRoot.Transparency = 0.15
-            portalRoot.CFrame     = _LocalPlayer2.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3, -10)
-            portalRoot.Parent     = workspace
-
-            local pm = Instance.new('SpecialMesh', portalRoot)
-            pm.MeshType = Enum.MeshType.Cylinder
-
-            -- Anillo exterior
-            local ring = Instance.new('Part')
-            ring.Name       = 'PortalRing'
-            ring.Size       = Vector3.new(33, 0.8, 33)
-            ring.Anchored   = true
-            ring.CanCollide = false
-            ring.Material   = Enum.Material.Neon
-            ring.Color      = Color3.fromRGB(160, 50, 255)
-            ring.Transparency = 0.3
-            ring.CFrame     = portalRoot.CFrame
-            ring.Parent     = workspace
-            Instance.new('SpecialMesh', ring).MeshType = Enum.MeshType.Cylinder
-
-            -- Partículas del portal
-            local pe = Instance.new('ParticleEmitter', portalRoot)
-            pe.Color       = ColorSequence.new(Color3.fromRGB(150, 0, 255))
-            pe.Size        = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 3),
-                NumberSequenceKeypoint.new(1, 0)
-            })
-            pe.Lifetime    = NumberRange.new(1.5, 3)
-            pe.Rate        = 120
-            pe.Speed       = NumberRange.new(12, 25)
-            pe.SpreadAngle = Vector2.new(360, 360)
-            pe.Rotation    = NumberRange.new(0, 360)
-            pe.RotSpeed    = NumberRange.new(80, 180)
-
-            -- ---- Nubes volumétricas ----
-            local cloudsModel = Instance.new('Model')
-            cloudsModel.Name   = 'PortalClouds'
-            cloudsModel.Parent = workspace
-
-            local cloudPos = _LocalPlayer2.Character.HumanoidRootPart.CFrame + Vector3.new(0, 12, 0)
-
-            for i = 1, 8 do
-                local c = Instance.new('Part')
-                c.Name        = 'Cloud_'..i
-                c.Size        = Vector3.new(26 + i*2, 8, 26 + i*2)
-                c.Anchored    = true
-                c.CanCollide  = false
-                c.Material    = Enum.Material.Neon
-                c.Color       = Color3.fromRGB(100 + i*15, 0, 200)
-                c.Transparency = 0.35 + i*0.05
-                c.CFrame      = cloudPos * CFrame.new(0, -i*0.4, 0)
-                c.Parent      = cloudsModel
-                local sm = Instance.new('SpecialMesh', c)
-                sm.MeshType = Enum.MeshType.Sphere
-                sm.Scale    = Vector3.new(1, 0.3, 1)
-                if i % 2 == 0 then
-                    local cp = Instance.new('ParticleEmitter', c)
-                    cp.Color       = ColorSequence.new(Color3.fromRGB(200, 80, 255))
-                    cp.Size        = NumberSequence.new(4)
-                    cp.Lifetime    = NumberRange.new(2, 4)
-                    cp.Rate        = 18
-                    cp.Speed       = NumberRange.new(3, 8)
-                    cp.SpreadAngle = Vector2.new(30, 30)
-                    cp.Transparency = NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 0.4),
-                        NumberSequenceKeypoint.new(1, 1)
-                    })
-                end
-            end
-
-            -- Animación de nubes (pulsación + rotación)
-            task.spawn(function()
-                local rot, sc, grow = 0, 1, true
-                while cloudsModel and cloudsModel.Parent do
-                    rot = rot + 0.015
-                    sc  = grow and math.min(sc + 0.004, 1.2) or math.max(sc - 0.004, 0.9)
-                    if sc >= 1.2 then grow = false elseif sc <= 0.9 then grow = true end
-                    for _, ch in pairs(cloudsModel:GetChildren()) do
-                        if ch:IsA('BasePart') then
-                            ch.CFrame = ch.CFrame * CFrame.Angles(0, 0.008, 0)
-                            local sm = ch:FindFirstChildOfClass('SpecialMesh')
-                            if sm then sm.Scale = Vector3.new(sc, 0.3*sc, sc) end
-                        end
-                    end
-                    task.wait(0.05)
-                end
-            end)
-
-            -- Rotación continua del portal
-            local rotConn = RS.Heartbeat:Connect(function()
-                if portalRoot and portalRoot.Parent then
-                    portalRoot.CFrame = portalRoot.CFrame * CFrame.Angles(0, 0.07, 0)
-                    ring.CFrame = ring.CFrame * CFrame.Angles(0, -0.04, 0)
-                end
-            end)
-
-            -- Ambiente
-            TweenSvc:Create(Lighting, TweenInfo.new(2), {
-                FogEnd   = 60,
-                FogColor = Color3.fromRGB(30, 0, 80),
-                Brightness = 0.5
-            }):Play()
-
-            local dimSky = Instance.new('Sky', Lighting)
-            dimSky.SkyboxBk = 'rbxasset://sky/purple.jpg'
-            dimSky.SkyboxDn = 'rbxasset://sky/purple.jpg'
-            dimSky.SkyboxFt = 'rbxasset://sky/purple.jpg'
-            dimSky.SkyboxLf = 'rbxasset://sky/purple.jpg'
-            dimSky.SkyboxRt = 'rbxasset://sky/purple.jpg'
-            dimSky.SkyboxUp = 'rbxasset://sky/purple.jpg'
-
-            -- Clon + control
-            task.wait(1)
-            if _LocalPlayer2.Character:FindFirstChild('Portal') then
                 _LocalPlayer2.Character.Portal.Parent = _LocalPlayer2.Backpack
-            end
-            u20 = true
-            task.wait()
-            u20 = false
-            u21 = u107(u19)
-            workspace.CurrentCamera.CameraSubject = u21
+                u20 = true
 
-            u31(u22, u37('Heartbeat', function()
-                for _, tr in pairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks()) do
-                    tr:Stop()
-                end
-                _LocalPlayer2.Character.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame * CFrame.new(0, -15, 0) * CFrame.Angles(math.pi/2, 0, 0)
-                ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
-                local parts = {'Head','HumanoidRootPart','UpperTorso','LowerTorso',
-                    'LeftUpperArm','LeftLowerArm','RightUpperArm','RightLowerArm',
-                    'LeftHand','RightHand','LeftUpperLeg','LeftLowerLeg',
-                    'RightUpperLeg','RightLowerLeg','LeftFoot','RightFoot'}
-                for _, pn in ipairs(parts) do
-                    if u19[pn] and u21:FindFirstChild(pn) then
-                        u27(u19[pn], u21:FindFirstChild(pn), CFrame.new())
+                task.wait()
+
+                u20 = false
+
+                u213()
+
+                u21 = u107(u19)
+
+                local _CurrentCamera = _Workspace.CurrentCamera
+
+                _CurrentCamera.CameraSubject = u21
+
+                u31(u22, u37('Heartbeat', function()
+                    local v229, v230, v231 = ipairs(_LocalPlayer2.Character.Humanoid:GetPlayingAnimationTracks())
+
+                    while true do
+                        local v232
+
+                        v231, v232 = v229(v230, v231)
+
+                        if v231 == nil then
+                            break
+                        end
+
+                        v232:Stop()
                     end
-                end
-                u84(3152375249) u84(3152378852) u84(3189773368) u84(3189776546)
-                u84(3189777795) u84(3189779152) u84(3487719500) u84(11710529975)
-                u84(11710524717) u84(11710527244) u84(11710529220) u84(11710524200)
-                u84(11710541744)
-                u127()
-                for _, tr in ipairs(u21.Humanoid:GetPlayingAnimationTracks()) do
-                    if tr.Animation.AnimationId:find('3152394906') then
-                        tr:AdjustSpeed(u21.Humanoid.MoveDirection.Magnitude > 0 and 1 or 0)
+
+                    _LocalPlayer2.Character.HumanoidRootPart.CFrame = u21.HumanoidRootPart.CFrame * CFrame.new(0, -15, 0) * CFrame.Angles(math.pi / 2, 0, 0)
+
+                    ZeroVelocity___(_LocalPlayer2.Character.HumanoidRootPart)
+
+                    local v233, v234, v235 = ipairs({
+                        'Head',
+                        'HumanoidRootPart',
+                        'UpperTorso',
+                        'LowerTorso',
+                        'LeftUpperArm',
+                        'LeftLowerArm',
+                        'RightUpperArm',
+                        'RightLowerArm',
+                        'LeftHand',
+                        'RightHand',
+                        'LeftUpperLeg',
+                        'LeftLowerLeg',
+                        'RightUpperLeg',
+                        'RightLowerLeg',
+                        'LeftFoot',
+                        'RightFoot',
+                    })
+
+                    while true do
+                        local v236
+
+                        v235, v236 = v233(v234, v235)
+
+                        if v235 == nil then
+                            break
+                        end
+
+                        local v237 = u21
+
+                        u27(u19[v236], v237:FindFirstChild(v236), CFrame.new())
                     end
-                end
-                u21.Humanoid.Jump = _LocalPlayer2.Character.Humanoid.Jump
-                u21.Humanoid:Move(_LocalPlayer2.Character.Humanoid.MoveDirection, false)
-            end))
 
-            -- Animaciones
-            u92(10714360343, 1)
-            u100(10714360343, 1)
-            task.wait(3)
-            CloneStopanim(4940561610, 1)
-            u84(4940561610, 1)
-            task.wait(1)
-            u92(4940561610, 1)
+                    local v238, v239, v240 = ipairs({
+                        3152375249,
+                        3152378852,
+                        3189773368,
+                        3189776546,
+                        3189777795,
+                        3189779152,
+                        3487719500,
+                        11710529975,
+                        11710524717,
+                        11710527244,
+                        11710529220,
+                        11710524200,
+                        11710541744,
+                    })
 
-            -- Cámara cinemática + eliminar víctima
-            task.delay(2, function()
-                workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
-                local hrp   = u21.HumanoidRootPart
-                local camPt = Instance.new('Part', workspace)
-                camPt.Size = Vector3.new(1,1,1) camPt.Anchored = true
-                camPt.CanCollide = false camPt.Transparency = 1
-                camPt.Position = hrp.Position
-                Instance.new('Humanoid', camPt)
-                workspace.CurrentCamera.CameraSubject = camPt
-                local tw = TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-                local tgt = CFrame.new(hrp.Position + Vector3.new(0,5,20), hrp.Position)
-                TweenSvc:Create(workspace.CurrentCamera, tw, {CFrame = tgt}):Play()
-                TweenSvc:Create(camPt, tw, {CFrame = tgt}):Play()
-                task.wait(4)
-                camPt:Destroy()
+                    while true do
+                        local v241
 
-                TweenSvc:Create(hrp, TweenInfo.new(2.5, Enum.EasingStyle.Sine), {
-                    CFrame = hrp.CFrame + Vector3.new(0,15,0)
-                }):Play()
-                task.wait(1.5)
+                        v240, v241 = v238(v239, v240)
 
-                if victim and victim.Parent then
-                    for _, ln in ipairs({'RightUpperLeg','LeftUpperLeg','RightUpperArm','LeftUpperArm','UpperTorso'}) do
-                        local lp = victim:FindFirstChild(ln)
-                        if lp and lp:IsA('BasePart') then
-                            for _, m in ipairs(lp:GetChildren()) do
-                                if m:IsA('Motor6D') then m.Enabled = false end
-                            end
-                            lp.Position = Vector3.new(0, -11000000, 0)
+                        if v240 == nil then
+                            break
+                        end
+
+                        u84(v241)
+                    end
+
+                    u127()
+
+                    local v242, v243, v244 = ipairs(u21.Humanoid:GetPlayingAnimationTracks())
+
+                    while true do
+                        local v245
+
+                        v244, v245 = v242(v243, v244)
+
+                        if v244 == nil then
+                            break
+                        end
+                        if v245.Animation.AnimationId:find('3152394906') then
+                            v245:AdjustSpeed(u21.Humanoid.MoveDirection.Magnitude > 0 and 1 or 0)
                         end
                     end
-                end
 
-                task.wait(0.8)
-                game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
-                workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-                workspace.CurrentCamera.CameraSubject =
-                    _LocalPlayer2.Character:FindFirstChild('Humanoid') or
-                    _LocalPlayer2.Character:FindFirstChild('HumanoidRootPart')
+                    u21.Humanoid.Jump = _LocalPlayer2.Character.Humanoid.Jump
 
-                -- Limpieza con fade
-                rotConn:Disconnect()
-                TweenSvc:Create(portalRoot, TweenInfo.new(1.5), {Transparency=1}):Play()
-                TweenSvc:Create(ring,       TweenInfo.new(1.5), {Transparency=1}):Play()
-                task.wait(0.5)
-                pcall(function() portalRoot:Destroy() end)
-                pcall(function() ring:Destroy() end)
-                for _, ch in pairs(cloudsModel:GetChildren()) do
-                    if ch:IsA('BasePart') then
-                        TweenSvc:Create(ch, TweenInfo.new(1.5), {Transparency=1}):Play()
+                    u21.Humanoid:Move(_LocalPlayer2.Character.Humanoid.MoveDirection, false)
+                end))
+
+                local u246 = u227(_LocalPlayer3.Character.HumanoidRootPart.CFrame + Vector3.new(0, 9, 0))
+
+                u92(10714360343, 1)
+                u100(10714360343, 1)
+                task.wait(3)
+                CloneStopanim(4940561610, 1)
+                u84(4940561610, 1)
+                task.wait(1)
+                u92(4940561610, 1)
+                task.delay(2, function()
+                    _CurrentCamera.CameraType = Enum.CameraType.Scriptable
+
+                    local _HumanoidRootPart2 = u21.HumanoidRootPart
+                    local _Part2 = Instance.new('Part', _Workspace)
+
+                    _Part2.Size = Vector3.new(1, 1, 1)
+                    _Part2.Anchored = true
+                    _Part2.CanCollide = false
+                    _Part2.Transparency = 1
+                    _Part2.Position = _HumanoidRootPart2.Position
+
+                    Instance.new('Humanoid', _Part2)
+
+                    local _CFrame = _CurrentCamera.CFrame
+                    local v250 = CFrame.new(_HumanoidRootPart2.Position + Vector3.new(0, 3, 15), _HumanoidRootPart2.Position)
+
+                    _CurrentCamera.CFrame = _CFrame
+                    _CurrentCamera.CameraSubject = _Part2
+
+                    local v251 = TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+
+                    _TweenService:Create(_CurrentCamera, v251, {CFrame = v250}):Play()
+                    _TweenService:Create(_Part2, v251, {CFrame = v250}):Play()
+                    task.wait(4)
+                    _Part2:Destroy()
+                    _TweenService:Create(_HumanoidRootPart2, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+                        CFrame = _HumanoidRootPart2.CFrame + Vector3.new(0, 10, 0),
+                    }):Play()
+                    task.wait(1.3)
+
+                    local v252 = tostring(_LocalPlayer2.Character.BodyEffects.Grabbed.Value)
+                    local v253 = game.Players:FindFirstChild(v252)
+
+                    if v253 and v253.Character then
+                        local v254 = {
+                            'RightUpperLeg',
+                            'LeftUpperLeg',
+                            'RightUpperArm',
+                            'LeftUpperArm',
+                            'UpperTorso',
+                        }
+
+                        local function v266(p255, p256)
+                            local v257, v258, v259 = ipairs(p256)
+
+                            while true do
+                                local v260
+
+                                v259, v260 = v257(v258, v259)
+
+                                if v259 == nil then
+                                    break
+                                end
+
+                                local v261 = p255:FindFirstChild(v260)
+
+                                if v261 and v261:IsA('BasePart') then
+                                    local v262, v263, v264 = ipairs(v261:GetChildren())
+
+                                    while true do
+                                        local v265
+
+                                        v264, v265 = v262(v263, v264)
+
+                                        if v264 == nil then
+                                            break
+                                        end
+                                        if v265:IsA('Motor6D') then
+                                            v265.Enabled = false
+                                        end
+                                    end
+
+                                    v261.Position = Vector3.new(0, -11000000, 0)
+                                end
+                            end
+                        end
+
+                        v266(u21, v254)
+                        v266(v253.Character, v254)
                     end
-                end
-                task.wait(1.5)
-                pcall(function() cloudsModel:Destroy() end)
-                pcall(function() dimSky:Destroy() end)
-                if origSky then pcall(function() origSky:Clone().Parent = Lighting end) end
-                TweenSvc:Create(Lighting, TweenInfo.new(3), {
-                    FogColor = origFogColor, FogEnd = origFogEnd, Brightness = origBright
-                }):Play()
-            end)
+
+                    task.wait(0.7)
+                    game:GetService('ReplicatedStorage').MainEvent:FireServer('Grabbing')
+
+                    _CurrentCamera.CameraType = Enum.CameraType.Custom
+                    _CurrentCamera.CameraSubject = _LocalPlayer3.Character:FindFirstChild('Humanoid') or _LocalPlayer3.Character:FindFirstChild('HumanoidRootPart')
+
+                    if u246 then
+                        u246:Destroy()
+                    end
+
+                    u218()
+                    u224()
+                end)
+            end
         end)
+
+        function ControlAlign222(p267, p268, p269)
+            p267.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            p267.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            p267.Velocity = Vector3.new(0, 0, 0)
+            p267.CFrame = p268.CFrame * (p269 or CFrame.new())
+            p267.CanCollide = false
+            p268.CanCollide = false
+        end
 
         if _LocalPlayer2.Backpack:FindFirstChild('Clone') then
             _LocalPlayer2.Backpack:FindFirstChild('Clone'):Destroy()
@@ -2795,1330 +3730,6 @@ if table.find(v1, tostring(v2)) then
         end
     end)
 
-    -- Tool: Grab Knife (REEMPLAZA A "Rip In Half")
-        if _LocalPlayer6.Backpack:FindFirstChild('Big Sex') then
-            _LocalPlayer6.Backpack:FindFirstChild('Big Sex'):Destroy()
-        end
-
-        task.wait(0.1)
-
-        local _Tool2 = Instance.new('Tool', _LocalPlayer6.Backpack)
-
-        _Tool2.RequiresHandle = false
-        _Tool2.Name = 'Big Sex'
-
-        _Tool2.Activated:connect(function()
-            if _LocalPlayer6.Character.BodyEffects.Grabbed.Value then
-                _LocalPlayer6.Character['Big Sex'].Parent = _LocalPlayer6.Backpack
-
-                task.wait()
-
-                getgenv().Furry_ = true
-
-                task.wait()
-
-                getgenv().Furry_ = false
-                u21 = u107(u19)
-
-                u31(u22, u37('Heartbeat', function()
-                    local v145 = u21
-
-                    u27(u19.Head, v145:FindFirstChild('Head'), CFrame.new(0, 0, 0))
-
-                    local v146 = u21
-
-                    u27(u19.HumanoidRootPart, v146:FindFirstChild('HumanoidRootPart'), CFrame.new(0, 0, 0))
-
-                    local v147 = u21
-
-                    u27(u19.UpperTorso, v147:FindFirstChild('UpperTorso'), CFrame.new(0, 0, 0))
-
-                    local v148 = u21
-
-                    u27(u19.LowerTorso, v148:FindFirstChild('LowerTorso'), CFrame.new(0, 0, 0))
-
-                    local v149 = u21
-
-                    u27(u19.LeftUpperArm, v149:FindFirstChild('LeftUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v150 = u21
-
-                    u27(u19.LeftLowerArm, v150:FindFirstChild('LeftLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v151 = u21
-
-                    u27(u19.RightUpperArm, v151:FindFirstChild('RightUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v152 = u21
-
-                    u27(u19.RightLowerArm, v152:FindFirstChild('RightLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v153 = u21
-
-                    u27(u19.LeftHand, v153:FindFirstChild('LeftHand'), CFrame.new(0, 0, 0))
-
-                    local v154 = u21
-
-                    u27(u19.RightHand, v154:FindFirstChild('RightHand'), CFrame.new(0, 0, 0))
-
-                    local v155 = u21
-
-                    u27(u19.LeftUpperLeg, v155:FindFirstChild('LeftUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v156 = u21
-
-                    u27(u19.LeftLowerLeg, v156:FindFirstChild('LeftLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v157 = u21
-
-                    u27(u19.RightUpperLeg, v157:FindFirstChild('RightUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v158 = u21
-
-                    u27(u19.RightLowerLeg, v158:FindFirstChild('RightLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v159 = u21
-
-                    u27(u19.LeftFoot, v159:FindFirstChild('LeftFoot'), CFrame.new(0, 0, 0))
-
-                    local v160 = u21
-
-                    u27(u19.RightFoot, v160:FindFirstChild('RightFoot'), CFrame.new(0, 0, 0))
-
-                    u19.Head.CanCollide = false
-                    u19.UpperTorso.CanCollide = false
-                    u19.LowerTorso.CanCollide = false
-                    u19.LeftUpperArm.CanCollide = false
-                    u19.LeftLowerArm.CanCollide = false
-                    u19.LeftHand.CanCollide = false
-                    u19.RightUpperArm.CanCollide = false
-                    u19.RightLowerArm.CanCollide = false
-                    u19.RightHand.CanCollide = false
-                    u19.LeftUpperLeg.CanCollide = false
-                    u19.LeftLowerLeg.CanCollide = false
-                    u19.LeftFoot.CanCollide = false
-                    u19.RightUpperLeg.CanCollide = false
-                    u19.RightLowerLeg.CanCollide = false
-                    u19.RightFoot.CanCollide = false
-
-                    u58(3152375249)
-                    u58(3152378852)
-                    u58(3189773368)
-                    u58(3189776546)
-                    u58(3189777795)
-                    u58(3189779152)
-                    u58(3487719500)
-                    u58(11710529975)
-                    u58(11710524717)
-                    u58(11710527244)
-                    u58(11710529220)
-                    u58(11710529220)
-                    u58(11710524200)
-                    u58(11710541744)
-
-                    local v161, v162, v163 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-                    while true do
-                        local v164
-
-                        v163, v164 = v161(v162, v163)
-
-                        if v163 == nil then
-                            break
-                        end
-                        if v164.Animation.AnimationId:match('rbxassetid://3152394906') then
-                            if u21.Humanoid.MoveDirection.magnitude <= 0 then
-                                v164:AdjustSpeed(0)
-                            else
-                                v164:AdjustSpeed(1)
-                            end
-                        end
-                    end
-
-                    local v165 = tick() * 133.33
-
-                    u21.Humanoid.Jump = _LocalPlayer6.Character.Humanoid.Jump
-                    u21.HumanoidRootPart.CFrame = _LocalPlayer6.Character.HumanoidRootPart.CFrame * CFrame.new(0, -0.3, -2 + 0.5 * math.sin(v165 / 8)) * CFrame.Angles(0, math.rad(180), 0)
-
-                    ZeroVelocity___(u21.HumanoidRootPart)
-                end))
-                u92(7024352723, 0, 2)
-                Cleanup___()
-            end
-        end)
-
-        if _LocalPlayer6.Backpack:FindFirstChild('Sit Sex') then
-            _LocalPlayer6.Backpack:FindFirstChild('Sit Sex'):Destroy()
-        end
-
-        task.wait(0.1)
-
-        local _Tool3 = Instance.new('Tool', _LocalPlayer6.Backpack)
-
-        _Tool3.RequiresHandle = false
-        _Tool3.Name = 'Sit Sex'
-
-        _Tool3.Activated:connect(function()
-            if _LocalPlayer6.Character.BodyEffects.Grabbed.Value then
-                _LocalPlayer6.Character['Sit Sex'].Parent = _LocalPlayer6.Backpack
-
-                task.wait()
-
-                getgenv().Furry_ = true
-
-                task.wait()
-
-                getgenv().Furry_ = false
-                u21 = u107(u19)
-
-                u31(u22, u37('Heartbeat', function()
-                    local v167 = u21
-
-                    u27(u19.Head, v167:FindFirstChild('Head'), CFrame.new(0, 0, 0))
-
-                    local v168 = u21
-
-                    u27(u19.HumanoidRootPart, v168:FindFirstChild('HumanoidRootPart'), CFrame.new(0, 0, 0))
-
-                    local v169 = u21
-
-                    u27(u19.UpperTorso, v169:FindFirstChild('UpperTorso'), CFrame.new(0, 0, 0))
-
-                    local v170 = u21
-
-                    u27(u19.LowerTorso, v170:FindFirstChild('LowerTorso'), CFrame.new(0, 0, 0))
-
-                    local v171 = u21
-
-                    u27(u19.LeftUpperArm, v171:FindFirstChild('LeftUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v172 = u21
-
-                    u27(u19.LeftLowerArm, v172:FindFirstChild('LeftLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v173 = u21
-
-                    u27(u19.RightUpperArm, v173:FindFirstChild('RightUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v174 = u21
-
-                    u27(u19.RightLowerArm, v174:FindFirstChild('RightLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v175 = u21
-
-                    u27(u19.LeftHand, v175:FindFirstChild('LeftHand'), CFrame.new(0, 0, 0))
-
-                    local v176 = u21
-
-                    u27(u19.RightHand, v176:FindFirstChild('RightHand'), CFrame.new(0, 0, 0))
-
-                    local v177 = u21
-
-                    u27(u19.LeftUpperLeg, v177:FindFirstChild('LeftUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v178 = u21
-
-                    u27(u19.LeftLowerLeg, v178:FindFirstChild('LeftLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v179 = u21
-
-                    u27(u19.RightUpperLeg, v179:FindFirstChild('RightUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v180 = u21
-
-                    u27(u19.RightLowerLeg, v180:FindFirstChild('RightLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v181 = u21
-
-                    u27(u19.LeftFoot, v181:FindFirstChild('LeftFoot'), CFrame.new(0, 0, 0))
-
-                    local v182 = u21
-
-                    u27(u19.RightFoot, v182:FindFirstChild('RightFoot'), CFrame.new(0, 0, 0))
-                    u58(3152375249)
-                    u58(3152378852)
-                    u58(3189773368)
-                    u58(3189776546)
-                    u58(3189777795)
-                    u58(3189779152)
-                    u58(3487719500)
-                    u58(11710529975)
-                    u58(11710524717)
-                    u58(11710527244)
-                    u58(11710529220)
-                    u58(11710529220)
-                    u58(11710524200)
-                    u58(11710541744)
-
-                    local v183, v184, v185 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-                    while true do
-                        local v186
-
-                        v185, v186 = v183(v184, v185)
-
-                        if v185 == nil then
-                            break
-                        end
-                        if v186.Animation.AnimationId:match('rbxassetid://3152394906') then
-                            if u21.Humanoid.MoveDirection.magnitude <= 0 then
-                                v186:AdjustSpeed(0)
-                            else
-                                v186:AdjustSpeed(1)
-                            end
-                        end
-                    end
-
-                    local v187 = tick() * 133.33
-
-                    u21.Humanoid.Jump = _LocalPlayer6.Character.Humanoid.Jump
-                    u21.HumanoidRootPart.CFrame = _LocalPlayer6.Character.HumanoidRootPart.CFrame * CFrame.new(0, -0.3, -4 + 0.5 * math.sin(v187 / 8)) * CFrame.Angles(math.pi * -0.5, 0, 0)
-
-                    ZeroVelocity___(u21.HumanoidRootPart)
-                end))
-                u92(10714390497, 0, 2)
-                AnimPlay(15549124879, 0, 4)
-                AnimPlay(3119980985, 2)
-                PlayId(6814463121)
-
-                repeat
-                    task.wait()
-                until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-                AnimStop(4784557631)
-                AnimStop(3119980985)
-                AnimStop(15549124879)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v188 = u19
-                local v189, v190, v191 = pairs(v188:GetDescendants())
-
-                while true do
-                    local v192
-
-                    v191, v192 = v189(v190, v191)
-
-                    if v191 == nil then
-                        break
-                    end
-                    if v192:IsA('BodyPosition') then
-                        v192:Destroy()
-                    end
-                end
-
-                local v193, v194, v195 = pairs(u22)
-
-                while true do
-                    local v196
-
-                    v195, v196 = v193(v194, v195)
-
-                    if v195 == nil then
-                        break
-                    end
-
-                    v196:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-
-            repeat
-                task.wait()
-            until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-            local function u211(p197)
-                local v198, v199, v200 = pairs(workspace:GetDescendants())
-
-                while true do
-                    local v201
-
-                    v200, v201 = v198(v199, v200)
-
-                    if v200 == nil then
-                        break
-                    end
-                    if v201:IsA('Sound') and v201.SoundId == 'rbxassetid://' .. p197 then
-                        v201:Stop()
-                        v201:Destroy()
-                    end
-                end
-
-                u211(165969964)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v202 = u19
-                local v203, v204, v205 = pairs(v202:GetDescendants())
-
-                while true do
-                    local v206
-
-                    v205, v206 = v203(v204, v205)
-
-                    if v205 == nil then
-                        break
-                    end
-                    if v206:IsA('BodyPosition') then
-                        v206:Destroy()
-                    end
-                end
-
-                local v207, v208, v209 = pairs(u22)
-
-                while true do
-                    local v210
-
-                    v209, v210 = v207(v208, v209)
-
-                    if v209 == nil then
-                        break
-                    end
-
-                    v210:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-        end)
-
-        if _LocalPlayer6.Backpack:FindFirstChild('Cow Girl') then
-            _LocalPlayer6.Backpack:FindFirstChild('Cow Girl'):Destroy()
-        end
-
-        task.wait(0.1)
-
-        local _Tool4 = Instance.new('Tool', _LocalPlayer6.Backpack)
-
-        _Tool4.RequiresHandle = false
-        _Tool4.Name = 'Cow Girl'
-
-        _Tool4.Activated:connect(function()
-            if _LocalPlayer6.Character.BodyEffects.Grabbed.Value then
-                _LocalPlayer6.Character['Cow Girl'].Parent = _LocalPlayer6.Backpack
-
-                task.wait()
-
-                getgenv().Furry_ = true
-
-                task.wait()
-
-                getgenv().Furry_ = false
-                u21 = u107(u19)
-
-                u31(u22, u37('Heartbeat', function()
-                    local v213 = u21
-
-                    u27(u19.Head, v213:FindFirstChild('Head'), CFrame.new(0, 0, 0))
-
-                    local v214 = u21
-
-                    u27(u19.HumanoidRootPart, v214:FindFirstChild('HumanoidRootPart'), CFrame.new(0, 0, 0))
-
-                    local v215 = u21
-
-                    u27(u19.UpperTorso, v215:FindFirstChild('UpperTorso'), CFrame.new(0, 0, 0))
-
-                    local v216 = u21
-
-                    u27(u19.LowerTorso, v216:FindFirstChild('LowerTorso'), CFrame.new(0, 0, 0))
-
-                    local v217 = u21
-
-                    u27(u19.LeftUpperArm, v217:FindFirstChild('LeftUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v218 = u21
-
-                    u27(u19.LeftLowerArm, v218:FindFirstChild('LeftLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v219 = u21
-
-                    u27(u19.RightUpperArm, v219:FindFirstChild('RightUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v220 = u21
-
-                    u27(u19.RightLowerArm, v220:FindFirstChild('RightLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v221 = u21
-
-                    u27(u19.LeftHand, v221:FindFirstChild('LeftHand'), CFrame.new(0, 0, 0))
-
-                    local v222 = u21
-
-                    u27(u19.RightHand, v222:FindFirstChild('RightHand'), CFrame.new(0, 0, 0))
-
-                    local v223 = u21
-
-                    u27(u19.LeftUpperLeg, v223:FindFirstChild('LeftUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v224 = u21
-
-                    u27(u19.LeftLowerLeg, v224:FindFirstChild('LeftLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v225 = u21
-
-                    u27(u19.RightUpperLeg, v225:FindFirstChild('RightUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v226 = u21
-
-                    u27(u19.RightLowerLeg, v226:FindFirstChild('RightLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v227 = u21
-
-                    u27(u19.LeftFoot, v227:FindFirstChild('LeftFoot'), CFrame.new(0, 0, 0))
-
-                    local v228 = u21
-
-                    u27(u19.RightFoot, v228:FindFirstChild('RightFoot'), CFrame.new(0, 0, 0))
-                    u58(3152375249)
-                    u58(3152378852)
-                    u58(3189773368)
-                    u58(3189776546)
-                    u58(3189777795)
-                    u58(3189779152)
-                    u58(3487719500)
-                    u58(11710529975)
-                    u58(11710524717)
-                    u58(11710527244)
-                    u58(11710529220)
-                    u58(11710529220)
-                    u58(11710524200)
-                    u58(11710541744)
-
-                    local v229, v230, v231 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-                    while true do
-                        local v232
-
-                        v231, v232 = v229(v230, v231)
-
-                        if v231 == nil then
-                            break
-                        end
-                        if v232.Animation.AnimationId:match('rbxassetid://3152394906') then
-                            if u21.Humanoid.MoveDirection.magnitude <= 0 then
-                                v232:AdjustSpeed(0)
-                            else
-                                v232:AdjustSpeed(1)
-                            end
-                        end
-                    end
-
-                    local v233 = tick() * 133.33
-
-                    u21.Humanoid.Jump = _LocalPlayer6.Character.Humanoid.Jump
-                    u21.HumanoidRootPart.CFrame = _LocalPlayer6.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2 + 0.5 * math.sin(v233 / 16), 0)
-
-                    ZeroVelocity___(u21.HumanoidRootPart)
-                end))
-                u92(10714390497, 0, 2)
-                AnimPlay(15549124879, 0, 4)
-                AnimPlay(3119980985, 2)
-                PlayId(6814463121)
-
-                repeat
-                    task.wait()
-                until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-                AnimStop(4784557631)
-                AnimStop(3119980985)
-                AnimStop(15549124879)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v234 = u19
-                local v235, v236, v237 = pairs(v234:GetDescendants())
-
-                while true do
-                    local v238
-
-                    v237, v238 = v235(v236, v237)
-
-                    if v237 == nil then
-                        break
-                    end
-                    if v238:IsA('BodyPosition') then
-                        v238:Destroy()
-                    end
-                end
-
-                local v239, v240, v241 = pairs(u22)
-
-                while true do
-                    local v242
-
-                    v241, v242 = v239(v240, v241)
-
-                    if v241 == nil then
-                        break
-                    end
-
-                    v242:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-
-            repeat
-                task.wait()
-            until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-            local function u257(p243)
-                local v244, v245, v246 = pairs(workspace:GetDescendants())
-
-                while true do
-                    local v247
-
-                    v246, v247 = v244(v245, v246)
-
-                    if v246 == nil then
-                        break
-                    end
-                    if v247:IsA('Sound') and v247.SoundId == 'rbxassetid://' .. p243 then
-                        v247:Stop()
-                        v247:Destroy()
-                    end
-                end
-
-                u257(165969964)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v248 = u19
-                local v249, v250, v251 = pairs(v248:GetDescendants())
-
-                while true do
-                    local v252
-
-                    v251, v252 = v249(v250, v251)
-
-                    if v251 == nil then
-                        break
-                    end
-                    if v252:IsA('BodyPosition') then
-                        v252:Destroy()
-                    end
-                end
-
-                local v253, v254, v255 = pairs(u22)
-
-                while true do
-                    local v256
-
-                    v255, v256 = v253(v254, v255)
-
-                    if v255 == nil then
-                        break
-                    end
-
-                    v256:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-        end)
-
-        if _LocalPlayer6.Backpack:FindFirstChild('Bl*wj**') then
-            _LocalPlayer6.Backpack:FindFirstChild('Bl*wj**'):Destroy()
-        end
-
-        task.wait(0.1)
-
-        local _Tool5 = Instance.new('Tool', _LocalPlayer6.Backpack)
-
-        _Tool5.RequiresHandle = false
-        _Tool5.Name = 'Bl*wj**'
-
-        _Tool5.Activated:connect(function()
-            if _LocalPlayer6.Character.BodyEffects.Grabbed.Value then
-                getgenv().Furry_ = true
-
-                task.wait()
-
-                getgenv().Furry_ = false
-                u21 = u107(u19)
-
-                u31(u22, u37('Heartbeat', function()
-                    local v259 = u21
-
-                    u27(u19.Head, v259:FindFirstChild('Head'), CFrame.new(0, 0, 0))
-
-                    local v260 = u21
-
-                    u27(u19.HumanoidRootPart, v260:FindFirstChild('HumanoidRootPart'), CFrame.new(0, 0, 0))
-
-                    local v261 = u21
-
-                    u27(u19.UpperTorso, v261:FindFirstChild('UpperTorso'), CFrame.new(0, 0, 0))
-
-                    local v262 = u21
-
-                    u27(u19.LowerTorso, v262:FindFirstChild('LowerTorso'), CFrame.new(0, 0, 0))
-
-                    local v263 = u21
-
-                    u27(u19.LeftUpperArm, v263:FindFirstChild('LeftUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v264 = u21
-
-                    u27(u19.LeftLowerArm, v264:FindFirstChild('LeftLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v265 = u21
-
-                    u27(u19.RightUpperArm, v265:FindFirstChild('RightUpperArm'), CFrame.new(0, 0, 0))
-
-                    local v266 = u21
-
-                    u27(u19.RightLowerArm, v266:FindFirstChild('RightLowerArm'), CFrame.new(0, 0, 0))
-
-                    local v267 = u21
-
-                    u27(u19.LeftHand, v267:FindFirstChild('LeftHand'), CFrame.new(0, 0, 0))
-
-                    local v268 = u21
-
-                    u27(u19.RightHand, v268:FindFirstChild('RightHand'), CFrame.new(0, 0, 0))
-
-                    local v269 = u21
-
-                    u27(u19.LeftUpperLeg, v269:FindFirstChild('LeftUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v270 = u21
-
-                    u27(u19.LeftLowerLeg, v270:FindFirstChild('LeftLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v271 = u21
-
-                    u27(u19.RightUpperLeg, v271:FindFirstChild('RightUpperLeg'), CFrame.new(0, 0, 0))
-
-                    local v272 = u21
-
-                    u27(u19.RightLowerLeg, v272:FindFirstChild('RightLowerLeg'), CFrame.new(0, 0, 0))
-
-                    local v273 = u21
-
-                    u27(u19.LeftFoot, v273:FindFirstChild('LeftFoot'), CFrame.new(0, 0, 0))
-
-                    local v274 = u21
-
-                    u27(u19.RightFoot, v274:FindFirstChild('RightFoot'), CFrame.new(0, 0, 0))
-
-                    u19.Head.CanCollide = false
-                    u19.UpperTorso.CanCollide = false
-                    u19.LowerTorso.CanCollide = false
-                    u19.LeftUpperArm.CanCollide = false
-                    u19.LeftLowerArm.CanCollide = false
-                    u19.LeftHand.CanCollide = false
-                    u19.RightUpperArm.CanCollide = false
-                    u19.RightLowerArm.CanCollide = false
-                    u19.RightHand.CanCollide = false
-                    u19.LeftUpperLeg.CanCollide = false
-                    u19.LeftLowerLeg.CanCollide = false
-                    u19.LeftFoot.CanCollide = false
-                    u19.RightUpperLeg.CanCollide = false
-                    u19.RightLowerLeg.CanCollide = false
-                    u19.RightFoot.CanCollide = false
-
-                    u58(3152375249)
-                    u58(3152378852)
-                    u58(3189773368)
-                    u58(3189776546)
-                    u58(3189777795)
-                    u58(3189779152)
-                    u58(3487719500)
-                    u58(11710529975)
-                    u58(11710524717)
-                    u58(11710527244)
-                    u58(11710529220)
-                    u58(11710529220)
-                    u58(11710524200)
-                    u58(11710541744)
-
-                    local v275, v276, v277 = pairs(u21.Humanoid:GetPlayingAnimationTracks())
-
-                    while true do
-                        local v278
-
-                        v277, v278 = v275(v276, v277)
-
-                        if v277 == nil then
-                            break
-                        end
-                        if v278.Animation.AnimationId:match('rbxassetid://3152394906') then
-                            if u21.Humanoid.MoveDirection.magnitude <= 0 then
-                                v278:AdjustSpeed(0)
-                            else
-                                v278:AdjustSpeed(1)
-                            end
-                        end
-                    end
-
-                    u21.Humanoid.Jump = _LocalPlayer6.Character.Humanoid.Jump
-                    u21.HumanoidRootPart.CFrame = _LocalPlayer6.Character.HumanoidRootPart.CFrame * CFrame.new(0, -1, -1) * CFrame.Angles(0, math.rad(180), 0)
-
-                    ZeroVelocity___(u21.HumanoidRootPart)
-                    ZeroVelocity___(u21.Head)
-                    ZeroVelocity___(u21.UpperTorso)
-                    ZeroVelocity___(u21.LowerTorso)
-                    ZeroVelocity___(u21.LeftUpperArm)
-                    ZeroVelocity___(u21.LeftLowerArm)
-                    ZeroVelocity___(u21.LeftHand)
-                    ZeroVelocity___(u21.RightUpperArm)
-                    ZeroVelocity___(u21.RightLowerArm)
-                    ZeroVelocity___(u21.RightHand)
-                    ZeroVelocity___(u21.LeftUpperLeg)
-                    ZeroVelocity___(u21.LeftLowerLeg)
-                    ZeroVelocity___(u21.LeftFoot)
-                    ZeroVelocity___(u21.RightUpperLeg)
-                    ZeroVelocity___(u21.RightLowerLeg)
-                    ZeroVelocity___(u21.RightFoot)
-                end))
-                spawn(function()
-                    repeat
-                        task.wait(0.1)
-                        AnimPlay(698251653, 1, 0.4)
-                    until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-                end)
-                u92(3487719500, 0, 3)
-                u92(3119980985, 3)
-                PlayId(6814463121)
-
-                repeat
-                    task.wait()
-                until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-                AnimStop(698251653)
-                AnimStop(4784557631)
-                AnimStop(3119980985)
-                AnimStop(15549124879)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v279 = u19
-                local v280, v281, v282 = pairs(v279:GetDescendants())
-
-                while true do
-                    local v283
-
-                    v282, v283 = v280(v281, v282)
-
-                    if v282 == nil then
-                        break
-                    end
-                    if v283:IsA('BodyPosition') then
-                        v283:Destroy()
-                    end
-                end
-
-                local v284, v285, v286 = pairs(u22)
-
-                while true do
-                    local v287
-
-                    v286, v287 = v284(v285, v286)
-
-                    if v286 == nil then
-                        break
-                    end
-
-                    v287:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-
-            repeat
-                task.wait()
-            until _LocalPlayer6.Character.BodyEffects.Grabbed.Value == nil or getgenv().Furry_ == true
-
-            local function u302(p288)
-                local v289, v290, v291 = pairs(workspace:GetDescendants())
-
-                while true do
-                    local v292
-
-                    v291, v292 = v289(v290, v291)
-
-                    if v291 == nil then
-                        break
-                    end
-                    if v292:IsA('Sound') and v292.SoundId == 'rbxassetid://' .. p288 then
-                        v292:Stop()
-                        v292:Destroy()
-                    end
-                end
-
-                u302(165969964)
-                ZeroVelocity___(_LocalPlayer6.Character.HumanoidRootPart)
-
-                workspace.CurrentCamera.CameraSubject = _LocalPlayer6.Character
-
-                u21:Destroy()
-
-                local v293 = u19
-                local v294, v295, v296 = pairs(v293:GetDescendants())
-
-                while true do
-                    local v297
-
-                    v296, v297 = v294(v295, v296)
-
-                    if v296 == nil then
-                        break
-                    end
-                    if v297:IsA('BodyPosition') then
-                        v297:Destroy()
-                    end
-                end
-
-                local v298, v299, v300 = pairs(u22)
-
-                while true do
-                    local v301
-
-                    v300, v301 = v298(v299, v300)
-
-                    if v300 == nil then
-                        break
-                    end
-
-                    v301:Disconnect()
-                end
-
-                u19.LeftHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightHand:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.LeftFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-                u19.RightFoot:FindFirstChildOfClass('Motor6D').Enabled = true
-            end
-        end)
-    end
-
-        if _LocalPlayer2.Backpack:FindFirstChild('grab knife') then
-            _LocalPlayer2.Backpack:FindFirstChild('grab knife'):Destroy()
-        end
-        if _LocalPlayer2.Character:FindFirstChild('grab knife') then
-            _LocalPlayer2.Character:FindFirstChild('grab knife'):Destroy()
-        end
-        
-        wait(0.1)
-        
-        local grabKnifeTool = Instance.new('Tool')
-        grabKnifeTool.RequiresHandle = false
-        grabKnifeTool.Name = 'grab knife'
-        grabKnifeTool.ToolTip = 'Grab Knife - Remake con corte de boca'
-        grabKnifeTool.Parent = _LocalPlayer2.Backpack
-        
-        local isKnifeActive = false
-        
-        grabKnifeTool.Activated:Connect(function()
-            if isKnifeActive then return end
-            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
-                return
-            end
-            
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Grab Knife',
-                    Text = 'No victim grabbed',
-                    Duration = 2
-                })
-                return
-            end
-            
-            isKnifeActive = true
-            
-            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            local victimPlayer = game.Players:GetPlayerFromCharacter(victim)
-            
-            if not victimPlayer or victimPlayer == _LocalPlayer2 then
-                isKnifeActive = false
-                return
-            end
-            
-            -- EQUIPAR CUCHILLO
-            local knife = _LocalPlayer2.Backpack:FindFirstChild('Knife') or _LocalPlayer2.Backpack:FindFirstChild('knife')
-            if knife then
-                knife.Parent = _LocalPlayer2.Character
-            end
-            
-            -- ============================================
-            -- FASE 1: AGARRAR POR LA ESPALDA Y CORTAR BOCA
-            -- ============================================
-            
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '🔪 Grab Knife',
-                Text = 'Fase 1: Corte de boca',
-                Duration = 3
-            })
-            
-            -- POSICIONAR VÍCTIMA POR LA ESPALDA (MÁS ABAJO) - CORREGIDO
-            local stopAlign = false
-            local alignConnection
-            
-            local upperTorso = victim:FindFirstChild("UpperTorso")
-            if not upperTorso then
-                isKnifeActive = false
-                return
-            end
-            
-            -- HACER NOCLIP PARA QUE NO SE BUGEE
-            local originalCanCollide = {}
-            for _, part in pairs(victim:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    originalCanCollide[part] = part.CanCollide
-                    part.CanCollide = false
-                end
-            end
-            
-            -- CORREGIDO: P y D más bajos para evitar que la víctima salga volando
-            local bodyPos = upperTorso:FindFirstChild("GrabKnifePosition") or Instance.new("BodyPosition")
-            bodyPos.Name = "GrabKnifePosition"
-            bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bodyPos.P = 3000  -- REDUCIDO de 8000
-            bodyPos.D = 400   -- REDUCIDO de 800
-            bodyPos.Parent = upperTorso
-            
-            local bodyGyro = upperTorso:FindFirstChild("GrabKnifeGyro") or Instance.new("BodyGyro")
-            bodyGyro.Name = "GrabKnifeGyro"
-            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            bodyGyro.P = 5000  -- REDUCIDO de 10000
-            bodyGyro.Parent = upperTorso
-            
-            alignConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                if stopAlign or not victim or not victim.Parent then
-                    if alignConnection then alignConnection:Disconnect() end
-                    return
-                end
-                
-                local playerCF = _LocalPlayer2.Character.HumanoidRootPart.CFrame
-                -- POSICIÓN: Por la espalda y MÁS ABAJO
-                local backPos = playerCF.Position - (playerCF.LookVector * 1) + Vector3.new(0, -1.5, 0)
-                
-                bodyPos.Position = backPos
-                bodyGyro.CFrame = CFrame.new(backPos) * CFrame.Angles(0, math.pi, 0)
-            end)
-            
-            -- ANIMACIÓN DE CORTE DE BOCA
-            local mouthCutAnim = Instance.new('Animation')
-            mouthCutAnim.AnimationId = 'rbxassetid://126796684932532'
-            local mouthCutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
-            mouthCutTrack:Play()
-            mouthCutTrack:AdjustSpeed(0.8)
-            
-            -- SONIDO DE CORTE
-            if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                _ReplicatedStorage.MainEvent:FireServer('Boombox', '125856818464345')
-            else
-                local cutSound = Instance.new("Sound")
-                cutSound.SoundId = "rbxassetid://125856818464345"
-                cutSound.Volume = 0.8
-                cutSound.Parent = workspace
-                cutSound:Play()
-                game.Debris:AddItem(cutSound, 3)
-            end
-            
-            -- ESPERAR 5 SEGUNDOS (CORTE DE BOCA)
-            wait(5)
-            
-            mouthCutTrack:Stop()
-            
-            -- ============================================
-            -- FASE 2: CORTAR BRAZOS Y PIERNAS
-            -- ============================================
-            
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '🔪 Grab Knife',
-                Text = 'Fase 2: Cortando extremidades',
-                Duration = 3
-            })
-            
-            local limbsToSever = {
-                'RightUpperArm',
-                'LeftUpperArm', 
-                'LeftUpperLeg',
-                'RightUpperLeg'
-            }
-            
-            for i, limbName in ipairs(limbsToSever) do
-                local soundId = '125856818464345'
-                
-                if _LocalPlayer2.Character:FindFirstChild('BOOMBOX') then
-                    _ReplicatedStorage.MainEvent:FireServer('Boombox', soundId)
-                else
-                    local cutSound = Instance.new("Sound")
-                    cutSound.SoundId = "rbxassetid://" .. soundId
-                    cutSound.Volume = 0.8
-                    cutSound.Parent = workspace
-                    cutSound:Play()
-                    game.Debris:AddItem(cutSound, 3)
-                end
-                
-                local cutTrack = _LocalPlayer2.Character.Humanoid:LoadAnimation(mouthCutAnim)
-                cutTrack:Play()
-                cutTrack:AdjustSpeed(1.5)
-                
-                if victim and victim.Parent then
-                    local part = victim:FindFirstChild(limbName)
-                    if part then 
-                        wait(0.2)
-                        
-                        -- HACER NOCLIP Y CAER AL VACÍO
-                        part.CanCollide = false
-                        part.Massless = true
-                        
-                        -- Separar del cuerpo
-                        for _, motor in pairs(part:GetDescendants()) do
-                            if motor:IsA("Motor6D") then
-                                motor:Destroy()
-                            end
-                        end
-                        
-                        -- Aplicar velocidad hacia abajo para que caiga al vacío
-                        part.Velocity = Vector3.new(0, -100, 0)
-                        
-                        -- Destruir después de 3 segundos (ya estará en el vacío)
-                        game.Debris:AddItem(part, 3)
-                    end
-                end
-                
-                wait(1.5)
-                cutTrack:Stop()
-            end
-            
-            -- ============================================
-            -- FASE 3: TIRAR TORSO (NO AL VACÍO)
-            -- ============================================
-            
-            stopAlign = true
-            if alignConnection then alignConnection:Disconnect() end
-            
-            if bodyPos then bodyPos:Destroy() end
-            if bodyGyro then bodyGyro:Destroy() end
-            
-            -- SOLTAR VÍCTIMA
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
-            
-            -- Restaurar CanCollide del torso y cabeza
-            if victim and victim.Parent then
-                for _, part in pairs(victim:GetDescendants()) do
-                    if part:IsA("BasePart") and (part.Name == "UpperTorso" or part.Name == "LowerTorso" or part.Name == "Head" or part.Name == "HumanoidRootPart") then
-                        if originalCanCollide[part] ~= nil then
-                            part.CanCollide = originalCanCollide[part]
-                        end
-                    end
-                end
-            end
-            
-            if knife and knife.Parent == _LocalPlayer2.Character then
-                knife.Parent = _LocalPlayer2.Backpack
-            end
-            
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-                Title = '💀 EXECUTION COMPLETE',
-                Text = victimPlayer.Name .. ' desmembrado',
-                Duration = 4
-            })
-            
-            isKnifeActive = false
-        end)
-        
-        if _LocalPlayer2.Backpack:FindFirstChild('Idk') then
-            _LocalPlayer2.Backpack:FindFirstChild('Idk'):Destroy()
-        end
-        if _LocalPlayer2.Character:FindFirstChild('Idk') then
-            _LocalPlayer2.Character:FindFirstChild('Idk'):Destroy()
-        end
-
-        wait(0.1)
-
-        local idkTool = Instance.new('Tool')
-        idkTool.RequiresHandle = false
-        idkTool.Name = 'Idk'
-        idkTool.ToolTip = 'Idk - Efectos de velocidad'
-        idkTool.Parent = _LocalPlayer2.Backpack
-
-        local isIdkActive = false
-        local idkMainTrack = nil
-
-        idkTool.Activated:Connect(function()
-            if isIdkActive then return end
-            
-            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
-                return
-            end
-            
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = 'Idk',
-                    Text = 'No victim grabbed',
-                    Duration = 2
-                })
-                return
-            end
-            
-            isIdkActive = true
-            
-            -- CORREGIDO: AHORA SÍ RETORNA EL TRACK
-            idkMainTrack = AnimPlayvv2("91859430011682", 3.0, 0, 0.3)
-            
-            local shouldStop = false
-            local checkConnection
-            local alignConnection
-            local releaseConnection
-            
-            checkConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                if shouldStop or not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects or 
-                   not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                    
-                    -- DETENER ANIMACIÓN CORRECTAMENTE
-                    if idkMainTrack then
-                        idkMainTrack:Stop()
-                        idkMainTrack = nil
-                    end
-                    
-                    -- DESCONECTAR TODAS LAS CONEXIONES
-                    if checkConnection then
-                        checkConnection:Disconnect()
-                        checkConnection = nil
-                    end
-                    
-                    if alignConnection then
-                        alignConnection:Disconnect()
-                        alignConnection = nil
-                    end
-                    
-                    if releaseConnection then
-                        releaseConnection:Disconnect()
-                        releaseConnection = nil
-                    end
-                    
-                    -- LIMPIAR CONTROLES DE LA VÍCTIMA
-                    if u19 and u19:FindFirstChild('UpperTorso') then
-                        Destroy('UpperTorso')
-                    end
-                    
-                    isIdkActive = false
-                    
-                    game:GetService('StarterGui'):SetCore('SendNotification', {
-                        Title = 'Idk',
-                        Text = 'Desactivado - víctima liberada',
-                        Duration = 2
-                    })
-                end
-            end)
-            
-            alignConnection = game:GetService('RunService').Heartbeat:Connect(function()
-                if isIdkActive and _LocalPlayer2.Character and _LocalPlayer2.Character.BodyEffects and 
-                      _LocalPlayer2.Character.BodyEffects.Grabbed.Value and u19 then
-                    
-                    local timeOffset = tick() * 200
-                    Align(30000, 800, 'UpperTorso', 'HumanoidRootPart', 
-                          CFrame.new(0, -0.3, -1.2 + 0.15 * math.sin(timeOffset / 3)),
-                          CFrame.Angles(math.pi * -0.3, 0, 0))
-                end
-            end)
-            
-            releaseConnection = _LocalPlayer2.Character.BodyEffects.Grabbed:GetPropertyChangedSignal("Value"):Connect(function()
-                if _LocalPlayer2.Character.BodyEffects.Grabbed.Value == nil then
-                    shouldStop = true
-                end
-            end)
-            
-            table.insert(u22, releaseConnection)
-        end)
-        
-        if _LocalPlayer2.Backpack:FindFirstChild('hoverboard') then
-            _LocalPlayer2.Backpack:FindFirstChild('hoverboard'):Destroy()
-        end
-        if _LocalPlayer2.Character:FindFirstChild('hoverboard') then
-            _LocalPlayer2.Character:FindFirstChild('hoverboard'):Destroy()
-        end
-        
-        wait(0.1)
-        
-        local hoverboardTool = Instance.new('Tool')
-        hoverboardTool.RequiresHandle = false
-        hoverboardTool.Name = 'hoverboard'
-        hoverboardTool.ToolTip = 'Hoverboard Móvil - Ultra rápido'
-        hoverboardTool.Parent = _LocalPlayer2.Backpack
-        
-        hoverboardTool.Activated:Connect(function()
-            if isHoverboarding then
-                -- LIMPIAR CONTROLES DE LA VÍCTIMA
-                if hoverboardVictim and hoverboardVictim:FindFirstChild("UpperTorso") then
-                    local upperTorso = hoverboardVictim:FindFirstChild("UpperTorso")
-                    if upperTorso:FindFirstChild("HoverboardPosition") then
-                        upperTorso.HoverboardPosition:Destroy()
-                    end
-                    if upperTorso:FindFirstChild("HoverboardGyro") then
-                        upperTorso.HoverboardGyro:Destroy()
-                    end
-                end
-                
-                CleanupHoverboard()
-                
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '🛹 Hoverboard',
-                    Text = 'Desmontado',
-                    Duration = 2
-                })
-                return
-            end
-            
-            if not _LocalPlayer2.Character or not _LocalPlayer2.Character.BodyEffects then
-                return
-            end
-            
-            if not _LocalPlayer2.Character.BodyEffects.Grabbed.Value then
-                game:GetService('StarterGui'):SetCore('SendNotification', {
-                    Title = '🛹 Hoverboard',
-                    Text = 'Agarra a alguien primero',
-                    Duration = 3
-                })
-                return
-            end
-            
-            local victim = _LocalPlayer2.Character.BodyEffects.Grabbed.Value
-            
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Grabbing", false)
-            
-            wait(0.3)
-            
-            StartHoverboard(victim)
-        end)
-        
-        -- ========================================
     if _LocalPlayer6.Backpack:FindFirstChild('Punch') then
         _LocalPlayer6.Backpack:FindFirstChild('Punch'):Destroy()
     end
@@ -4374,7 +3985,6 @@ if table.find(v1, tostring(v2)) then
             u127()
         end
     end)
-
     end
 
     ToolSSs()
