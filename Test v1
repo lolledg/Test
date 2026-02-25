@@ -1589,18 +1589,46 @@ if table.find(v1, tostring(v2)) then
                 sound:Play()
 
                 task.delay(4.5, function()
+                    -- Desconectar el clone loop para que la víctima pueda animarse
+                    local v290, v291, v292 = pairs(u22)
+                    while true do
+                        local v293
+                        v292, v293 = v290(v291, v292)
+                        if v292 == nil then break end
+                        v293:Disconnect()
+                    end
+                    u22 = {}
+
+                    -- Destruir BodyPosition/BodyGyro que fijan a la víctima
+                    if u19 then
+                        for _, desc in pairs(u19:GetDescendants()) do
+                            if desc:IsA('BodyPosition') or desc:IsA('BodyGyro') then
+                                desc:Destroy()
+                            end
+                        end
+                    end
+
+                    -- Destruir el clone
+                    if u21 and u21.Parent then
+                        u21:Destroy()
+                    end
+
+                    -- Animación en mi personaje
                     if myChar and myChar.Parent then
                         for _, track in pairs(myChar:FindFirstChildOfClass('Humanoid'):GetPlayingAnimationTracks()) do
                             track:Stop(0.3)
                         end
                         LC_PlayAnimOnChar(myChar, LC_ANIM_ID)
                     end
+
+                    -- Animación en la víctima (ya libre del clone)
                     if victimChar and victimChar.Parent then
                         for _, track in pairs(victimChar:FindFirstChildOfClass('Humanoid'):GetPlayingAnimationTracks()) do
                             track:Stop(0.3)
                         end
                         LC_PlayAnimOnChar(victimChar, LC_ANIM_ID)
                     end
+
                     if btn and btn.Parent then
                         btn.Text = '💃 Dancing!'
                         btn.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
