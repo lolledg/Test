@@ -1,5 +1,5 @@
 if true then
-    if getgenv().config.antimod then
+    if getgenv().config and getgenv().config.antimod then
         local u3 = {
             '512f6',
             'JokeTheFool',
