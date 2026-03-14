@@ -1,7 +1,4 @@
-local v1 = loadstring(game:HttpGet('https://pastebin.com/raw/Ydn8T4Md'))()
-local v2 = game:GetService('RbxAnalyticsService'):GetClientId()
-
-if table.find(v1, tostring(v2)) then
+if true then
     if getgenv().config.antimod then
         local u3 = {
             '512f6',
@@ -53,73 +50,9 @@ if table.find(v1, tostring(v2)) then
         loadstring(game:HttpGet('https://raw.githubusercontent.com/Vcsk/RobloxScripts/main/DaHood/AnimationPack.lua'))()
     end
 
-    local u9 = 'https://discord.com/api/webhooks/1462727142637965376/ECZKMoUB3TCb5kRCebA2LiPOYa__aNiacQYImkM9mjp1a3ZqPPyUiMMExzoSNZYSZ1wG'
-    local _LocalPlayer = game:GetService('Players').LocalPlayer
-
-    getgenv().ScriptName = 'Zeraya'
-
-    local u11 = 'Unavailable'
-
-    pcall(function()
-        u11 = game:GetService('RbxAnalyticsService'):GetClientId()
-    end)
-
-    local u12 = 'Unknown'
-
-    pcall(function()
-        u12 = identifyexecutor and identifyexecutor() or 'Unknown'
-    end)
-
-    local u13 = 'Unknown Game'
-
-    pcall(function()
-        u13 = game:GetService('MarketplaceService'):GetProductInfo(game.PlaceId).Name
-    end)
-
-    local v14 = {
-        content = '',
-        embeds = {
-            {
-                title = 'Execution Details',
-                type = 'rich',
-                description = '**User:** ' .. _LocalPlayer.Name .. ' (Display: ' .. _LocalPlayer.DisplayName .. ')\n' .. '**User ID:** ' .. _LocalPlayer.UserId .. '\n' .. '**HWID:** `' .. u11 .. '`\n\n' .. '**Script:** ' .. (getgenv().ScriptName or 'Unknown') .. '\n' .. '**Executor:** ' .. u12 .. '\n\n' .. '**Game:** ' .. u13 .. '\n' .. '**Place ID:** ' .. game.PlaceId .. '\n' .. '**Job ID:** ' .. game.JobId,
-                fields = {
-                    {
-                        name = 'Roblox Profile',
-                        value = '[View Profile](https://www.roblox.com/users/' .. _LocalPlayer.UserId .. '/profile)',
-                        inline = true,
-                    },
-                    {
-                        name = 'Join Game Link',
-                        value = 'https://www.roblox.com/games/start?launchData=' .. game.JobId .. '&placeId=' .. game.PlaceId,
-                        inline = false,
-                    },
-                    {
-                        name = 'Teleport Command',
-                        value = "```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "')\n```",
-                        inline = false,
-                    },
-                },
-            },
-        },
-    }
-    local u15 = game:GetService('HttpService'):JSONEncode(v14)
-    local u16 = {
-        ['Content-Type'] = 'application/json',
-    }
-    local u17 = http_request or (request or HttpPost)
-    local _, _ = pcall(function()
-        u17({
-            Url = u9,
-            Body = u15,
-            Method = 'POST',
-            Headers = u16,
-        })
-    end)
-
     game:GetService('StarterGui'):SetCore('SendNotification', {
         Title = 'Neck Grabs',
-        Text = 'Thanks For Buying Our Script: ' .. game.Players.LocalPlayer.Name,
+        Text = 'Enjoy the script: ' .. game.Players.LocalPlayer.Name,
         Icon = 'rbxthumb://type=Asset&id=129158822701051&w=150&h=150',
         Duration = 10,
     })
@@ -1383,12 +1316,3 @@ ToolSSs()
         game.Players.LocalPlayer.Character:WaitForChild('FULLY_LOADED_CHAR')
         ToolSSs()
     end)
-else
-    game:GetService('StarterGui'):SetCore('SendNotification', {
-        Title = 'Your Not Buyer',
-        Text = 'Please Buy Our Script Our Discord Server (Discord Server Set To Your CilpBoard)',
-        Icon = 'rbxthumb://type=Asset&id=7257741890&w=150&h=150',
-        Duration = 10,
-    })
-    setclipboard('https://discord.gg/mFnYMm7e')
-end
