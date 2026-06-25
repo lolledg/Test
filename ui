@@ -938,7 +938,7 @@ end)
 
 closeButton.Visible = UserInputService.TouchEnabled
 UserInputService.TouchEnabledChanged:Connect(function()
-    closeButton.Visible = UserInputService.TouchEnabled
+    closeButton.Visible = true
 end)
 
     drag(edge, 0.04)
