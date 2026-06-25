@@ -937,9 +937,6 @@ closeButton.MouseButton1Click:Connect(function()
 end)
 
 closeButton.Visible = UserInputService.TouchEnabled
-UserInputService.TouchEnabledChanged:Connect(function()
-    closeButton.Visible = true
-end)
 
     drag(edge, 0.04)
     local CanChangeVisibility = true
