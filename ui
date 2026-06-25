@@ -881,37 +881,63 @@ function library:Init(key)
     edge.Size = UDim2.new(0, 594, 0, 406)
     edge.Active = true
 
-    local closeButton = Instance.new("TextButton")
-    local closeCorner = Instance.new("UICorner")
-    local closeStroke = Instance.new("UIStroke")
+local closeButton = Instance.new("TextButton")
+local closeCorner = Instance.new("UICorner")
+local closeStroke = Instance.new("UIStroke")
 
-    closeButton.Name = "closeButton"
-    closeButton.Parent = edge
-    closeButton.AnchorPoint = Vector2.new(1, 0)
-    closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    closeButton.BackgroundTransparency = 0.5
-    closeButton.Position = UDim2.new(1, -6, 0, 6)
-    closeButton.Size = UDim2.new(0, 60, 0, 22)
-    closeButton.ZIndex = 2
-    closeButton.Font = Enum.Font.Code
-    closeButton.Text = "Close"
-    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeButton.TextSize = 13
-    closeButton.AutoButtonColor = false
+closeButton.Name = "closeButton"
+closeButton.Parent = edge
+closeButton.AnchorPoint = Vector2.new(1, 0)
+closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+closeButton.BackgroundTransparency = 0.5
+closeButton.Position = UDim2.new(1, -6, 0, 6)
+closeButton.Size = UDim2.new(0, 60, 0, 22)
+closeButton.ZIndex = 2
+closeButton.Font = Enum.Font.Code
+closeButton.Text = "Close"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 13
+closeButton.AutoButtonColor = false
+closeButton.ClipsDescendants = true
 
-    closeCorner.CornerRadius = UDim.new(0, 2)
-    closeCorner.Parent = closeButton
+closeCorner.CornerRadius = UDim.new(0, 2)
+closeCorner.Parent = closeButton
 
-    closeStroke.Color = Color3.fromRGB(159, 115, 255)
-    closeStroke.Thickness = 1
-    closeStroke.Parent = closeButton
+closeStroke.Color = Color3.fromRGB(159, 115, 255)
+closeStroke.Thickness = 1
+closeStroke.Parent = closeButton
 
-    closeButton.MouseButton1Click:Connect(function()
+local closeAnim = Instance.new("Frame")
+closeAnim.Name = "closeAnim"
+closeAnim.Parent = closeButton
+closeAnim.AnchorPoint = Vector2.new(0.5, 0.5)
+closeAnim.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
+closeAnim.BorderSizePixel = 0
+closeAnim.Position = UDim2.new(0.5, 0, 0.5, 0)
+closeAnim.Size = UDim2.new(0, 0, 0, 0)
+closeAnim.ZIndex = 0
+
+local closeAnimCorner = Instance.new("UICorner")
+closeAnimCorner.CornerRadius = UDim.new(0, 2)
+closeAnimCorner.Parent = closeAnim
+
+closeButton.MouseEnter:Connect(function()
+    TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 60, 0, 22)}):Play()
+end)
+
+closeButton.MouseLeave:Connect(function()
+    TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    TweenService:Create(edge, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    wait(0.2)
     edge.Visible = false
- end)
+    edge.Size = UDim2.new(0, 594, 0, 406)
+end)
 
-    closeButton.Visible = UserInputService.TouchEnabled
-    UserInputService.TouchEnabledChanged:Connect(function()
+closeButton.Visible = UserInputService.TouchEnabled
+UserInputService.TouchEnabledChanged:Connect(function()
     closeButton.Visible = UserInputService.TouchEnabled
 end)
 
