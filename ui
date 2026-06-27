@@ -1,23 +1,19 @@
--- / Locals
 local Workspace = game:GetService("Workspace")
 local Player = game:GetService("Players").LocalPlayer
 local Mouse = Player:GetMouse()
-
--- / Services
 local UserInputService = game:GetService("UserInputService")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local CoreGuiService = game:GetService("CoreGui")
-local ContentService = game:GetService("ContentProvider")
 local TeleportService = game:GetService("TeleportService")
 
--- / Tween table & function
 local TweenTable = {
     Default = {
         TweenInfo.new(0.17, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0)
     }
 }
+
 local CreateTween = function(name, speed, style, direction, loop, reverse, delay)
     name = name
     speed = speed or 0.17
@@ -26,14 +22,12 @@ local CreateTween = function(name, speed, style, direction, loop, reverse, delay
     loop = loop or 0
     reverse = reverse or false
     delay = delay or 0
-
     TweenTable[name] = TweenInfo.new(speed, style, direction, loop, reverse, delay)
 end
 
 local drag = function(obj, latency)
     obj = obj
     latency = latency or 0.06
-
     local toggled = false
     local input = nil
     local start = nil
@@ -72,17 +66,34 @@ local drag = function(obj, latency)
 end
 
 local library = {
-    version = "1.0.2",
-    title = title or "syndicate " .. tostring(math.random(1,366)),
+    version = "1.0.3",
+    title = "syndicate " .. tostring(math.random(1,366)),
     fps = 0,
-    rank = "private"
+    rank = "private",
+    Theme = {
+        AccentColor = Color3.fromRGB(159, 115, 255),
+        BackgroundColor = Color3.fromRGB(34, 34, 34),
+        SecondaryColor = Color3.fromRGB(28, 28, 28),
+        TextColor = Color3.fromRGB(198, 198, 198),
+        BorderColor = Color3.fromRGB(60, 60, 60),
+        HighlightColor = Color3.fromRGB(60, 60, 60)
+    }
 }
 
 coroutine.wrap(function()
     RunService.RenderStepped:Connect(function(v)
-        library.fps =  math.round(1/v)
+        library.fps = math.round(1/v)
     end)
 end)()
+
+function library:SetTheme(theme)
+    if theme.AccentColor then library.Theme.AccentColor = theme.AccentColor end
+    if theme.BackgroundColor then library.Theme.BackgroundColor = theme.BackgroundColor end
+    if theme.SecondaryColor then library.Theme.SecondaryColor = theme.SecondaryColor end
+    if theme.TextColor then library.Theme.TextColor = theme.TextColor end
+    if theme.BorderColor then library.Theme.BorderColor = theme.BorderColor end
+    if theme.HighlightColor then library.Theme.HighlightColor = theme.HighlightColor end
+end
 
 function library:RoundNumber(int, float)
     return tonumber(string.format("%." .. (int or 0) .. "f", float))
@@ -116,73 +127,73 @@ function library:Rejoin()
     TeleportService:TeleportToPlaceInstance(library:GetPlaceId(), library:GetJobId(), library:GetUserId())
 end
 
-function library:Copy(input) -- only works with synapse
+function library:Copy(input)
     if syn then
         syn.write_clipboard(input)
     end
 end
 
 function library:GetDay(type)
-    if type == "word" then -- day in a full word
+    if type == "word" then
         return os.date("%A")
-    elseif type == "short" then -- day in a shortened word
+    elseif type == "short" then
         return os.date("%a")
-    elseif type == "month" then -- day of the month in digits
+    elseif type == "month" then
         return os.date("%d")
-    elseif type == "year" then -- day of the year in digits
+    elseif type == "year" then
         return os.date("%j")
     end
 end
 
 function library:GetTime(type)
-    if type == "24h" then -- time using a 24 hour clock
+    if type == "24h" then
         return os.date("%H")
-    elseif type == "12h" then -- time using a 12 hour clock
+    elseif type == "12h" then
         return os.date("%I")
-    elseif type == "minute" then -- time in minutes
+    elseif type == "minute" then
         return os.date("%M")
-    elseif type == "half" then -- what part of the day it is (AM or PM)
+    elseif type == "half" then
         return os.date("%p")
-    elseif type == "second" then -- time in seconds
+    elseif type == "second" then
         return os.date("%S")
-    elseif type == "full" then -- full time
+    elseif type == "full" then
         return os.date("%X")
-    elseif type == "ISO" then -- ISO / UTC ( 1min = 1, 1hour = 100)
+    elseif type == "ISO" then
         return os.date("%z")
-    elseif type == "zone" then -- time zone
+    elseif type == "zone" then
         return os.date("%Z") 
     end
 end
 
 function library:GetMonth(type)
-    if type == "word" then -- full month name
+    if type == "word" then
         return os.date("%B")
-    elseif type == "short" then -- month in shortened word
+    elseif type == "short" then
         return os.date("%b")
-    elseif type == "digit" then -- the months digit
+    elseif type == "digit" then
         return os.date("%m")
     end
 end
 
 function library:GetWeek(type)
-    if type == "year_S" then -- the number of the week in the current year (sunday first day)
+    if type == "year_S" then
         return os.date("%U")
-    elseif type == "day" then -- the week day
+    elseif type == "day" then
         return os.date("%w")
-    elseif type == "year_M" then -- the number of the week in the current year (monday first day)
+    elseif type == "year_M" then
         return os.date("%W")
     end
 end
 
 function library:GetYear(type)
-    if type == "digits" then -- the second 2 digits of the year
+    if type == "digits" then
         return os.date("%y")
-    elseif type == "full" then -- the full year
+    elseif type == "full" then
         return os.date("%Y")
     end
 end
 
-function library:UnlockFps(new) -- syn only
+function library:UnlockFps(new)
     if syn then
         setfpscap(new)
     end
@@ -195,7 +206,8 @@ function library:Watermark(text)
         end
     end
 
-    tetx = text or "syndicate v2"
+    text = text or "syndicate v2"
+    local accentColor = library.Theme.AccentColor
 
     local watermark = Instance.new("ScreenGui")
     local watermarkPadding = Instance.new("UIPadding")
@@ -232,7 +244,7 @@ function library:Watermark(text)
     edge.Name = "edge"
     edge.Parent = watermark
     edge.AnchorPoint = Vector2.new(0.5, 0.5)
-    edge.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    edge.BackgroundColor3 = library.Theme.BorderColor
     edge.Position = UDim2.new(0.5, 0, -0.03, 0)
     edge.Size = UDim2.new(0, 0, 0, 26)
     edge.BackgroundTransparency = 1
@@ -255,7 +267,7 @@ function library:Watermark(text)
 
     bar.Name = "bar"
     bar.Parent = barFolder
-    bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
+    bar.BackgroundColor3 = accentColor
     bar.BackgroundTransparency = 0
     bar.Size = UDim2.new(0, 0, 0, 1)
 
@@ -267,7 +279,10 @@ function library:Watermark(text)
     barLayout.Parent = barFolder
     barLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-    backgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+    backgroundGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+    }
     backgroundGradient.Rotation = 90
     backgroundGradient.Name = "backgroundGradient"
     backgroundGradient.Parent = background
@@ -284,7 +299,7 @@ function library:Watermark(text)
     waterText.Size = UDim2.new(0, 0, 0, 24)
     waterText.Font = Enum.Font.Code
     waterText.Text = text
-    waterText.TextColor3 = Color3.fromRGB(198, 198, 198)
+    waterText.TextColor3 = library.Theme.TextColor
     waterText.TextTransparency = 1
     waterText.TextSize = 14.000
     waterText.RichText = true
@@ -318,156 +333,30 @@ function library:Watermark(text)
     end)()
 
     local WatermarkFunctions = {}
-    function WatermarkFunctions:AddWatermark(text)
-        tetx = text or "xsx v2"
-
-        local edge = Instance.new("Frame")
-        local edgeCorner = Instance.new("UICorner")
-        local background = Instance.new("Frame")
-        local barFolder = Instance.new("Folder")
-        local bar = Instance.new("Frame")
-        local barCorner = Instance.new("UICorner")
-        local barLayout = Instance.new("UIListLayout")
-        local backgroundGradient = Instance.new("UIGradient")
-        local backgroundCorner = Instance.new("UICorner")
-        local waterText = Instance.new("TextLabel")
-        local waterPadding = Instance.new("UIPadding")
-        local backgroundLayout = Instance.new("UIListLayout")
     
-        edge.Name = "edge"
-        edge.Parent = watermark
-        edge.AnchorPoint = Vector2.new(0.5, 0.5)
-        edge.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        edge.Position = UDim2.new(0.5, 0, -0.03, 0)
-        edge.Size = UDim2.new(0, 0, 0, 26)
-        edge.BackgroundTransparency = 1
-    
-        edgeCorner.CornerRadius = UDim.new(0, 2)
-        edgeCorner.Name = "edgeCorner"
-        edgeCorner.Parent = edge
-    
-        background.Name = "background"
-        background.Parent = edge
-        background.AnchorPoint = Vector2.new(0.5, 0.5)
-        background.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        background.BackgroundTransparency = 1
-        background.ClipsDescendants = true
-        background.Position = UDim2.new(0.5, 0, 0.5, 0)
-        background.Size = UDim2.new(0, 0, 0, 24)
-    
-        barFolder.Name = "barFolder"
-        barFolder.Parent = background
-    
-        bar.Name = "bar"
-        bar.Parent = barFolder
-        bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
-        bar.BackgroundTransparency = 0
-        bar.Size = UDim2.new(0, 0, 0, 1)
-    
-        barCorner.CornerRadius = UDim.new(0, 2)
-        barCorner.Name = "barCorner"
-        barCorner.Parent = bar
-    
-        barLayout.Name = "barLayout"
-        barLayout.Parent = barFolder
-        barLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    
-        backgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
-        backgroundGradient.Rotation = 90
-        backgroundGradient.Name = "backgroundGradient"
-        backgroundGradient.Parent = background
-    
-        backgroundCorner.CornerRadius = UDim.new(0, 2)
-        backgroundCorner.Name = "backgroundCorner"
-        backgroundCorner.Parent = background
-    
-        waterText.Name = "notifText"
-        waterText.Parent = background
-        waterText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        waterText.BackgroundTransparency = 1.000
-        waterText.Position = UDim2.new(0, 0, -0.0416666679, 0)
-        waterText.Size = UDim2.new(0, 0, 0, 24)
-        waterText.Font = Enum.Font.Code
-        waterText.Text = text
-        waterText.TextColor3 = Color3.fromRGB(198, 198, 198)
-        waterText.TextTransparency = 1
-        waterText.TextSize = 14.000
-        waterText.RichText = true
-    
-        local NewSize = TextService:GetTextSize(waterText.Text, waterText.TextSize, waterText.Font, Vector2.new(math.huge, math.huge))
-        waterText.Size = UDim2.new(0, NewSize.X + 8, 0, 24)
-    
-        waterPadding.Name = "notifPadding"
-        waterPadding.Parent = waterText
-        waterPadding.PaddingBottom = UDim.new(0, 4)
-        waterPadding.PaddingLeft = UDim.new(0, 4)
-        waterPadding.PaddingRight = UDim.new(0, 4)
-        waterPadding.PaddingTop = UDim.new(0, 4)
-    
-        backgroundLayout.Name = "backgroundLayout"
-        backgroundLayout.Parent = background
-        backgroundLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        backgroundLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    
-        coroutine.wrap(function()
-            TweenService:Create(edge, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
-            TweenService:Create(edge, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
-            TweenService:Create(background, TweenTable["wm"], {BackgroundTransparency = 0}):Play()
-            TweenService:Create(background, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
-            wait(.2)
-            TweenService:Create(bar, TweenTable["wm"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-            wait(.1)
-            TweenService:Create(waterText, TweenTable["wm"], {TextTransparency = 0}):Play()
-        end)()
-
-        local NewWatermarkFunctions = {}
-        function NewWatermarkFunctions:Hide()
-            edge.Visible = false
-            return NewWatermarkFunctions
-        end
-        --
-        function NewWatermarkFunctions:Show()
-            edge.Visible = true
-            return NewWatermarkFunctions
-        end
-        --
-        function NewWatermarkFunctions:Text(new)
-            new = new or text
-            waterText.Text = new
-    
-            local NewSize = TextService:GetTextSize(waterText.Text, waterText.TextSize, waterText.Font, Vector2.new(math.huge, math.huge))
-            waterText.Size = UDim2.new(0, NewSize.X + 8, 0, 24)
-            coroutine.wrap(function()
-                TweenService:Create(edge, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
-                TweenService:Create(background, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 24)}):Play()
-                TweenService:Create(bar, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-                TweenService:Create(waterText, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
-            end)()
-    
-            return NewWatermarkFunctions
-        end
-        --
-        function NewWatermarkFunctions:Remove()
-            Watermark:Destroy()
-            return NewWatermarkFunctions
-        end
-        return NewWatermarkFunctions
+    function WatermarkFunctions:UpdateTheme()
+        edge.BackgroundColor3 = library.Theme.BorderColor
+        bar.BackgroundColor3 = library.Theme.AccentColor
+        backgroundGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+            ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+        }
+        waterText.TextColor3 = library.Theme.TextColor
     end
 
     function WatermarkFunctions:Hide()
         edge.Visible = false
         return WatermarkFunctions
     end
-    --
+    
     function WatermarkFunctions:Show()
         edge.Visible = true
         return WatermarkFunctions
     end
-    --
+    
     function WatermarkFunctions:Text(new)
         new = new or text
         waterText.Text = new
-
         local NewSize = TextService:GetTextSize(waterText.Text, waterText.TextSize, waterText.Font, Vector2.new(math.huge, math.huge))
         coroutine.wrap(function()
             TweenService:Create(edge, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 10, 0, 26)}):Play()
@@ -475,14 +364,19 @@ function library:Watermark(text)
             TweenService:Create(bar, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
             TweenService:Create(waterText, TweenTable["wm_2"], {Size = UDim2.new(0, NewSize.x + 8, 0, 1)}):Play()
         end)()
-
         return WatermarkFunctions
     end
-    --
+    
     function WatermarkFunctions:Remove()
-        Watermark:Destroy()
+        watermark:Destroy()
         return WatermarkFunctions
     end
+    
+    function WatermarkFunctions:SetAccentColor(color)
+        bar.BackgroundColor3 = color
+        return WatermarkFunctions
+    end
+    
     return WatermarkFunctions
 end
 
@@ -513,9 +407,7 @@ function library:InitNotifications(text, duration, callback)
 
     local Notification = {}
     function Notification:Notify(text, duration, type, callback)
-        
         CreateTween("notification_load", 0.2)
-
         text = text or "please wait."
         duration = duration or 5
         type = type or "notification"
@@ -536,7 +428,7 @@ function library:InitNotifications(text, duration, callback)
     
         edge.Name = "edge"
         edge.Parent = Notifications
-        edge.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        edge.BackgroundColor3 = library.Theme.BorderColor
         edge.BackgroundTransparency = 1.000
         edge.Size = UDim2.new(0, 0, 0, 26)
     
@@ -558,20 +450,18 @@ function library:InitNotifications(text, duration, callback)
     
         bar.Name = "bar"
         bar.Parent = barFolder
-        bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
+        bar.BackgroundColor3 = library.Theme.AccentColor
         bar.BackgroundTransparency = 0.200
         bar.Size = UDim2.new(0, 0, 0, 1)
-        if type == "notification" then
-            bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
-        elseif type == "alert" then
-            bar.BackgroundColor3 = Color3.fromRGB(255, 246, 112)
-        elseif type == "error" then
-            bar.BackgroundColor3 = Color3.fromRGB(255, 74, 77)
-        elseif type == "success" then
-            bar.BackgroundColor3 = Color3.fromRGB(131, 255, 103)
-        elseif type == "information" then
-            bar.BackgroundColor3 = Color3.fromRGB(126, 117, 255)
-        end
+        
+        local notificationColors = {
+            notification = library.Theme.AccentColor,
+            alert = Color3.fromRGB(255, 246, 112),
+            error = Color3.fromRGB(255, 74, 77),
+            success = Color3.fromRGB(131, 255, 103),
+            information = Color3.fromRGB(126, 117, 255)
+        }
+        bar.BackgroundColor3 = notificationColors[type] or library.Theme.AccentColor
     
         barCorner.CornerRadius = UDim.new(0, 2)
         barCorner.Name = "barCorner"
@@ -581,7 +471,10 @@ function library:InitNotifications(text, duration, callback)
         barLayout.Parent = barFolder
         barLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-        backgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+        backgroundGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+            ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+        }
         backgroundGradient.Rotation = 90
         backgroundGradient.Name = "backgroundGradient"
         backgroundGradient.Parent = background
@@ -597,7 +490,7 @@ function library:InitNotifications(text, duration, callback)
         notifText.Size = UDim2.new(0, 230, 0, 26)
         notifText.Font = Enum.Font.Code
         notifText.Text = text
-        notifText.TextColor3 = Color3.fromRGB(198, 198, 198)
+        notifText.TextColor3 = library.Theme.TextColor
         notifText.TextSize = 14.000
         notifText.TextTransparency = 1.000
         notifText.TextXAlignment = Enum.TextXAlignment.Left
@@ -647,7 +540,6 @@ function library:InitNotifications(text, duration, callback)
         function NotificationFunctions:Text(new)
             new = new or text
             notifText.Text = new
-
             NewSize = TextService:GetTextSize(notifText.Text, notifText.TextSize, notifText.Font, Vector2.new(math.huge, math.huge))
             local NewSize_2 = NewSize
             if IsRunning then
@@ -659,7 +551,6 @@ function library:InitNotifications(text, duration, callback)
                 wait(.4)
                 TweenService:Create(bar, TweenTable["notification_wait"], {Size = UDim2.new(0, NewSize.X + 8, 0, 1)}):Play()
             end
-
             return NotificationFunctions
         end
         return NotificationFunctions
@@ -698,7 +589,7 @@ function library:Introduction()
     edge.Name = "edge"
     edge.Parent = introduction
     edge.AnchorPoint = Vector2.new(0.5, 0.5)
-    edge.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    edge.BackgroundColor3 = library.Theme.BorderColor
     edge.BackgroundTransparency = 1
     edge.Position = UDim2.new(0.511773348, 0, 0.5, 0)
     edge.Size = UDim2.new(0, 300, 0, 308)
@@ -716,7 +607,10 @@ function library:Introduction()
     background.Position = UDim2.new(0.5, 0, 0.5, 0)
     background.Size = UDim2.new(0, 298, 0, 306)
     
-    backgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+    backgroundGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+    }
     backgroundGradient.Rotation = 90
     backgroundGradient.Name = "backgroundGradient"
     backgroundGradient.Parent = background
@@ -730,7 +624,7 @@ function library:Introduction()
     
     bar.Name = "bar"
     bar.Parent = barFolder
-    bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
+    bar.BackgroundColor3 = library.Theme.AccentColor
     bar.BackgroundTransparency = 0.200
     bar.Size = UDim2.new(0, 0, 0, 1)
     
@@ -752,7 +646,7 @@ function library:Introduction()
     xsxLogo.Size = UDim2.new(0, 448, 0, 150)
     xsxLogo.Visible = true
     xsxLogo.Image = "http://www.roblox.com/asset/?id=9365068051"
-    xsxLogo.ImageColor3 = Color3.fromRGB(159, 115, 255)
+    xsxLogo.ImageColor3 = library.Theme.AccentColor
     xsxLogo.ImageTransparency = 1
     
     hashLogo.Name = "hashLogo"
@@ -764,7 +658,7 @@ function library:Introduction()
     hashLogo.Size = UDim2.new(0, 150, 0, 150)
     hashLogo.Visible = true
     hashLogo.Image = "http://www.roblox.com/asset/?id=16987737217"
-    hashLogo.ImageColor3 = Color3.fromRGB(159, 115, 255)
+    hashLogo.ImageColor3 = library.Theme.AccentColor
     hashLogo.ImageTransparency = 1
     
     xsx.Name = "xsx"
@@ -774,7 +668,7 @@ function library:Introduction()
     xsx.Size = UDim2.new(0, 80, 0, 21)
     xsx.Font = Enum.Font.Code
     xsx.Text = "syndicate.go"
-    xsx.TextColor3 = Color3.fromRGB(124, 124, 124)
+    xsx.TextColor3 = library.Theme.TextColor
     xsx.TextSize = 10.000
     xsx.TextTransparency = 1
     
@@ -786,7 +680,7 @@ function library:Introduction()
     text.Size = UDim2.new(0, 26, 0, 21)
     text.Font = Enum.Font.Code
     text.Text = "structs!"
-    text.TextColor3 = Color3.fromRGB(124, 124, 124)
+    text.TextColor3 = library.Theme.TextColor
     text.TextSize = 10.000
     text.TextTransparency = 1
     text.RichText = true
@@ -876,67 +770,73 @@ function library:Init(key)
     edge.Name = "edge"
     edge.Parent = screen
     edge.AnchorPoint = Vector2.new(0.5, 0.5)
-    edge.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    edge.BackgroundColor3 = library.Theme.BorderColor
     edge.Position = UDim2.new(0.5, 0, 0.5, 0)
-    edge.Size = UDim2.new(0, 594, 0, 406)
+    edge.Size = UDim2.new(0, 484, 0, 400)
     edge.Active = true
 
-local closeButton = Instance.new("TextButton")
-local closeCorner = Instance.new("UICorner")
-local closeStroke = Instance.new("UIStroke")
+    local closeButton = Instance.new("TextButton")
+    local closeCorner = Instance.new("UICorner")
+    local closeLabel = Instance.new("TextLabel")
+    local closeAnim = Instance.new("Frame")
+    local closeAnimCorner = Instance.new("UICorner")
 
-closeButton.Name = "closeButton"
-closeButton.Parent = edge
-closeButton.AnchorPoint = Vector2.new(1, 0)
-closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-closeButton.BackgroundTransparency = 0.5
-closeButton.Position = UDim2.new(1, -6, 0, 6)
-closeButton.Size = UDim2.new(0, 60, 0, 22)
-closeButton.ZIndex = 2
-closeButton.Font = Enum.Font.Code
-closeButton.Text = "Close"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 13
-closeButton.AutoButtonColor = false
-closeButton.ClipsDescendants = true
+    closeButton.Name = "closeButton"
+    closeButton.Parent = screen
+    closeButton.AnchorPoint = Vector2.new(1, 0)
+    closeButton.BackgroundColor3 = library.Theme.BorderColor
+    closeButton.BackgroundTransparency = 1
+    closeButton.Position = UDim2.new(1, -6, 0, 6)
+    closeButton.Size = UDim2.new(0, 70, 0, 24)
+    closeButton.ZIndex = 2
+    closeButton.AutoButtonColor = false
+    closeButton.ClipsDescendants = true
 
-closeCorner.CornerRadius = UDim.new(0, 2)
-closeCorner.Parent = closeButton
+    closeCorner.CornerRadius = UDim.new(0, 2)
+    closeCorner.Parent = closeButton
 
-closeStroke.Color = Color3.fromRGB(159, 115, 255)
-closeStroke.Thickness = 1
-closeStroke.Parent = closeButton
+    closeLabel.Name = "closeLabel"
+    closeLabel.Parent = closeButton
+    closeLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    closeLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    closeLabel.BackgroundTransparency = 1
+    closeLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    closeLabel.Size = UDim2.new(0, 70, 0, 24)
+    closeLabel.Font = Enum.Font.Code
+    closeLabel.Text = "✕"
+    closeLabel.TextColor3 = library.Theme.TextColor
+    closeLabel.TextSize = 16
+    closeLabel.ZIndex = 2
 
-local closeAnim = Instance.new("Frame")
-closeAnim.Name = "closeAnim"
-closeAnim.Parent = closeButton
-closeAnim.AnchorPoint = Vector2.new(0.5, 0.5)
-closeAnim.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
-closeAnim.BorderSizePixel = 0
-closeAnim.Position = UDim2.new(0.5, 0, 0.5, 0)
-closeAnim.Size = UDim2.new(0, 0, 0, 0)
-closeAnim.ZIndex = 0
+    closeAnim.Name = "closeAnim"
+    closeAnim.Parent = closeButton
+    closeAnim.AnchorPoint = Vector2.new(0.5, 0.5)
+    closeAnim.BackgroundColor3 = library.Theme.AccentColor
+    closeAnim.BackgroundTransparency = 0.15
+    closeAnim.BorderSizePixel = 0
+    closeAnim.Position = UDim2.new(0.5, 0, 0.5, 0)
+    closeAnim.Size = UDim2.new(0, 0, 0, 0)
+    closeAnim.ZIndex = 1
 
-local closeAnimCorner = Instance.new("UICorner")
-closeAnimCorner.CornerRadius = UDim.new(0, 2)
-closeAnimCorner.Parent = closeAnim
+    closeAnimCorner.CornerRadius = UDim.new(0, 2)
+    closeAnimCorner.Parent = closeAnim
 
-closeButton.MouseEnter:Connect(function()
-    TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 60, 0, 22)}):Play()
-end)
+    closeButton.MouseEnter:Connect(function()
+        TweenService:Create(closeButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 70, 0, 24)}):Play()
+    end)
 
-closeButton.MouseLeave:Connect(function()
-    TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-end)
+    closeButton.MouseLeave:Connect(function()
+        TweenService:Create(closeButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(closeAnim, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    end)
 
-closeButton.MouseButton1Click:Connect(function()
-    TweenService:Create(edge, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-    wait(0.2)
-    edge.Visible = false
-    edge.Size = UDim2.new(0, 594, 0, 406)
-end)
-
-closeButton.Visible = UserInputService.TouchEnabled
+    closeButton.MouseButton1Click:Connect(function()
+        TweenService:Create(edge, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        wait(0.15)
+        edge.Visible = false
+        edge.Size = UDim2.new(0, 484, 0, 400)
+    end)
 
     drag(edge, 0.04)
     local CanChangeVisibility = true
@@ -955,14 +855,17 @@ closeButton.Visible = UserInputService.TouchEnabled
     background.AnchorPoint = Vector2.new(0.5, 0.5)
     background.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     background.Position = UDim2.new(0.5, 0, 0.5, 0)
-    background.Size = UDim2.new(0, 592, 0, 404)
+    background.Size = UDim2.new(0, 482, 0, 398)
     background.ClipsDescendants = true
 
     backgroundCorner.CornerRadius = UDim.new(0, 2)
     backgroundCorner.Name = "backgroundCorner"
     backgroundCorner.Parent = background
 
-    backgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+    backgroundGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+    }
     backgroundGradient.Rotation = 90
     backgroundGradient.Name = "backgroundGradient"
     backgroundGradient.Parent = background
@@ -971,18 +874,18 @@ closeButton.Visible = UserInputService.TouchEnabled
     headerLabel.Parent = background
     headerLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     headerLabel.BackgroundTransparency = 1.000
-    headerLabel.Size = UDim2.new(0, 592, 0, 38)
+    headerLabel.Size = UDim2.new(0, 482, 0, 36)
     headerLabel.Font = Enum.Font.Code
     headerLabel.Text = title
-    headerLabel.TextColor3 = Color3.fromRGB(198, 198, 198)
-    headerLabel.TextSize = 16.000
+    headerLabel.TextColor3 = library.Theme.TextColor
+    headerLabel.TextSize = 15.000
     headerLabel.TextXAlignment = Enum.TextXAlignment.Left
     headerLabel.RichText = true
 
     headerPadding.Name = "headerPadding"
     headerPadding.Parent = headerLabel
     headerPadding.PaddingBottom = UDim.new(0, 6)
-    headerPadding.PaddingLeft = UDim.new(0, 12)
+    headerPadding.PaddingLeft = UDim.new(0, 10)
     headerPadding.PaddingRight = UDim.new(0, 6)
     headerPadding.PaddingTop = UDim.new(0, 6)
 
@@ -991,9 +894,9 @@ closeButton.Visible = UserInputService.TouchEnabled
 
     bar.Name = "bar"
     bar.Parent = barFolder
-    bar.BackgroundColor3 = Color3.fromRGB(159, 115, 255)
+    bar.BackgroundColor3 = library.Theme.AccentColor
     bar.BackgroundTransparency = 0.200
-    bar.Size = UDim2.new(0, 592, 0, 1)
+    bar.Size = UDim2.new(0, 482, 0, 1)
     bar.BorderSizePixel = 0
 
     barCorner.CornerRadius = UDim.new(0, 2)
@@ -1008,9 +911,9 @@ closeButton.Visible = UserInputService.TouchEnabled
     tabButtonsEdge.Name = "tabButtonsEdge"
     tabButtonsEdge.Parent = background
     tabButtonsEdge.AnchorPoint = Vector2.new(0.5, 0.5)
-    tabButtonsEdge.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    tabButtonsEdge.BackgroundColor3 = library.Theme.BorderColor
     tabButtonsEdge.Position = UDim2.new(0.1435, 0, 0.536000013, 0)
-    tabButtonsEdge.Size = UDim2.new(0, 152, 0, 360)
+    tabButtonsEdge.Size = UDim2.new(0, 132, 0, 354)
 
     tabButtonCorner.CornerRadius = UDim.new(0, 2)
     tabButtonCorner.Name = "tabButtonCorner"
@@ -1022,13 +925,16 @@ closeButton.Visible = UserInputService.TouchEnabled
     tabButtons.BackgroundColor3 = Color3.fromRGB(235, 235, 235)
     tabButtons.ClipsDescendants = true
     tabButtons.Position = UDim2.new(0.5, 0, 0.5, 0)
-    tabButtons.Size = UDim2.new(0, 150, 0, 358)
+    tabButtons.Size = UDim2.new(0, 130, 0, 352)
 
     tabButtonCorner_2.CornerRadius = UDim.new(0, 2)
     tabButtonCorner_2.Name = "tabButtonCorner"
     tabButtonCorner_2.Parent = tabButtons
 
-    tabButtonsGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+    tabButtonsGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+    }
     tabButtonsGradient.Rotation = 90
     tabButtonsGradient.Name = "tabButtonsGradient"
     tabButtonsGradient.Parent = tabButtons
@@ -1048,9 +954,9 @@ closeButton.Visible = UserInputService.TouchEnabled
     containerEdge.Name = "containerEdge"
     containerEdge.Parent = background
     containerEdge.AnchorPoint = Vector2.new(0.5, 0.5)
-    containerEdge.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    containerEdge.BackgroundColor3 = library.Theme.BorderColor
     containerEdge.Position = UDim2.new(0.637000024, 0, 0.536000013, 0)
-    containerEdge.Size = UDim2.new(0, 414, 0, 360)
+    containerEdge.Size = UDim2.new(0, 324, 0, 354)
 
     tabButtonCorner_3.CornerRadius = UDim.new(0, 2)
     tabButtonCorner_3.Name = "tabButtonCorner"
@@ -1061,13 +967,16 @@ closeButton.Visible = UserInputService.TouchEnabled
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = Color3.fromRGB(235, 235, 235)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
-    container.Size = UDim2.new(0, 412, 0, 358)
+    container.Size = UDim2.new(0, 322, 0, 352)
 
     containerCorner.CornerRadius = UDim.new(0, 2)
     containerCorner.Name = "containerCorner"
     containerCorner.Parent = container
 
-    containerGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+    containerGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+    }
     containerGradient.Rotation = 90
     containerGradient.Name = "containerGradient"
     containerGradient.Parent = container
@@ -1077,6 +986,39 @@ closeButton.Visible = UserInputService.TouchEnabled
         CurrentTab = ""
     }
     CreateTween("tab_text_colour", 0.16)
+    
+    function TabLibrary:UpdateTheme()
+        edge.BackgroundColor3 = library.Theme.BorderColor
+        tabButtonsEdge.BackgroundColor3 = library.Theme.BorderColor
+        containerEdge.BackgroundColor3 = library.Theme.BorderColor
+        closeButton.BackgroundColor3 = library.Theme.BorderColor
+        closeLabel.TextColor3 = library.Theme.TextColor
+        closeAnim.BackgroundColor3 = library.Theme.AccentColor
+        
+        backgroundGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+            ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+        }
+        tabButtonsGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+            ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+        }
+        containerGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+            ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+        }
+        headerLabel.TextColor3 = library.Theme.TextColor
+        bar.BackgroundColor3 = library.Theme.AccentColor
+        
+        for _, tabButton in pairs(tabButtons:GetChildren()) do
+            if tabButton:IsA("TextButton") then
+                if tabButton.TextColor3 ~= library.Theme.AccentColor then
+                    tabButton.TextColor3 = library.Theme.TextColor
+                end
+            end
+        end
+    end
+
     function TabLibrary:NewTab(title)
         title = title or "tab"
 
@@ -1090,13 +1032,12 @@ closeButton.Visible = UserInputService.TouchEnabled
         tabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         tabButton.BackgroundTransparency = 1.000
         tabButton.ClipsDescendants = true
-        tabButton.Position = UDim2.new(-0.0281690136, 0, 0, 0)
-        tabButton.Size = UDim2.new(0, 150, 0, 22)
+        tabButton.Size = UDim2.new(0, 130, 0, 22)
         tabButton.AutoButtonColor = false
         tabButton.Font = Enum.Font.Code
         tabButton.Text = title
-        tabButton.TextColor3 = Color3.fromRGB(170, 170, 170)
-        tabButton.TextSize = 15.000
+        tabButton.TextColor3 = library.Theme.TextColor
+        tabButton.TextSize = 14.000
         tabButton.RichText = true
 
         page.Name = "page"
@@ -1105,12 +1046,12 @@ closeButton.Visible = UserInputService.TouchEnabled
         page.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         page.BackgroundTransparency = 1.000
         page.BorderSizePixel = 0
-        page.Size = UDim2.new(0, 412, 0, 358)
+        page.Size = UDim2.new(0, 322, 0, 352)
         page.BottomImage = "http://www.roblox.com/asset/?id=3062506202"
         page.MidImage = "http://www.roblox.com/asset/?id=3062506202"
         page.ScrollBarThickness = 1
         page.TopImage = "http://www.roblox.com/asset/?id=3062506202"
-        page.ScrollBarImageColor3 = Color3.fromRGB(159, 115, 255)
+        page.ScrollBarImageColor3 = library.Theme.AccentColor
         page.Visible = false
         
         pageLayout.Name = "pageLayout"
@@ -1128,7 +1069,7 @@ closeButton.Visible = UserInputService.TouchEnabled
 
         if TabLibrary.IsFirst then
             page.Visible = true
-            tabButton.TextColor3 = Color3.fromRGB(159, 115, 255)
+            tabButton.TextColor3 = library.Theme.AccentColor
             TabLibrary.CurrentTab = title
         end
         
@@ -1143,10 +1084,10 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             for i,v in pairs(tabButtons:GetChildren()) do
                 if v:IsA("TextButton") then
-                    TweenService:Create(v, TweenTable["tab_text_colour"], {TextColor3 = Color3.fromRGB(170, 170, 170)}):Play()
+                    TweenService:Create(v, TweenTable["tab_text_colour"], {TextColor3 = library.Theme.TextColor}):Play()
                 end
             end
-            TweenService:Create(tabButton, TweenTable["tab_text_colour"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+            TweenService:Create(tabButton, TweenTable["tab_text_colour"], {TextColor3 = library.Theme.AccentColor}):Play()
         end)
 
         local function UpdatePageSize()
@@ -1161,6 +1102,7 @@ closeButton.Visible = UserInputService.TouchEnabled
 
         CreateTween("hover", 0.16)
         local Components = {}
+        
         function Components:NewLabel(text, alignment)
             text = text or "label"
             alignment = alignment or "left"
@@ -1172,12 +1114,11 @@ closeButton.Visible = UserInputService.TouchEnabled
             label.Parent = page
             label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             label.BackgroundTransparency = 1.000
-            label.Position = UDim2.new(0.00499999989, 0, 0, 0)
-            label.Size = UDim2.new(0, 396, 0, 24)
+            label.Size = UDim2.new(0, 310, 0, 24)
             label.Font = Enum.Font.Code
             label.Text = text
-            label.TextColor3 = Color3.fromRGB(190, 190, 190)
-            label.TextSize = 14.000
+            label.TextColor3 = library.Theme.TextColor
+            label.TextSize = 13.000
             label.TextWrapped = true
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.RichText = true
@@ -1205,24 +1146,24 @@ closeButton.Visible = UserInputService.TouchEnabled
                 label.Text = text
                 return LabelFunctions
             end
-            --
+            
             function LabelFunctions:Remove()
                 label:Destroy()
                 return LabelFunctions
             end
-            --
+            
             function LabelFunctions:Hide()
                 label.Visible = false
                 UpdatePageSize()
                 return LabelFunctions
             end
-            --
+            
             function LabelFunctions:Show()
                 label.Visible = true
                 UpdatePageSize()
                 return LabelFunctions
             end
-            --
+            
             function LabelFunctions:Align(new)
                 new = new or "le"
                 if new:lower():find("le") then
@@ -1253,7 +1194,7 @@ closeButton.Visible = UserInputService.TouchEnabled
             buttonFrame.Parent = page
             buttonFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             buttonFrame.BackgroundTransparency = 1.000
-            buttonFrame.Size = UDim2.new(0, 396, 0, 24)
+            buttonFrame.Size = UDim2.new(0, 310, 0, 24)
 
             buttonLayout.Name = "buttonLayout"
             buttonLayout.Parent = buttonFrame
@@ -1265,8 +1206,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             button.Name = "button"
             button.Parent = buttonFrame
-            button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            button.Size = UDim2.new(0, 396, 0, 24)
+            button.BackgroundColor3 = library.Theme.BorderColor
+            button.Size = UDim2.new(0, 310, 0, 24)
             button.AutoButtonColor = false
             button.Font = Enum.Font.SourceSans
             button.Text = ""
@@ -1282,9 +1223,12 @@ closeButton.Visible = UserInputService.TouchEnabled
             buttonBackground.AnchorPoint = Vector2.new(0.5, 0.5)
             buttonBackground.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             buttonBackground.Position = UDim2.new(0.5, 0, 0.5, 0)
-            buttonBackground.Size = UDim2.new(0, 394, 0, 22)
+            buttonBackground.Size = UDim2.new(0, 308, 0, 22)
 
-            buttonGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+            buttonGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+            }
             buttonGradient.Rotation = 90
             buttonGradient.Name = "buttonGradient"
             buttonGradient.Parent = buttonBackground
@@ -1300,40 +1244,40 @@ closeButton.Visible = UserInputService.TouchEnabled
             buttonLabel.BackgroundTransparency = 1.000
             buttonLabel.ClipsDescendants = true
             buttonLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-            buttonLabel.Size = UDim2.new(0, 394, 0, 22)
+            buttonLabel.Size = UDim2.new(0, 308, 0, 22)
             buttonLabel.Font = Enum.Font.Code
             buttonLabel.Text = text
-            buttonLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            buttonLabel.TextSize = 14.000
+            buttonLabel.TextColor3 = library.Theme.TextColor
+            buttonLabel.TextSize = 13.000
             buttonLabel.RichText = true
 
             button.MouseEnter:Connect(function()
-                TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = library.Theme.HighlightColor}):Play()
             end)
             button.MouseLeave:Connect(function()
-                TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+                TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = library.Theme.BorderColor}):Play()
             end)
 
             button.MouseButton1Down:Connect(function()
-                TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = library.Theme.AccentColor}):Play()
             end)
             button.MouseButton1Up:Connect(function()
-                TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = library.Theme.TextColor}):Play()
             end)
 
             button.MouseButton1Click:Connect(function()
                 callback()
             end)
 
-            local NewSizeX = 396
+            local NewSizeX = 310
             local Amnt = 0
             local function ResizeButtons()
                 local Amount = buttonFrame:GetChildren()
-                local Resized = 396
+                local Resized = 310
                 Amount = #Amount - 1
                 Amnt = Amount
                 local AmountToSubtract = (Amount / 2)
-                Resized = (396 / Amount) - AmountToSubtract
+                Resized = (310 / Amount) - AmountToSubtract
                 NewSizeX = (Resized)
 
                 for i,v in pairs(buttonFrame:GetChildren()) do
@@ -1353,7 +1297,6 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             UpdatePageSize()
 
-            --
             local ButtonFunctions = {}
             function ButtonFunctions:AddButton(text, callback_2)
                 if Amnt < 4 then
@@ -1369,7 +1312,7 @@ closeButton.Visible = UserInputService.TouchEnabled
         
                     button.Name = "button"
                     button.Parent = buttonFrame
-                    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    button.BackgroundColor3 = library.Theme.BorderColor
                     button.Size = UDim2.new(0, NewSizeX - Amnt, 0, 24)
                     button.AutoButtonColor = false
                     button.Font = Enum.Font.SourceSans
@@ -1388,7 +1331,10 @@ closeButton.Visible = UserInputService.TouchEnabled
                     buttonBackground.Position = UDim2.new(0.5, 0, 0.5, 0)
                     buttonBackground.Size = UDim2.new(0, (NewSizeX - 2) - Amnt, 0, 22)
         
-                    buttonGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+                    buttonGradient.Color = ColorSequence.new{
+                        ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                        ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+                    }
                     buttonGradient.Rotation = 90
                     buttonGradient.Name = "buttonGradient"
                     buttonGradient.Parent = buttonBackground
@@ -1407,24 +1353,24 @@ closeButton.Visible = UserInputService.TouchEnabled
                     buttonLabel.Size = UDim2.new(0, NewSizeX - 2, 0, 22)
                     buttonLabel.Font = Enum.Font.Code
                     buttonLabel.Text = text
-                    buttonLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                    buttonLabel.TextSize = 14.000
+                    buttonLabel.TextColor3 = library.Theme.TextColor
+                    buttonLabel.TextSize = 13.000
                     buttonLabel.RichText = true
 
                     UpdatePageSize()
         
                     button.MouseEnter:Connect(function()
-                        TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                        TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = library.Theme.HighlightColor}):Play()
                     end)
                     button.MouseLeave:Connect(function()
-                        TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+                        TweenService:Create(button, TweenTable["hover"], {BackgroundColor3 = library.Theme.BorderColor}):Play()
                     end)
         
                     button.MouseButton1Down:Connect(function()
-                        TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                        TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = library.Theme.AccentColor}):Play()
                     end)
                     button.MouseButton1Up:Connect(function()
-                        TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                        TweenService:Create(buttonLabel, TweenTable["hover"], {TextColor3 = library.Theme.TextColor}):Play()
                     end)
         
                     button.MouseButton1Click:Connect(function()
@@ -1434,39 +1380,33 @@ closeButton.Visible = UserInputService.TouchEnabled
                     local ButtonFunctions2 = {}
                     function ButtonFunctions2:Fire()
                         callback_2()
-
                         return ButtonFunctions2
                     end
-                    --
+                    
                     function ButtonFunctions2:Hide()
                         button.Visible = false
-
                         return ButtonFunctions2
                     end
-                    --
+                    
                     function ButtonFunctions2:Show()
                         button.Visible = true
-
                         return ButtonFunctions2
                     end
-                    --
+                    
                     function ButtonFunctions2:Text(text)
                         text = text or "button new text"
                         buttonLabel.Text = text
-
                         return ButtonFunctions2
                     end
-                    --
+                    
                     function ButtonFunctions2:Remove()
                         button:Destroy()
-
                         return ButtonFunctions2
                     end
-                    --
+                    
                     function ButtonFunctions2:SetFunction(new)
                         new = new or function() end
                         callback_2 = new
-
                         return ButtonFunctions2
                     end
                     return ButtonFunctions2 and ButtonFunctions
@@ -1475,54 +1415,46 @@ closeButton.Visible = UserInputService.TouchEnabled
                 end
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:Fire()
                 callback()
-
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:Hide()
                 button.Visible = false
-
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:Show()
                 button.Visible = true
-
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:Text(text)
                 text = text or "button new text"
                 buttonLabel.Text = text
-
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:Remove()
                 button:Destroy()
-
                 return ButtonFunctions
             end
-            --
+            
             function ButtonFunctions:SetFunction(new)
                 new = new or function() end
                 callback = new
-
                 return ButtonFunctions
             end
             return ButtonFunctions
         end
-        --
 
         function Components:NewSection(text)
             text = text or "section"
 
             local sectionFrame = Instance.new("Frame")
             local sectionLayout = Instance.new("UIListLayout")
-            local leftBar = Instance.new("Frame")
             local sectionLabel = Instance.new("TextLabel")
             local sectionPadding = Instance.new("UIPadding")
             local rightBar = Instance.new("Frame")
@@ -1532,7 +1464,7 @@ closeButton.Visible = UserInputService.TouchEnabled
             sectionFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sectionFrame.BackgroundTransparency = 1.000
             sectionFrame.ClipsDescendants = true
-            sectionFrame.Size = UDim2.new(0, 396, 0, 18)
+            sectionFrame.Size = UDim2.new(0, 310, 0, 18)
 
             sectionLayout.Name = "sectionLayout"
             sectionLayout.Parent = sectionFrame
@@ -1541,19 +1473,17 @@ closeButton.Visible = UserInputService.TouchEnabled
             sectionLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             sectionLayout.Padding = UDim.new(0, 4)
 
-
             sectionLabel.Name = "sectionLabel"
             sectionLabel.Parent = sectionFrame
             sectionLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sectionLabel.BackgroundTransparency = 1.000
             sectionLabel.ClipsDescendants = true
-            sectionLabel.Position = UDim2.new(0.0252525248, 0, 0.020833334, 0)
             sectionLabel.Size = UDim2.new(0, 0, 0, 18)
             sectionLabel.Font = Enum.Font.Code
             sectionLabel.LineHeight = 1
             sectionLabel.Text = text
-            sectionLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            sectionLabel.TextSize = 14.000
+            sectionLabel.TextColor3 = library.Theme.TextColor
+            sectionLabel.TextSize = 13.000
             sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
             sectionLabel.RichText = true
 
@@ -1566,10 +1496,10 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             rightBar.Name = "rightBar"
             rightBar.Parent = sectionFrame
-            rightBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            rightBar.BackgroundColor3 = library.Theme.BorderColor
             rightBar.BorderSizePixel = 0
             rightBar.Position = UDim2.new(0.308080822, 0, 0.479166657, 0)
-            rightBar.Size = UDim2.new(0, 403, 0, 1)
+            rightBar.Size = UDim2.new(0, 310, 0, 1)
             UpdatePageSize()
 
             local NewSectionSize = TextService:GetTextSize(sectionLabel.Text, sectionLabel.TextSize, sectionLabel.Font, Vector2.new(math.huge,math.huge))
@@ -1579,10 +1509,8 @@ closeButton.Visible = UserInputService.TouchEnabled
             function SectionFunctions:Text(new)
                 new = new or text
                 sectionLabel.Text = new
-
                 local NewSectionSize = TextService:GetTextSize(sectionLabel.Text, sectionLabel.TextSize, sectionLabel.Font, Vector2.new(math.huge,math.huge))
                 sectionLabel.Size = UDim2.new(0, NewSectionSize.X, 0, 18)
-
                 return SectionFunctions
             end
             function SectionFunctions:Hide()
@@ -1597,11 +1525,8 @@ closeButton.Visible = UserInputService.TouchEnabled
                 sectionFrame:Destroy()
                 return SectionFunctions
             end
-            --
             return SectionFunctions
         end
-
-        --
 
         function Components:NewToggle(text, default, callback)
             text = text or "toggle"
@@ -1628,10 +1553,10 @@ closeButton.Visible = UserInputService.TouchEnabled
             toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             toggleButton.BackgroundTransparency = 1.000
             toggleButton.ClipsDescendants = false
-            toggleButton.Size = UDim2.new(0, 396, 0, 22)
+            toggleButton.Size = UDim2.new(0, 310, 0, 22)
             toggleButton.Font = Enum.Font.Code
             toggleButton.Text = ""
-            toggleButton.TextColor3 = Color3.fromRGB(190, 190, 190)
+            toggleButton.TextColor3 = library.Theme.TextColor
             toggleButton.TextSize = 14.000
             toggleButton.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -1643,7 +1568,7 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             toggleEdge.Name = "toggleEdge"
             toggleEdge.Parent = toggleButton
-            toggleEdge.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            toggleEdge.BackgroundColor3 = library.Theme.BorderColor
             toggleEdge.Size = UDim2.new(0, 18, 0, 18)
 
             toggleEdgeCorner.CornerRadius = UDim.new(0, 2)
@@ -1661,7 +1586,10 @@ closeButton.Visible = UserInputService.TouchEnabled
             toggleCorner.Name = "toggleCorner"
             toggleCorner.Parent = toggle
 
-            toggleGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+            toggleGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+            }
             toggleGradient.Rotation = 90
             toggleGradient.Name = "toggleGradient"
             toggleGradient.Parent = toggle
@@ -1677,7 +1605,10 @@ closeButton.Visible = UserInputService.TouchEnabled
             toggleDesignCorner.Name = "toggleDesignCorner"
             toggleDesignCorner.Parent = toggleDesign
 
-            toggleDesignGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(157, 115, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(106, 69, 181))}
+            toggleDesignGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.AccentColor),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(106, 69, 181))
+            }
             toggleDesignGradient.Rotation = 90
             toggleDesignGradient.Name = "toggleDesignGradient"
             toggleDesignGradient.Parent = toggleDesign
@@ -1686,13 +1617,12 @@ closeButton.Visible = UserInputService.TouchEnabled
             toggleLabel.Parent = toggleButton
             toggleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             toggleLabel.BackgroundTransparency = 1.000
-            toggleLabel.Position = UDim2.new(0.0454545468, 0, 0, 0)
-            toggleLabel.Size = UDim2.new(0, 377, 0, 22)
+            toggleLabel.Size = UDim2.new(0, 290, 0, 22)
             toggleLabel.Font = Enum.Font.Code
             toggleLabel.LineHeight = 1.150
             toggleLabel.Text = text
-            toggleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            toggleLabel.TextSize = 14.000
+            toggleLabel.TextColor3 = library.Theme.TextColor
+            toggleLabel.TextSize = 13.000
             toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
             toggleLabel.RichText = true
 
@@ -1718,16 +1648,11 @@ closeButton.Visible = UserInputService.TouchEnabled
                 TweenService:Create(toggleLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(210, 210, 210)}):Play()
             end)
             toggleButton.MouseLeave:Connect(function()
-                TweenService:Create(toggleLabel, TweenTable["hover"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                TweenService:Create(toggleLabel, TweenTable["hover"], {TextColor3 = library.Theme.TextColor}):Play()
             end)
 
             CreateTween("toggle_form", 0.13)
             local On = default
-            if default then
-                On = true
-            else
-                On = false
-            end
             toggleButton.MouseButton1Click:Connect(function()
                 On = not On
                 local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
@@ -1743,17 +1668,17 @@ closeButton.Visible = UserInputService.TouchEnabled
                 toggleLabel.Text = new
                 return ToggleFunctions
             end
-            --
+            
             function ToggleFunctions:Hide()
                 toggleButton.Visible = false
                 return ToggleFunctions
             end
-            --
+            
             function ToggleFunctions:Show()
                 toggleButton.Visible = true
                 return ToggleFunctions
             end   
-            --         
+                     
             function ToggleFunctions:Change()
                 On = not On
                 local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
@@ -1763,12 +1688,12 @@ closeButton.Visible = UserInputService.TouchEnabled
                 callback(On)
                 return ToggleFunctions
             end
-            --
+            
             function ToggleFunctions:Remove()
                 toggleButton:Destroy()
                 return ToggleFunction
             end
-            --
+            
             function ToggleFunctions:Set(state)
                 On = state
                 local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
@@ -1778,7 +1703,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 callback(On)
                 return ToggleFunctions
             end
-            --
+            
             local callback_t
             function ToggleFunctions:SetFunction(new)
                 new = new or function() end
@@ -1787,7 +1712,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 return ToggleFunctions
             end
             UpdatePageSize()
-            --
+            
             function ToggleFunctions:AddKeybind(default_t)
                 callback_t = callback
                 default_t = default_t or Enum.KeyCode.P
@@ -1804,8 +1729,7 @@ closeButton.Visible = UserInputService.TouchEnabled
 
                 keybind.Name = "keybind"
                 keybind.Parent = Extras
-                keybind.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                keybind.Position = UDim2.new(0.780303001, 0, 0, 0)
+                keybind.BackgroundColor3 = library.Theme.BorderColor
                 keybind.Size = UDim2.new(0, 87, 0, 22)
                 keybind.AutoButtonColor = false
                 keybind.Font = Enum.Font.SourceSans
@@ -1825,7 +1749,10 @@ closeButton.Visible = UserInputService.TouchEnabled
                 keybindBackground.Position = UDim2.new(0.5, 0, 0.5, 0)
                 keybindBackground.Size = UDim2.new(0, 85, 0, 20)
     
-                keybindGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+                keybindGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                    ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+                }
                 keybindGradient.Rotation = 90
                 keybindGradient.Name = "keybindGradient"
                 keybindGradient.Parent = keybindBackground
@@ -1844,8 +1771,8 @@ closeButton.Visible = UserInputService.TouchEnabled
                 keybindButtonLabel.Size = UDim2.new(0, 85, 0, 20)
                 keybindButtonLabel.Font = Enum.Font.Code
                 keybindButtonLabel.Text = ". . ."
-                keybindButtonLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                keybindButtonLabel.TextSize = 14.000
+                keybindButtonLabel.TextColor3 = library.Theme.TextColor
+                keybindButtonLabel.TextSize = 13.000
                 keybindButtonLabel.RichText = true
     
                 keybindLabelStraint.Name = "keybindLabelStraint"
@@ -1918,23 +1845,23 @@ closeButton.Visible = UserInputService.TouchEnabled
                     keybindButtonLabel.Text = new.Name
                     return ExtraKeybindFunctions
                 end
-                --
+                
                 function ExtraKeybindFunctions:Fire()
                     callback_t(ChosenKey)
                     return ExtraKeybindFunctions
                 end
-                --
+                
                 function ExtraKeybindFunctions:SetFunction(new)
                     new = new or function() end
                     callback_t = new
                     return ExtraKeybindFunctions 
                 end
-                --
+                
                 function ExtraKeybindFunctions:Hide()
                     keybindFrame.Visible = false
                     return ExtraKeybindFunctions
                 end
-                --
+                
                 function ExtraKeybindFunctions:Show()
                     keybindFrame.Visible = true
                     return ExtraKeybindFunctions
@@ -1977,13 +1904,13 @@ closeButton.Visible = UserInputService.TouchEnabled
             keybindFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             keybindFrame.BackgroundTransparency = 1.000
             keybindFrame.ClipsDescendants = true
-            keybindFrame.Size = UDim2.new(0, 396, 0, 24)
+            keybindFrame.Size = UDim2.new(0, 310, 0, 24)
 
             keybindButton.Name = "keybindButton"
             keybindButton.Parent = keybindFrame
             keybindButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             keybindButton.BackgroundTransparency = 1.000
-            keybindButton.Size = UDim2.new(0, 396, 0, 24)
+            keybindButton.Size = UDim2.new(0, 310, 0, 24)
             keybindButton.AutoButtonColor = false
             keybindButton.Font = Enum.Font.SourceSans
             keybindButton.Text = ""
@@ -2001,11 +1928,11 @@ closeButton.Visible = UserInputService.TouchEnabled
             keybindLabel.Parent = keybindButton
             keybindLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             keybindLabel.BackgroundTransparency = 1.000
-            keybindLabel.Size = UDim2.new(0, 396, 0, 24)
+            keybindLabel.Size = UDim2.new(0, 310, 0, 24)
             keybindLabel.Font = Enum.Font.Code
             keybindLabel.Text = text
-            keybindLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            keybindLabel.TextSize = 14.000
+            keybindLabel.TextColor3 = library.Theme.TextColor
+            keybindLabel.TextSize = 13.000
             keybindLabel.TextWrapped = true
             keybindLabel.TextXAlignment = Enum.TextXAlignment.Left
             keybindLabel.RichText = true
@@ -2030,8 +1957,7 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             keybind.Name = "keybind"
             keybind.Parent = keybindFolder
-            keybind.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            keybind.Position = UDim2.new(0.780303001, 0, 0, 0)
+            keybind.BackgroundColor3 = library.Theme.BorderColor
             keybind.Size = UDim2.new(0, 87, 0, 22)
             keybind.AutoButtonColor = false
             keybind.Font = Enum.Font.SourceSans
@@ -2051,7 +1977,10 @@ closeButton.Visible = UserInputService.TouchEnabled
             keybindBackground.Position = UDim2.new(0.5, 0, 0.5, 0)
             keybindBackground.Size = UDim2.new(0, 85, 0, 20)
 
-            keybindGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+            keybindGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+            }
             keybindGradient.Rotation = 90
             keybindGradient.Name = "keybindGradient"
             keybindGradient.Parent = keybindBackground
@@ -2070,8 +1999,8 @@ closeButton.Visible = UserInputService.TouchEnabled
             keybindButtonLabel.Size = UDim2.new(0, 85, 0, 20)
             keybindButtonLabel.Font = Enum.Font.Code
             keybindButtonLabel.Text = ". . ."
-            keybindButtonLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            keybindButtonLabel.TextSize = 14.000
+            keybindButtonLabel.TextColor3 = library.Theme.TextColor
+            keybindButtonLabel.TextSize = 13.000
             keybindButtonLabel.RichText = true
 
             keybindLabelStraint.Name = "keybindLabelStraint"
@@ -2147,44 +2076,44 @@ closeButton.Visible = UserInputService.TouchEnabled
                 callback(ChosenKey)
                 return KeybindFunctions
             end
-            --
+            
             function KeybindFunctions:SetFunction(new)
                 new = new or function() end
                 callback = new
                 return KeybindFunctions 
             end
-            --
+            
             function KeybindFunctions:SetKey(new)
                 new = new or ChosenKey.Name
                 ChosenKey = new.Name
                 keybindButtonLabel.Text = new.Name
                 return KeybindFunctions
             end
-            --
+            
             function KeybindFunctions:Text(new)
                 new = new or keybindLabel.Text
                 keybindLabel.Text = new
                 return KeybindFunctions
             end
-            --
+            
             function KeybindFunctions:Hide()
                 keybindFrame.Visible = false
                 return KeybindFunctions
             end
-            --
+            
             function KeybindFunctions:Show()
                 keybindFrame.Visible = true
                 return KeybindFunctions
             end
             return KeybindFunctions
         end
-        --
+        
         function Components:NewTextbox(text, default, place, format, type, autoexec, autoclear, callback)
             text = text or "text box"
             default = default or ""
             place = place or ""
-            format = format or "all" -- all, numbers, lower, upper
-            type = type or "small" -- small, medium, large
+            format = format or "all"
+            type = type or "small"
             autoexec = autoexec or true
             autoclear = autoclear or false
             callback = callback or function() end
@@ -2213,7 +2142,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textboxFrame.BackgroundTransparency = 1.000
                 textboxFrame.ClipsDescendants = true
-                textboxFrame.Size = UDim2.new(0, 396, 0, 24)
+                textboxFrame.Size = UDim2.new(0, 310, 0, 24)
     
                 textboxFolder.Name = "textboxFolder"
                 textboxFolder.Parent = textboxFrame
@@ -2228,7 +2157,7 @@ closeButton.Visible = UserInputService.TouchEnabled
     
                 textbox.Name = "textbox"
                 textbox.Parent = textboxFolder
-                textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                textbox.BackgroundColor3 = library.Theme.BorderColor
                 textbox.Size = UDim2.new(0, 133, 0, 22)
     
                 textboxLayout.Name = "textboxLayout"
@@ -2254,7 +2183,10 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxTwoStraint.Parent = textboxTwo
                 textboxTwoStraint.MinSize = Vector2.new(48, 20)
     
-                textboxTwoGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+                textboxTwoGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                    ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+                }
                 textboxTwoGradient.Rotation = 90
                 textboxTwoGradient.Name = "textboxTwoGradient"
                 textboxTwoGradient.Parent = textboxTwo
@@ -2273,8 +2205,8 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textBoxValues.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
                 textBoxValues.PlaceholderText = place
                 textBoxValues.Text = ""
-                textBoxValues.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textBoxValues.TextSize = 14.000
+                textBoxValues.TextColor3 = library.Theme.TextColor
+                textBoxValues.TextSize = 13.000
                 textBoxValues.ClearTextOnFocus = autoclear
                 textBoxValues.ClipsDescendants = true
                 textBoxValues.TextXAlignment = Enum.TextXAlignment.Right
@@ -2300,11 +2232,11 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxLabel.Parent = textboxFrame
                 textboxLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textboxLabel.BackgroundTransparency = 1.000
-                textboxLabel.Size = UDim2.new(0, 396, 0, 24)
+                textboxLabel.Size = UDim2.new(0, 310, 0, 24)
                 textboxLabel.Font = Enum.Font.Code
                 textboxLabel.Text = text
-                textboxLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textboxLabel.TextSize = 14.000
+                textboxLabel.TextColor3 = library.Theme.TextColor
+                textboxLabel.TextSize = 13.000
                 textboxLabel.TextWrapped = true
                 textboxLabel.TextXAlignment = Enum.TextXAlignment.Left
                 textboxLabel.RichText = true
@@ -2325,9 +2257,9 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxStraint.MinSize = Vector2.new(ForcedMinSize.X + 4, 22)
                 textboxTwoStraint.MinSize = Vector2.new(ForcedMinSize.X + 2, 20)
                 textBoxValuesStraint.MinSize = Vector2.new(ForcedMinSize.X + 2, 20)
-                textboxStraint.MaxSize = Vector2.new(386 - ForcedMaxSize.X, 22)
-                textboxTwoStraint.MaxSize = Vector2.new(388 - ForcedMaxSize.X, 20)
-                textBoxValuesStraint.MaxSize = Vector2.new(388 - ForcedMaxSize.X, 20)
+                textboxStraint.MaxSize = Vector2.new(310 - ForcedMaxSize.X, 22)
+                textboxTwoStraint.MaxSize = Vector2.new(312 - ForcedMaxSize.X, 20)
+                textBoxValuesStraint.MaxSize = Vector2.new(312 - ForcedMaxSize.X, 20)
                 
                 function ResizeTextStraints()
                     ForcedMinSize = TextService:GetTextSize(textBoxValues.PlaceholderText, textBoxValues.TextSize, textBoxValues.Font, Vector2.new(math.huge,math.huge))
@@ -2343,19 +2275,19 @@ closeButton.Visible = UserInputService.TouchEnabled
                 end
                 function ResizeTextBox()
                     NewTextboxSize = TextService:GetTextSize(textBoxValues.Text, textBoxValues.TextSize, textBoxValues.Font, Vector2.new(math.huge,math.huge))
-                    if NewTextboxSize.X < (396 - ForcedMaxSize.X) - 10 then
+                    if NewTextboxSize.X < (310 - ForcedMaxSize.X) - 10 then
                         TweenService:Create(textBoxValues, TweenTable["TextBox"], {Size = UDim2.new(0, NewTextboxSize.X + 8, 0, 20)}):Play()
                         TweenService:Create(textboxTwo, TweenTable["TextBox"], {Size = UDim2.new(0, NewTextboxSize.X + 8, 0, 20)}):Play()
                         TweenService:Create(textbox, TweenTable["TextBox"], {Size = UDim2.new(0, NewTextboxSize.X + 10, 0, 22)}):Play()
                     else
-                        TweenService:Create(textBoxValues, TweenTable["TextBox"], {Size = UDim2.new(0, (396 - ForcedMaxSize.X) - 12, 0, 20)}):Play()
-                        TweenService:Create(textboxTwo, TweenTable["TextBox"], {Size = UDim2.new(0, (396 - ForcedMaxSize.X) - 12, 0, 20)}):Play()
-                        TweenService:Create(textbox, TweenTable["TextBox"], {Size = UDim2.new(0, (396 - ForcedMaxSize.X) - 10, 0, 22)}):Play()
+                        TweenService:Create(textBoxValues, TweenTable["TextBox"], {Size = UDim2.new(0, (310 - ForcedMaxSize.X) - 12, 0, 20)}):Play()
+                        TweenService:Create(textboxTwo, TweenTable["TextBox"], {Size = UDim2.new(0, (310 - ForcedMaxSize.X) - 12, 0, 20)}):Play()
+                        TweenService:Create(textbox, TweenTable["TextBox"], {Size = UDim2.new(0, (310 - ForcedMaxSize.X) - 10, 0, 22)}):Play()
                     end
                 end
                 function SetMaxSize()
                     ForcedMaxSize = TextService:GetTextSize(textboxLabel.Text, textboxLabel.TextSize, textboxLabel.Font, Vector2.new(math.huge,math.huge))
-                    local def = 396 - ForcedMaxSize.X
+                    local def = 310 - ForcedMaxSize.X
                     textboxStraint.MaxSize = Vector2.new(def - 10, 22)
                     textboxTwoStraint.MaxSize = Vector2.new(def - 12, 20)
                     textBoxValuesStraint.MaxSize = Vector2.new(def - 12, 20)
@@ -2403,16 +2335,16 @@ closeButton.Visible = UserInputService.TouchEnabled
                 end)
 
                 textboxFrame.MouseLeave:Connect(function()
-                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = library.Theme.TextColor}):Play()
                 end)
 
                 textBoxValues.Focused:Connect(function()
                     textBoxValues:GetPropertyChangedSignal("Text"):Connect(ResizeTextBox)
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.AccentColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function()
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.BorderColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function(enterPressed)
@@ -2433,39 +2365,39 @@ closeButton.Visible = UserInputService.TouchEnabled
                     textBoxValues = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Fire()
                     callback(textBoxValues.Text)
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:SetFunction(new)
                     new = new or callback
                     callback = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Text(new)
                     new = new or textboxLabel.Text
                     textboxLabel.Text = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Hide()
                     textboxFrame.Visible = false
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Show()
                     textboxFrame.Visible = true
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Remove()
                     textboxFrame:Destroy()
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Place(new)
                     new = new or textBoxValues.PlaceholderText
                     textBoxValues.PlaceholderText = new
@@ -2496,7 +2428,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textboxFrame.BackgroundTransparency = 1.000
                 textboxFrame.ClipsDescendants = true
-                textboxFrame.Size = UDim2.new(0, 396, 0, 46)
+                textboxFrame.Size = UDim2.new(0, 310, 0, 46)
 
                 textboxFolder.Name = "textboxFolder"
                 textboxFolder.Parent = textboxFrame
@@ -2511,8 +2443,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
                 textbox.Name = "textbox"
                 textbox.Parent = textboxFolder
-                textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                textbox.Size = UDim2.new(0, 396, 0, 22)
+                textbox.BackgroundColor3 = library.Theme.BorderColor
+                textbox.Size = UDim2.new(0, 310, 0, 22)
 
                 textboxLayout.Name = "textboxLayout"
                 textboxLayout.Parent = textbox
@@ -2522,8 +2454,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
                 textboxStraint.Name = "textboxStraint"
                 textboxStraint.Parent = textbox
-                textboxStraint.MaxSize = Vector2.new(396, 22)
-                textboxStraint.MinSize = Vector2.new(396, 22)
+                textboxStraint.MaxSize = Vector2.new(310, 22)
+                textboxStraint.MinSize = Vector2.new(310, 22)
 
                 textboxCorner.CornerRadius = UDim.new(0, 2)
                 textboxCorner.Name = "textboxCorner"
@@ -2532,14 +2464,17 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxTwo.Name = "textboxTwo"
                 textboxTwo.Parent = textbox
                 textboxTwo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                textboxTwo.Size = UDim2.new(0, 394, 0, 20)
+                textboxTwo.Size = UDim2.new(0, 308, 0, 20)
 
                 textboxTwoStraint.Name = "textboxTwoStraint"
                 textboxTwoStraint.Parent = textboxTwo
-                textboxTwoStraint.MaxSize = Vector2.new(394, 20)
-                textboxTwoStraint.MinSize = Vector2.new(394, 20)
+                textboxTwoStraint.MaxSize = Vector2.new(308, 20)
+                textboxTwoStraint.MinSize = Vector2.new(308, 20)
 
-                textboxTwoGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+                textboxTwoGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                    ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+                }
                 textboxTwoGradient.Rotation = 90
                 textboxTwoGradient.Name = "textboxTwoGradient"
                 textboxTwoGradient.Parent = textboxTwo
@@ -2553,20 +2488,19 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textBoxValues.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textBoxValues.BackgroundTransparency = 1.000
                 textBoxValues.ClipsDescendants = true
-                textBoxValues.Position = UDim2.new(-0.587786257, 0, 0, 0)
-                textBoxValues.Size = UDim2.new(0, 394, 0, 20)
+                textBoxValues.Size = UDim2.new(0, 308, 0, 20)
                 textBoxValues.Font = Enum.Font.Code
                 textBoxValues.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
                 textBoxValues.PlaceholderText = place
                 textBoxValues.Text = default
-                textBoxValues.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textBoxValues.TextSize = 14.000
+                textBoxValues.TextColor3 = library.Theme.TextColor
+                textBoxValues.TextSize = 13.000
                 textBoxValues.TextXAlignment = Enum.TextXAlignment.Left
 
                 textBoxValuesStraint.Name = "textBoxValuesStraint"
                 textBoxValuesStraint.Parent = textBoxValues
-                textBoxValuesStraint.MaxSize = Vector2.new(394, 20)
-                textBoxValuesStraint.MinSize = Vector2.new(394, 20)
+                textBoxValuesStraint.MaxSize = Vector2.new(308, 20)
+                textBoxValuesStraint.MinSize = Vector2.new(308, 20)
 
                 textBoxValuesPadding.Name = "textBoxValuesPadding"
                 textBoxValuesPadding.Parent = textBoxValues
@@ -2585,11 +2519,11 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxLabel.Parent = textboxFrame
                 textboxLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textboxLabel.BackgroundTransparency = 1.000
-                textboxLabel.Size = UDim2.new(0, 396, 0, 24)
+                textboxLabel.Size = UDim2.new(0, 310, 0, 24)
                 textboxLabel.Font = Enum.Font.Code
                 textboxLabel.Text = text
-                textboxLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textboxLabel.TextSize = 14.000
+                textboxLabel.TextColor3 = library.Theme.TextColor
+                textboxLabel.TextSize = 13.000
                 textboxLabel.TextWrapped = true
                 textboxLabel.TextXAlignment = Enum.TextXAlignment.Left
                 textboxLabel.RichText = true
@@ -2633,15 +2567,15 @@ closeButton.Visible = UserInputService.TouchEnabled
                 end)
 
                 textboxFrame.MouseLeave:Connect(function()
-                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = library.Theme.TextColor}):Play()
                 end)
 
                 textBoxValues.Focused:Connect(function()
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.AccentColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function()
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.BorderColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function(enterPressed)
@@ -2660,39 +2594,39 @@ closeButton.Visible = UserInputService.TouchEnabled
                     textBoxValues = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Fire()
                     callback(textBoxValues.Text)
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:SetFunction(new)
                     new = new or callback
                     callback = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Text(new)
                     new = new or textboxLabel.Text
                     textboxLabel.Text = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Hide()
                     textboxFrame.Visible = false
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Show()
                     textboxFrame.Visible = true
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Remove()
                     textboxFrame:Destroy()
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Place(new)
                     new = new or textBoxValues.PlaceholderText
                     textBoxValues.PlaceholderText = new
@@ -2724,7 +2658,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxFrame.BackgroundTransparency = 1.000
                 textboxFrame.ClipsDescendants = true
                 textboxFrame.Position = UDim2.new(0.00499999989, 0, 0.268786132, 0)
-                textboxFrame.Size = UDim2.new(0, 396, 0, 142)
+                textboxFrame.Size = UDim2.new(0, 310, 0, 142)
 
                 textboxFolder.Name = "textboxFolder"
                 textboxFolder.Parent = textboxFrame
@@ -2739,9 +2673,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
                 textbox.Name = "textbox"
                 textbox.Parent = textboxFolder
-                textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                textbox.Position = UDim2.new(0, 0, 0.169014081, 0)
-                textbox.Size = UDim2.new(0, 396, 0, 118)
+                textbox.BackgroundColor3 = library.Theme.BorderColor
+                textbox.Size = UDim2.new(0, 310, 0, 118)
 
                 textboxLayout.Name = "textboxLayout"
                 textboxLayout.Parent = textbox
@@ -2751,8 +2684,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
                 textboxStraint.Name = "textboxStraint"
                 textboxStraint.Parent = textbox
-                textboxStraint.MaxSize = Vector2.new(396, 118)
-                textboxStraint.MinSize = Vector2.new(396, 118)
+                textboxStraint.MaxSize = Vector2.new(310, 118)
+                textboxStraint.MinSize = Vector2.new(310, 118)
 
                 textboxCorner.CornerRadius = UDim.new(0, 2)
                 textboxCorner.Name = "textboxCorner"
@@ -2761,14 +2694,17 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxTwo.Name = "textboxTwo"
                 textboxTwo.Parent = textbox
                 textboxTwo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                textboxTwo.Size = UDim2.new(0, 394, 0, 114)
+                textboxTwo.Size = UDim2.new(0, 308, 0, 114)
 
                 textboxTwoStraint.Name = "textboxTwoStraint"
                 textboxTwoStraint.Parent = textboxTwo
-                textboxTwoStraint.MaxSize = Vector2.new(394, 116)
-                textboxTwoStraint.MinSize = Vector2.new(394, 116)
+                textboxTwoStraint.MaxSize = Vector2.new(308, 116)
+                textboxTwoStraint.MinSize = Vector2.new(308, 116)
 
-                textboxTwoGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+                textboxTwoGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                    ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+                }
                 textboxTwoGradient.Rotation = 90
                 textboxTwoGradient.Name = "textboxTwoGradient"
                 textboxTwoGradient.Parent = textboxTwo
@@ -2782,21 +2718,21 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textBoxValues.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textBoxValues.BackgroundTransparency = 1.000
                 textBoxValues.ClipsDescendants = true
-                textBoxValues.Size = UDim2.new(0, 394, 0, 114)
+                textBoxValues.Size = UDim2.new(0, 308, 0, 114)
                 textBoxValues.Font = Enum.Font.Code
                 textBoxValues.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
                 textBoxValues.PlaceholderText = place
                 textBoxValues.Text = default
-                textBoxValues.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textBoxValues.TextSize = 14.000
+                textBoxValues.TextColor3 = library.Theme.TextColor
+                textBoxValues.TextSize = 13.000
                 textBoxValues.TextWrapped = true
                 textBoxValues.TextXAlignment = Enum.TextXAlignment.Left
                 textBoxValues.TextYAlignment = Enum.TextYAlignment.Top
 
                 textBoxValuesStraint.Name = "textBoxValuesStraint"
                 textBoxValuesStraint.Parent = textBoxValues
-                textBoxValuesStraint.MaxSize = Vector2.new(394, 116)
-                textBoxValuesStraint.MinSize = Vector2.new(394, 116)
+                textBoxValuesStraint.MaxSize = Vector2.new(308, 116)
+                textBoxValuesStraint.MinSize = Vector2.new(308, 116)
 
                 textBoxValuesPadding.Name = "textBoxValuesPadding"
                 textBoxValuesPadding.Parent = textBoxValues
@@ -2815,11 +2751,11 @@ closeButton.Visible = UserInputService.TouchEnabled
                 textboxLabel.Parent = textboxFrame
                 textboxLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 textboxLabel.BackgroundTransparency = 1.000
-                textboxLabel.Size = UDim2.new(0, 396, 0, 24)
+                textboxLabel.Size = UDim2.new(0, 310, 0, 24)
                 textboxLabel.Font = Enum.Font.Code
                 textboxLabel.Text = text
-                textboxLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                textboxLabel.TextSize = 14.000
+                textboxLabel.TextColor3 = library.Theme.TextColor
+                textboxLabel.TextSize = 13.000
                 textboxLabel.TextWrapped = true
                 textboxLabel.TextXAlignment = Enum.TextXAlignment.Left
                 textboxLabel.RichText = true
@@ -2862,15 +2798,15 @@ closeButton.Visible = UserInputService.TouchEnabled
                 end)
 
                 textboxFrame.MouseLeave:Connect(function()
-                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = Color3.fromRGB(190, 190, 190)}):Play()
+                    TweenService:Create(textboxLabel, TweenTable["TextBox"], {TextColor3 = library.Theme.TextColor}):Play()
                 end)
 
                 textBoxValues.Focused:Connect(function()
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.AccentColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function()
-                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                    TweenService:Create(textbox, TweenTable["TextBox"], {BackgroundColor3 = library.Theme.BorderColor}):Play()
                 end)
 
                 textBoxValues.FocusLost:Connect(function(enterPressed)
@@ -2891,39 +2827,39 @@ closeButton.Visible = UserInputService.TouchEnabled
                     textBoxValues = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Fire()
                     callback(textBoxValues.Text)
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:SetFunction(new)
                     new = new or callback
                     callback = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Text(new)
                     new = new or textboxLabel.Text
                     textboxLabel.Text = new
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Hide()
                     textboxFrame.Visible = false
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Show()
                     textboxFrame.Visible = true
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Remove()
                     textboxFrame:Destroy()
                     return TextboxFunctions
                 end
-                --
+                
                 function TextboxFunctions:Place(new)
                     new = new or textBoxValues.PlaceholderText
                     textBoxValues.PlaceholderText = new
@@ -2932,7 +2868,7 @@ closeButton.Visible = UserInputService.TouchEnabled
                 return TextboxFunctions
             end
         end
-        --
+        
         function Components:NewSelector(text, default, list, callback)
             text = text or "selector"
             default = default or ". . ."
@@ -2963,23 +2899,21 @@ closeButton.Visible = UserInputService.TouchEnabled
             selectorFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             selectorFrame.BackgroundTransparency = 1.000
             selectorFrame.ClipsDescendants = true
-            selectorFrame.Position = UDim2.new(0.00499999989, 0, 0.0895953774, 0)
-            selectorFrame.Size = UDim2.new(0, 396, 0, 46)
+            selectorFrame.Size = UDim2.new(0, 310, 0, 46)
 
             
             selectorLabel.Name = "selectorLabel"
             selectorLabel.Parent = selectorFrame
             selectorLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             selectorLabel.BackgroundTransparency = 1.000
-            selectorLabel.Size = UDim2.new(0, 396, 0, 24)
+            selectorLabel.Size = UDim2.new(0, 310, 0, 24)
             selectorLabel.Font = Enum.Font.Code
             selectorLabel.Text = text
-            selectorLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            selectorLabel.TextSize = 14.000
+            selectorLabel.TextColor3 = library.Theme.TextColor
+            selectorLabel.TextSize = 13.000
             selectorLabel.TextWrapped = true
             selectorLabel.TextXAlignment = Enum.TextXAlignment.Left
-            selectorLabel.RichText = true
-            
+            selectorLabel.RichText = true            
             selectorLabelPadding.Name = "selectorLabelPadding"
             selectorLabelPadding.Parent = selectorLabel
             selectorLabelPadding.PaddingBottom = UDim.new(0, 6)
@@ -2994,10 +2928,9 @@ closeButton.Visible = UserInputService.TouchEnabled
             
             selector.Name = "selector"
             selector.Parent = selectorFrame
-            selector.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            selector.BackgroundColor3 = library.Theme.BorderColor
             selector.ClipsDescendants = true
-            selector.Position = UDim2.new(0, 0, 0.0926640928, 0)
-            selector.Size = UDim2.new(0, 396, 0, 21)
+            selector.Size = UDim2.new(0, 310, 0, 21)
             selector.AutoButtonColor = false
             selector.Font = Enum.Font.SourceSans
             selector.Text = ""
@@ -3022,17 +2955,17 @@ closeButton.Visible = UserInputService.TouchEnabled
             selectorTwo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             selectorTwo.ClipsDescendants = true
             selectorTwo.Position = UDim2.new(0.00252525252, 0, 0, 0)
-            selectorTwo.Size = UDim2.new(0, 394, 0, 20)
+            selectorTwo.Size = UDim2.new(0, 308, 0, 20)
             
             selectorText.Name = "selectorText"
             selectorText.Parent = selectorTwo
             selectorText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             selectorText.BackgroundTransparency = 1.000
-            selectorText.Size = UDim2.new(0, 394, 0, 20)
+            selectorText.Size = UDim2.new(0, 308, 0, 20)
             selectorText.Font = Enum.Font.Code
             selectorText.LineHeight = 1.150
-            selectorText.TextColor3 = Color3.fromRGB(160, 160, 160)
-            selectorText.TextSize = 14.000
+            selectorText.TextColor3 = library.Theme.TextColor
+            selectorText.TextSize = 13.000
             selectorText.TextXAlignment = Enum.TextXAlignment.Left
             selectorText.Text = default
             
@@ -3044,17 +2977,20 @@ closeButton.Visible = UserInputService.TouchEnabled
             textBoxValuesPadding.PaddingTop = UDim.new(0, 6)
             
             Frame.Parent = selectorText
-            Frame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            Frame.BackgroundColor3 = library.Theme.BorderColor
             Frame.BorderSizePixel = 0
             Frame.Position = UDim2.new(-0.008, 0, 1.78, 0)
-            Frame.Size = UDim2.new(0, 388, 0, 1)
+            Frame.Size = UDim2.new(0, 310, 0, 1)
             
             selectorTwoLayout.Name = "selectorTwoLayout"
             selectorTwoLayout.Parent = selectorTwo
             selectorTwoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             selectorTwoLayout.SortOrder = Enum.SortOrder.LayoutOrder
             
-            selectorTwoGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+            selectorTwoGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+            }
             selectorTwoGradient.Rotation = 90
             selectorTwoGradient.Name = "selectorTwoGradient"
             selectorTwoGradient.Parent = selectorTwo
@@ -3071,7 +3007,7 @@ closeButton.Visible = UserInputService.TouchEnabled
             selectorContainer.Parent = selectorTwo
             selectorContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             selectorContainer.BackgroundTransparency = 1.000
-            selectorContainer.Size = UDim2.new(0, 394, 0, 20)
+            selectorContainer.Size = UDim2.new(0, 308, 0, 20)
         
             selectorTwoLayout_2.Name = "selectorTwoLayout"
             selectorTwoLayout_2.Parent = selectorContainer
@@ -3098,32 +3034,32 @@ closeButton.Visible = UserInputService.TouchEnabled
                 optionButton.Parent = selectorContainer
                 optionButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 optionButton.BackgroundTransparency = 1.000
-                optionButton.Size = UDim2.new(0, 394, 0, 20)
+                optionButton.Size = UDim2.new(0, 308, 0, 20)
                 optionButton.AutoButtonColor = false
                 optionButton.Font = Enum.Font.Code
                 optionButton.Text = v
-                optionButton.TextColor3 = Color3.fromRGB(160, 160, 160)
-                optionButton.TextSize = 14.000
+                optionButton.TextColor3 = library.Theme.TextColor
+                optionButton.TextSize = 13.000
                 if optionButton.Text == default then
-                    optionButton.TextColor3 = Color3.fromRGB(159, 115, 255)
+                    optionButton.TextColor3 = library.Theme.AccentColor
                     callback(selectorText.Text)
                 end
 
                 optionButton.MouseButton1Click:Connect(function()
                     for z,x in next, selectorContainer:GetChildren() do
                         if x:IsA("TextButton") then
-                            TweenService:Create(x, TweenTable["selector"], {TextColor3 = Color3.fromRGB(160, 160, 160)}):Play()
+                            TweenService:Create(x, TweenTable["selector"], {TextColor3 = library.Theme.TextColor}):Play()
                         end
                     end
-                    TweenService:Create(optionButton, TweenTable["selector"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                    TweenService:Create(optionButton, TweenTable["selector"], {TextColor3 = library.Theme.AccentColor}):Play()
                     selectorText.Text = optionButton.Text
                     callback(optionButton.Text)
                 end)
 
-                selectorContainer.Size = UDim2.new(0, 394, 0, Val)
-                selectorTwo.Size = UDim2.new(0, 394, 0, Val)
-                selector.Size = UDim2.new(0, 396, 0, Val + 2)
-                selectorFrame.Size = UDim2.new(0, 396, 0, Val + 26)
+                selectorContainer.Size = UDim2.new(0, 308, 0, Val)
+                selectorTwo.Size = UDim2.new(0, 308, 0, Val)
+                selector.Size = UDim2.new(0, 310, 0, Val + 2)
+                selectorFrame.Size = UDim2.new(0, 310, 0, Val + 26)
 
                 UpdatePageSize()
                 checkSizes()
@@ -3144,39 +3080,39 @@ closeButton.Visible = UserInputService.TouchEnabled
                 optionButton.Parent = selectorContainer
                 optionButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 optionButton.BackgroundTransparency = 1.000
-                optionButton.Size = UDim2.new(0, 394, 0, 20)
+                optionButton.Size = UDim2.new(0, 308, 0, 20)
                 optionButton.AutoButtonColor = false
                 optionButton.Font = Enum.Font.Code
                 optionButton.Text = new
-                optionButton.TextColor3 = Color3.fromRGB(140, 140, 140)
-                optionButton.TextSize = 14.000
+                optionButton.TextColor3 = library.Theme.TextColor
+                optionButton.TextSize = 13.000
                 if optionButton.Text == default then
-                    optionButton.TextColor3 = Color3.fromRGB(159, 115, 255)
+                    optionButton.TextColor3 = library.Theme.AccentColor
                     callback(selectorText.Text)
                 end
 
                 optionButton.MouseButton1Click:Connect(function()
                     for z,x in next, selectorContainer:GetChildren() do
                         if x:IsA("TextButton") then
-                            TweenService:Create(x, TweenTable["selector"], {TextColor3 = Color3.fromRGB(140, 140, 140)}):Play()
+                            TweenService:Create(x, TweenTable["selector"], {TextColor3 = library.Theme.TextColor}):Play()
                         end
                     end
-                    TweenService:Create(optionButton, TweenTable["selector"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+                    TweenService:Create(optionButton, TweenTable["selector"], {TextColor3 = library.Theme.AccentColor}):Play()
                     selectorText.Text = optionButton.Text
                     callback(optionButton.Text)
                 end)
 
                 checkSizes()
-                selectorContainer.Size = UDim2.new(0, 394, 0, Val + AddAmount)
-                selectorTwo.Size = UDim2.new(0, 394, 0, Val + AddAmount)
-                selector.Size = UDim2.new(0, 396, 0, (Val + AddAmount) + 2)
-                selectorFrame.Size = UDim2.new(0, 396, 0, (Val + AddAmount) + 26)
+                selectorContainer.Size = UDim2.new(0, 308, 0, Val + AddAmount)
+                selectorTwo.Size = UDim2.new(0, 308, 0, Val + AddAmount)
+                selector.Size = UDim2.new(0, 310, 0, (Val + AddAmount) + 2)
+                selectorFrame.Size = UDim2.new(0, 310, 0, (Val + AddAmount) + 26)
 
                 UpdatePageSize()
                 checkSizes()
                 return SelectorFunctions
             end
-            --
+            
             local RemoveAmount = 0
             function SelectorFunctions:RemoveOption(option)
                 list[option] = nil
@@ -3188,10 +3124,10 @@ closeButton.Visible = UserInputService.TouchEnabled
                     if v:IsA("TextButton") then
                         if v.Text == option then
                             v:Destroy()
-                            selectorContainer.Size = UDim2.new(0, 394, 0, Val - RemoveAmount)
-                            selectorTwo.Size = UDim2.new(0, 394, 0, Val - RemoveAmount)
-                            selector.Size = UDim2.new(0, 396, 0, (Val - RemoveAmount) + 2)
-                            selectorFrame.Size = UDim2.new(0, 396, 0, (Val + 6) - 20)
+                            selectorContainer.Size = UDim2.new(0, 308, 0, Val - RemoveAmount)
+                            selectorTwo.Size = UDim2.new(0, 308, 0, Val - RemoveAmount)
+                            selector.Size = UDim2.new(0, 310, 0, (Val - RemoveAmount) + 2)
+                            selectorFrame.Size = UDim2.new(0, 310, 0, (Val + 6) - 20)
                         end
                     end
                 end
@@ -3204,36 +3140,36 @@ closeButton.Visible = UserInputService.TouchEnabled
                 checkSizes()
                 return SelectorFunctions
             end
-            --
+            
             function SelectorFunctions:SetFunction(new)
                 new = new or callback
                 callback = new
                 return SelectorFunctions
             end
-            --
+            
             function SelectorFunctions:Text(new)
                 new = new or selectorLabel.Text
                 selectorLabel.Text = new
                 return SelectorFunctions
             end
-            --
+            
             function SelectorFunctions:Hide()
                 selectorFrame.Visible = false
                 return SelectorFunctions
             end
-            --
+            
             function SelectorFunctions:Show()
                 selectorFrame.Visible = true
                 return SelectorFunctions
             end
-            --
+            
             function SelectorFunctions:Remove()
                 selectorFrame:Destroy()
                 return SelectorFunctions
             end
             return SelectorFunctions
         end
-        --
+        
         function Components:NewSlider(text, suffix, compare, compareSign, values, callback)
             text = text or "slider"
             suffix = suffix or ""
@@ -3272,8 +3208,7 @@ closeButton.Visible = UserInputService.TouchEnabled
             sliderFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sliderFrame.BackgroundTransparency = 1.000
             sliderFrame.ClipsDescendants = true
-            sliderFrame.Position = UDim2.new(0.00499999989, 0, 0.667630076, 0)
-            sliderFrame.Size = UDim2.new(0, 396, 0, 40)
+            sliderFrame.Size = UDim2.new(0, 310, 0, 40)
 
             sliderFolder.Name = "sliderFolder"
             sliderFolder.Parent = sliderFrame
@@ -3288,9 +3223,8 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             sliderButton.Name = "sliderButton"
             sliderButton.Parent = sliderFolder
-            sliderButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            sliderButton.Position = UDim2.new(0.348484844, 0, 0.600000024, 0)
-            sliderButton.Size = UDim2.new(0, 396, 0, 16)
+            sliderButton.BackgroundColor3 = library.Theme.BorderColor
+            sliderButton.Size = UDim2.new(0, 310, 0, 16)
             sliderButton.AutoButtonColor = false
             sliderButton.Font = Enum.Font.SourceSans
             sliderButton.Text = ""
@@ -3304,14 +3238,17 @@ closeButton.Visible = UserInputService.TouchEnabled
             sliderBackground.Name = "sliderBackground"
             sliderBackground.Parent = sliderButton
             sliderBackground.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            sliderBackground.Size = UDim2.new(0, 394, 0, 14)
+            sliderBackground.Size = UDim2.new(0, 308, 0, 14)
             sliderBackground.ClipsDescendants = true
 
             sliderButtonCorner_2.CornerRadius = UDim.new(0, 2)
             sliderButtonCorner_2.Name = "sliderButtonCorner"
             sliderButtonCorner_2.Parent = sliderBackground
 
-            sliderBackgroundGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(34, 34, 34)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(28, 28, 28))}
+            sliderBackgroundGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.BackgroundColor),
+                ColorSequenceKeypoint.new(1.00, library.Theme.SecondaryColor)
+            }
             sliderBackgroundGradient.Rotation = 90
             sliderBackgroundGradient.Name = "sliderBackgroundGradient"
             sliderBackgroundGradient.Parent = sliderBackground
@@ -3330,9 +3267,12 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             sliderIndicatorStraint.Name = "sliderIndicatorStraint"
             sliderIndicatorStraint.Parent = sliderIndicator
-            sliderIndicatorStraint.MaxSize = Vector2.new(392, 12)
+            sliderIndicatorStraint.MaxSize = Vector2.new(308, 12)
 
-            sliderIndicatorGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(159, 115, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(128, 94, 208))}
+            sliderIndicatorGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0.00, library.Theme.AccentColor),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(128, 94, 208))
+            }
             sliderIndicatorGradient.Rotation = 90
             sliderIndicatorGradient.Name = "sliderIndicatorGradient"
             sliderIndicatorGradient.Parent = sliderIndicator
@@ -3358,11 +3298,11 @@ closeButton.Visible = UserInputService.TouchEnabled
             sliderLabel.Parent = sliderFrame
             sliderLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sliderLabel.BackgroundTransparency = 1.000
-            sliderLabel.Size = UDim2.new(0, 396, 0, 24)
+            sliderLabel.Size = UDim2.new(0, 310, 0, 24)
             sliderLabel.Font = Enum.Font.Code
             sliderLabel.Text = text
-            sliderLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-            sliderLabel.TextSize = 14.000
+            sliderLabel.TextColor3 = library.Theme.TextColor
+            sliderLabel.TextSize = 13.000
             sliderLabel.TextWrapped = true
             sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
             sliderLabel.RichText = true
@@ -3378,14 +3318,12 @@ closeButton.Visible = UserInputService.TouchEnabled
             sliderValue.Parent = sliderLabel
             sliderValue.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sliderValue.BackgroundTransparency = 1.000
-            sliderValue.Position = UDim2.new(0.577319562, 0, 0, 0)
             sliderValue.Size = UDim2.new(0, 169, 0, 15)
             sliderValue.Font = Enum.Font.Code
             sliderValue.Text = values.default
             sliderValue.TextColor3 = Color3.fromRGB(140, 140, 140)
-            sliderValue.TextSize = 14.000
+            sliderValue.TextSize = 13.000
             sliderValue.TextXAlignment = Enum.TextXAlignment.Right
-
 
             local calc1 = values.max - values.min
             local calc2 = values.default - values.min
@@ -3466,14 +3404,14 @@ closeButton.Visible = UserInputService.TouchEnabled
                 sliderValue.Text = slideText
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Max(new)
                 new = new or values.max
                 values.max = new + 1
                 slideText = compare and ValueNum .. compareSign .. tostring(values.max - 1) .. suffix or ValueNum .. suffix
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Min(new)
                 new = new or values.min
                 values.min = new
@@ -3481,36 +3419,36 @@ closeButton.Visible = UserInputService.TouchEnabled
                 TweenService:Create(sliderIndicator, TweenTable["slider_drag"], {Size = UDim2.new(0, math.clamp(Mouse.X - sliderIndicator.AbsolutePosition.X, 0, sliderBackground.AbsoluteSize.X), 0, 12)}):Play()
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:SetFunction(new)
                 new = new or callback
                 callback = new
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Text(new)
                 new = new or sliderLabel.Text
                 sliderLabel.Text = new
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Hide()
                 sliderFrame.Visible = false
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Show()
                 sliderFrame.Visible = true
                 return SliderFunctions
             end
-            --
+            
             function SliderFunctions:Remove()
                 sliderFrame:Destroy()
                 return SliderFunctions
             end
             return SliderFunctions
         end
-        --
+        
         function Components:NewSeperator()
             local sectionFrame = Instance.new("Frame")
             local sectionLayout = Instance.new("UIListLayout")
@@ -3521,8 +3459,7 @@ closeButton.Visible = UserInputService.TouchEnabled
             sectionFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             sectionFrame.BackgroundTransparency = 1.000
             sectionFrame.ClipsDescendants = true
-            sectionFrame.Position = UDim2.new(0.00499999989, 0, 0.361271679, 0)
-            sectionFrame.Size = UDim2.new(0, 396, 0, 12)
+            sectionFrame.Size = UDim2.new(0, 310, 0, 12)
 
             sectionLayout.Name = "sectionLayout"
             sectionLayout.Parent = sectionFrame
@@ -3533,10 +3470,9 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             rightBar.Name = "rightBar"
             rightBar.Parent = sectionFrame
-            rightBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            rightBar.BackgroundColor3 = library.Theme.BorderColor
             rightBar.BorderSizePixel = 0
-            rightBar.Position = UDim2.new(0.308080822, 0, 0.479166657, 0)
-            rightBar.Size = UDim2.new(0, 403, 0, 1)
+            rightBar.Size = UDim2.new(0, 310, 0, 1)
 
             UpdatePageSize()
 
@@ -3545,19 +3481,19 @@ closeButton.Visible = UserInputService.TouchEnabled
                 sectionFrame.Visible = false
                 return SeperatorFunctions
             end
-            --
+            
             function SeperatorFunctions:Show()
                 sectionFrame.Visible = true
                 return SeperatorFunctions
             end
-            --
+            
             function SeperatorFunctions:Remove()
                 sectionFrame:Destroy()
                 return SeperatorFunctions
             end
             return SeperatorFunctions
         end
-        --
+        
         function Components:Open()
             TabLibrary.CurrentTab = title
             for i,v in pairs(container:GetChildren()) do 
@@ -3569,56 +3505,50 @@ closeButton.Visible = UserInputService.TouchEnabled
 
             for i,v in pairs(tabButtons:GetChildren()) do
                 if v:IsA("TextButton") then
-                    TweenService:Create(v, TweenTable["tab_text_colour"], {TextColor3 = Color3.fromRGB(170, 170, 170)}):Play()
+                    TweenService:Create(v, TweenTable["tab_text_colour"], {TextColor3 = library.Theme.TextColor}):Play()
                 end
             end
-            TweenService:Create(tabButton, TweenTable["tab_text_colour"], {TextColor3 = Color3.fromRGB(159, 115, 255)}):Play()
+            TweenService:Create(tabButton, TweenTable["tab_text_colour"], {TextColor3 = library.Theme.AccentColor}):Play()
 
             return Components
         end
-        --
+        
         function Components:Remove()
             tabButton:Destroy()
             page:Destroy()
-
             return Components
         end
-        --
+        
         function Components:Hide()
             tabButton.Visible = false
             page.Visible = false
-
             return Components
         end
-        --
+        
         function Components:Show()
             tabButton.Visible = true
-
             return Components
         end
-        --
+        
         function Components:Text(text)
             text = text or "new text"
             tabButton.Text = text
-
             return Components
         end
         return Components
     end
-    --
+    
     function TabLibrary:Remove()
         screen:Destroy()
-
         return TabLibrary
     end
-    --
+    
     function TabLibrary:Text(text)
         text = text or "new text"
         headerLabel.Text = text
-
         return TabLibrary
     end
-    --
+    
     function TabLibrary:UpdateKeybind(new)
         new = new or key
         key = new
@@ -3626,4 +3556,5 @@ closeButton.Visible = UserInputService.TouchEnabled
     end
     return TabLibrary
 end
+
 return library
