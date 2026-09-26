@@ -21,8 +21,8 @@ end)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
 local currentPlaceId = game.PlaceId
+local coreGui = gethui and gethui() or game:GetService("CoreGui")
 
 if currentPlaceId == 138837502355157 then
     task.spawn(function()
@@ -41,153 +41,181 @@ if currentPlaceId == 138837502355157 then
     end)
 end
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = " Ì±"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "fe bypass"
+ScreenGui.Parent = coreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local mainFrame = Instance.new("ImageLabel")
-mainFrame.Size = UDim2.new(0, 340, 0, 300)
-mainFrame.Position = UDim2.new(0, 50, 0, 50)
-mainFrame.Image = "rbxassetid://17142884399"
-mainFrame.BackgroundTransparency = 1
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 260, 0, 185)
+MainFrame.Position = UDim2.new(0, 750, 0, 350)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+MainFrame.BackgroundTransparency = 0.55
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
 
-local buttonBypass = Instance.new("TextButton")
-buttonBypass.Size = UDim2.new(0, 260, 0, 38)
-buttonBypass.Position = UDim2.new(0.5, -130, 0.15, 0)
-buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
-buttonBypass.TextColor3 = Color3.fromRGB(0, 255, 128)
-buttonBypass.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-buttonBypass.TextSize = 14
+local UICornerD = Instance.new("UICorner")
+UICornerD.CornerRadius = UDim.new(0, 18)
+UICornerD.Parent = MainFrame
 
-local buttonLoopTp = Instance.new("TextButton")
-buttonLoopTp.Size = UDim2.new(0, 260, 0, 38)
-buttonLoopTp.Position = UDim2.new(0.5, -130, 0.38, 0)
-buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
-buttonLoopTp.TextColor3 = Color3.fromRGB(0, 255, 128)
-buttonLoopTp.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-buttonLoopTp.TextSize = 12
+local UIStrokeD = Instance.new("UIStroke")
+UIStrokeD.Color = Color3.fromRGB(80, 160, 220)
+UIStrokeD.Transparency = 0.35
+UIStrokeD.Thickness = 1.5
+UIStrokeD.Parent = MainFrame
 
-local buttonPurpleKeys = Instance.new("TextButton")
-buttonPurpleKeys.Size = UDim2.new(0, 260, 0, 38)
-buttonPurpleKeys.Position = UDim2.new(0.5, -130, 0.61, 0)
-buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(90, 20, 90)
-buttonPurpleKeys.TextColor3 = Color3.fromRGB(255, 128, 255)
-buttonPurpleKeys.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-buttonPurpleKeys.TextSize = 12
+local TitleD = Instance.new("TextLabel")
+TitleD.Size = UDim2.new(1, 0, 0, 26)
+TitleD.Position = UDim2.new(0, 0, 0, 4)
+TitleD.BackgroundTransparency = 1
+TitleD.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+TitleD.Text = "fe bypass by 6xow"
+TitleD.TextColor3 = Color3.fromRGB(240, 245, 255)
+TitleD.TextSize = 13
+TitleD.Parent = MainFrame
 
-if currentPlaceId == 138837502355157 then
-    buttonBypass.Text = "Auto Use Keys"
-    buttonLoopTp.Text = "Auto Get Crowns (You need 2100 Keys for get all Crowns)"
-    buttonPurpleKeys.Text = "Auto Use Purple Keys"
-else
-    buttonBypass.Text = "start the stupid (fe bypass)"
-    buttonLoopTp.Text = "idk"
-    buttonPurpleKeys.Text = "Auto Use Purple Keys"
-    buttonPurpleKeys.Visible = false
-    mainFrame.Size = UDim2.new(0, 340, 0, 240)
+local ToggleBtnD = Instance.new("TextButton")
+ToggleBtnD.Size = UDim2.new(0.88, 0, 0, 34)
+ToggleBtnD.Position = UDim2.new(0.06, 0, 0, 34)
+ToggleBtnD.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+ToggleBtnD.BackgroundTransparency = 0.5
+ToggleBtnD.BorderSizePixel = 0
+ToggleBtnD.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+ToggleBtnD.Text = currentPlaceId == 138837502355157 and "Auto Use Keys" or "fe bypass off vro"
+ToggleBtnD.TextColor3 = Color3.fromRGB(200, 210, 225)
+ToggleBtnD.TextSize = 12
+ToggleBtnD.Parent = MainFrame
+Instance.new("UICorner", ToggleBtnD).CornerRadius = UDim.new(0, 10)
+local ts1 = Instance.new("UIStroke", ToggleBtnD)
+ts1.Color = Color3.fromRGB(80, 160, 220)
+ts1.Transparency = 0.5
+ts1.Thickness = 1
+
+local ButtonLoopTp = Instance.new("TextButton")
+ButtonLoopTp.Size = UDim2.new(0.88, 0, 0, 34)
+ButtonLoopTp.Position = UDim2.new(0.06, 0, 0, 73)
+ButtonLoopTp.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+ButtonLoopTp.BackgroundTransparency = 0.5
+ButtonLoopTp.BorderSizePixel = 0
+ButtonLoopTp.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+ButtonLoopTp.Text = currentPlaceId == 138837502355157 and "Auto Get Crowns" or "idk"
+ButtonLoopTp.TextColor3 = Color3.fromRGB(200, 210, 225)
+ButtonLoopTp.TextSize = 12
+ButtonLoopTp.Parent = MainFrame
+Instance.new("UICorner", ButtonLoopTp).CornerRadius = UDim.new(0, 10)
+local ts2 = Instance.new("UIStroke", ButtonLoopTp)
+ts2.Color = Color3.fromRGB(80, 160, 220)
+ts2.Transparency = 0.5
+ts2.Thickness = 1
+
+local ButtonPurpleKeys = Instance.new("TextButton")
+ButtonPurpleKeys.Size = UDim2.new(0.88, 0, 0, 34)
+ButtonPurpleKeys.Position = UDim2.new(0.06, 0, 0, 112)
+ButtonPurpleKeys.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+ButtonPurpleKeys.BackgroundTransparency = 0.5
+ButtonPurpleKeys.BorderSizePixel = 0
+ButtonPurpleKeys.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+ButtonPurpleKeys.Text = "Auto Use Purple Keys"
+ButtonPurpleKeys.TextColor3 = Color3.fromRGB(200, 210, 225)
+ButtonPurpleKeys.TextSize = 12
+ButtonPurpleKeys.Parent = MainFrame
+Instance.new("UICorner", ButtonPurpleKeys).CornerRadius = UDim.new(0, 10)
+local ts3 = Instance.new("UIStroke", ButtonPurpleKeys)
+ts3.Color = Color3.fromRGB(80, 160, 220)
+ts3.Transparency = 0.5
+ts3.Thickness = 1
+
+if currentPlaceId ~= 138837502355157 then
+    ButtonPurpleKeys.Visible = false
+    MainFrame.Size = UDim2.new(0, 260, 0, 145)
 end
 
-buttonBypass.Parent = mainFrame
-buttonLoopTp.Parent = mainFrame
-buttonPurpleKeys.Parent = mainFrame
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0.88, 0, 0, 24)
+StatusLabel.Position = UDim2.new(0.06, 0, 0, 153)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+StatusLabel.TextColor3 = Color3.fromRGB(160, 215, 255)
+StatusLabel.TextSize = 11
+StatusLabel.Text = "Ready..."
+StatusLabel.TextScaled = true
+StatusLabel.Parent = MainFrame
 
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(0, 300, 0, 50)
-statusLabel.Position = UDim2.new(0.5, -150, 0.81, 0)
-statusLabel.BackgroundTransparency = 1
-statusLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
-statusLabel.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-statusLabel.TextSize = 12
-statusLabel.Text = "Ready to execute..."
-statusLabel.TextWrapped = true
-statusLabel.TextXAlignment = Enum.TextXAlignment.Center
-statusLabel.Parent = mainFrame
+if currentPlaceId ~= 138837502355157 then
+    StatusLabel.Position = UDim2.new(0.06, 0, 0, 112)
+end
 
 local activeBypass = false
 local activeLoopTp = false
 local activePurpleKeys = false
 local visitedRooms = {}
-
-local totalSent = 0
 local currentCount = 0
 
 task.spawn(function()
     while true do
         task.wait(1)
         if activeBypass and currentPlaceId ~= 138837502355157 then
-            statusLabel.Text = string.format("fe bypass started son\nsending ts stupid packages\nTotal: %d", currentCount)
+            StatusLabel.Text = string.format("Sending packages... Total: %d", currentCount)
             currentCount = 0
         end
     end
 end)
 
-buttonBypass.MouseButton1Click:Connect(function()
+ToggleBtnD.MouseButton1Click:Connect(function()
     activeBypass = not activeBypass
     if activeBypass then
         if currentPlaceId == 138837502355157 then
-            buttonBypass.Text = "Stop Auto Keys"
-            buttonBypass.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-            statusLabel.Text = "Auto Use Keys started vro"
+            ToggleBtnD.Text = "Stop Auto Keys"
+            StatusLabel.Text = "Auto Keys started"
         else
-            buttonBypass.Text = "Stop fe Bypassing?"
-            buttonBypass.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-            statusLabel.Text = "fe bypass started vro"
+            ToggleBtnD.Text = "fe bypass by 6xow on"
+            StatusLabel.Text = "Bypass started"
         end
     else
         if currentPlaceId == 138837502355157 then
-            buttonBypass.Text = "Auto Use Keys"
-            buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
-            statusLabel.Text = "Auto Keys stopped son"
+            ToggleBtnD.Text = "Auto Use Keys"
+            StatusLabel.Text = "Auto Keys stopped"
         else
-            buttonBypass.Text = "fe bypass by 6xow btw"
-            buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
-            statusLabel.Text = "fe bypass stopped vro"
+            ToggleBtnD.Text = "fe bypass off vro"
+            StatusLabel.Text = "Bypass stopped"
             currentCount = 0
         end
     end
 end)
 
-buttonLoopTp.MouseButton1Click:Connect(function()
-    if not buttonLoopTp.Parent then return end
+ButtonLoopTp.MouseButton1Click:Connect(function()
     activeLoopTp = not activeLoopTp
     if activeLoopTp then
         if currentPlaceId == 138837502355157 then
-            buttonLoopTp.Text = "Stop Auto Crowns"
-            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-            statusLabel.Text = "Auto Get Crowns active vro"
+            ButtonLoopTp.Text = "Stop Auto Crowns"
+            StatusLabel.Text = "Auto Crowns active"
         else
-            buttonLoopTp.Text = "Stop the processðŸ’”ðŸ¥€"
-            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-            statusLabel.Text = "..."
+            ButtonLoopTp.Text = "Stop process"
+            StatusLabel.Text = "Process active"
         end
     else
         if currentPlaceId == 138837502355157 then
-            buttonLoopTp.Text = "Auto Get Crowns (You need 2100 Keys for get all Crowns)"
-            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
-            statusLabel.Text = "Auto Crowns stopped mf"
+            ButtonLoopTp.Text = "Auto Get Crowns"
+            StatusLabel.Text = "Auto Crowns stopped"
         else
-            buttonLoopTp.Text = "process"
-            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
-            statusLabel.Text = "process stopped mf"
+            ButtonLoopTp.Text = "idk"
+            StatusLabel.Text = "Process stopped"
         end
     end
 end)
 
-buttonPurpleKeys.MouseButton1Click:Connect(function()
+ButtonPurpleKeys.MouseButton1Click:Connect(function()
     if currentPlaceId ~= 138837502355157 then return end
     activePurpleKeys = not activePurpleKeys
     if activePurpleKeys then
-        buttonPurpleKeys.Text = "Stop Purple Keys"
-        buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-        statusLabel.Text = "..."
+        ButtonPurpleKeys.Text = "Stop Purple Keys"
+        StatusLabel.Text = "Purple Keys active"
     else
-        buttonPurpleKeys.Text = "Auto Use Purple Keys"
-        buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(90, 20, 90)
-        statusLabel.Text = "stopped son"
+        ButtonPurpleKeys.Text = "Auto Use Purple Keys"
+        StatusLabel.Text = "Purple Keys stopped"
     end
 end)
 
@@ -283,7 +311,7 @@ task.spawn(function()
                 for _, room in ipairs(rooms) do
                     if not activeBypass then break end
                     if room:IsA("Model") or room:IsA("Folder") then
-                        statusLabel.Text = string.format("Spameando...\nHabitaciÃ³n: %s", room.Name)
+                        StatusLabel.Text = string.format("Room: %s", room.Name)
                         
                         workspace:SetAttribute("ClientInRoom", room.Name)
                         if actor then
@@ -296,7 +324,6 @@ task.spawn(function()
                                 pcall(function()
                                     updateEvent:FireServer(room.Name)
                                 end)
-                                totalSent = totalSent + 1
                                 currentCount = currentCount + 1
                                 task.wait()
                             end
@@ -388,11 +415,11 @@ task.spawn(function()
                             
                             if roomNum and roomNum >= 49 then
                                 activeLoopTp = false
-                                statusLabel.Text = "uh"
+                                StatusLabel.Text = "Done"
                                 
                                 task.delay(0.1, function()
                                     pcall(function()
-                                        buttonLoopTp:Destroy()
+                                        ButtonLoopTp:Destroy()
                                     end)
                                 end)
                                 break
