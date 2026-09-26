@@ -1,9 +1,3 @@
-Usa este:
-
-
--- Decompiled using LunaUX-Decompiler V1.4.4. Luau decompiler made by boydev1444 & zyx (discord.gg/2mJUD4XDDT)
--- Decompiled at Fri Sep 25 18:28:11 2026 Pacific Standard Time, took 0.002442 second(s)
-
 local Humanoid = script.Parent:WaitForChild("Humanoid")
 local v1 = nil
 game.ReplicatedFirst.Sound.MuteLogic.Value = 0
