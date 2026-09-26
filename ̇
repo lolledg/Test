@@ -271,7 +271,7 @@ task.spawn(function()
             pcall(function()
                 local event = game:GetService("ReplicatedStorage"):FindFirstChild("BuyKCrown")
                 if event then
-                    for i = 1, 100 do
+                    for i = 1, 10000 do
                         if not activeLoopTp then break end
                         task.spawn(function()
                             pcall(function()
@@ -281,9 +281,9 @@ task.spawn(function()
                     end
                 end
             end)
-            task.wait(0.1)
+            task.wait(10)
         else
-            task.wait(0.1)
+            task.wait(10)
         end
     end
 end)
