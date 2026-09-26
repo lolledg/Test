@@ -1,27 +1,36 @@
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
+Usa este:
 
--- Ruta al módulo de efectos que decompilaste
-local killEffectsModule = ReplicatedStorage:WaitForChild("Events"):WaitForChild("KillEffect"):WaitForChild("KillEffects")
-local effects = require(killEffectsModule)
 
--- Elige qué efecto quieres spamear (ej. "Tragedy", "Slugfish", "Goatman", "Sorrow")
-local effectName = "Tragedy" 
+-- Decompiled using LunaUX-Decompiler V1.4.4. Luau decompiler made by boydev1444 & zyx (discord.gg/2mJUD4XDDT)
+-- Decompiled at Fri Sep 25 18:28:11 2026 Pacific Standard Time, took 0.002442 second(s)
 
-task.spawn(function()
-    local char = player.Character
-    if not char then return end
-
-    -- Bucle para disparar el efecto 100 veces seguidas (o el número que prefieras)
-    for i = 1, 10000 do
-        task.spawn(function()
-            pcall(function()
-                if effects[effectName] and char:FindFirstChild("Torso") then
-                    effects[effectName](char)
-                end
-            end)
-        end)
-        task.wait() -- Evita que el juego se congele por completo (crash)
-    end
+local Humanoid = script.Parent:WaitForChild("Humanoid")
+local v1 = nil
+game.ReplicatedFirst.Sound.MuteLogic.Value = 0
+v1 = Humanoid:GetPropertyChangedSignal("Health"):Connect(function() --[[ Line: 7 | Named "die" ]]
+	-- upvalues: Humanoid (copy), v1 (ref)
+	if Humanoid.Health > 0 then return end
+	v1 = v1:Disconnect()
+	task.spawn(function() --[[ Line: 10 ]]
+		game.ReplicatedStorage.KillClient:InvokeServer()
+	end)
+	game.Players.LocalPlayer.Backpack:ClearAllChildren()
+	
+	if workspace:GetAttribute("MAYHEM") then
+		if workspace:GetAttribute("MAYHEM_VIOLATIONS") > 0 then
+			workspace:SetAttribute("MAYHEM_SINWIPED", true)
+		end
+		_G.Badge(2986552510222334)
+	end
+	local Copy = (workspace:GetAttribute("MAYHEM") and game.ReplicatedStorage.MAYHEM_deathscreen or (workspace:GetAttribute("RROT") and game.ReplicatedStorage.rot_deathscreen or game.ReplicatedStorage.deathscreen)):Clone()
+	Copy.Parent = game.Players.LocalPlayer.PlayerGui
+	game.ReplicatedStorage.ghostscreen:Clone().Parent = Copy.Parent
+	script.Parent.Sprint:Destroy()
 end)
+
+if game.GameId ~= 6508759464 then
+	local v2 = 0
+	while v2 >= 0 do
+		v2 += 999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+	end
+end
