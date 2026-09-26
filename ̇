@@ -41,13 +41,43 @@ if currentPlaceId == 138837502355157 then
     end)
 end
 
+local shouldHideProcessButton = false
+
+if currentPlaceId ~= 138837502355157 then
+    pcall(function()
+        local currentRoomAttr = workspace:GetAttribute("ClientInRoom")
+        if not currentRoomAttr then
+            local roomsFolder = workspace:FindFirstChild("Rooms")
+            if roomsFolder then
+                for _, room in ipairs(roomsFolder:GetChildren()) do
+                    local num = tonumber(room.Name)
+                    if num and num >= 49 then
+                        currentRoomAttr = room.Name
+                        break
+                    end
+                end
+            end
+        end
+        
+        local roomNum = tonumber(currentRoomAttr)
+        if roomNum and roomNum >= 49 then
+            shouldHideProcessButton = true
+        end
+    end)
+end
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "fe bypass"
 ScreenGui.Parent = coreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+local frameHeight = 155
+if currentPlaceId ~= 138837502355157 and shouldHideProcessButton then
+    frameHeight = 115
+end
+
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 260, 0, 155)
+MainFrame.Size = UDim2.new(0, 260, 0, frameHeight)
 MainFrame.Position = UDim2.new(0, 750, 0, 350)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
 MainFrame.BackgroundTransparency = 0.55
@@ -130,33 +160,12 @@ ts3.Thickness = 1
 
 if currentPlaceId ~= 138837502355157 then
     ButtonPurpleKeys.Visible = false
-    MainFrame.Size = UDim2.new(0, 260, 0, 115)
-end
-
-if currentPlaceId ~= 138837502355157 then
-    task.spawn(function()
-        pcall(function()
-            local currentRoomAttr = workspace:GetAttribute("ClientInRoom")
-            if not currentRoomAttr then
-                local roomsFolder = workspace:FindFirstChild("Rooms")
-                if roomsFolder then
-                    for _, room in ipairs(roomsFolder:GetChildren()) do
-                        local num = tonumber(room.Name)
-                        if num and num >= 49 then
-                            currentRoomAttr = room.Name
-                            break
-                        end
-                    end
-                end
-            end
-            
-            local roomNum = tonumber(currentRoomAttr)
-            if roomNum and roomNum >= 49 then
-                ButtonLoopTogglesAreDisabled = true
-                ButtonLoopTp:Destroy()
-            end
-        end)
-    end)
+    if shouldHideProcessButton then
+        ButtonLoopTp.Visible = false
+        MainFrame.Size = UDim2.new(0, 260, 0, 80)
+    else
+        MainFrame.Size = UDim2.new(0, 260, 0, 115)
+    end
 end
 
 local activeBypass = false
@@ -405,6 +414,7 @@ task.spawn(function()
                                 task.delay(0.1, function()
                                     pcall(function()
                                         ButtonLoopTp:Destroy()
+                                        MainFrame.Size = UDim2.new(0, 260, 0, 80)
                                     end)
                                 end)
                                 break
