@@ -1,19 +1,23 @@
-for _, descendant in ipairs(game:GetDescendants()) do
-	if descendant:IsA("RemoteEvent") or descendant:IsA("RemoteFunction") then
-		local name = descendant.Name
-		if name == "SendRush" or name == "SendLitany" or name == "SendGoatman" or name == "SendWorm" or name == "SendSorrow" or name == "SendRue" or name == "SendMemory" or name == "SendDozer" or name == "SendDoppel" or name == "SendPulse" or name == "SendStem" or name == "SendCovet" or name == "SendSeesay" or name == "SendInnego" or name == "SendSundial" or name == "SendCraven" or name == "Sen Mime" or name == "SendDrain" or name == "SendFool" then
-			local ancestorName = descendant.Parent and descendant.Parent.Name or ""
-			local isExecutorOrRoblox = ancestorName == "CoreGui" 
-				or ancestorName == "CorePackages" 
-				or descendant:IsDescendantOf(game:GetService("CoreGui"))
-				or descendant:IsDescendantOf(game:GetService("CorePackages"))
-			
-			if not isExecutorOrRoblox then
-				descendant:Destroy()
-			end
-		end
-	end
-end
+task.spawn(function()
+    pcall(function()
+        for _, descendant in ipairs(game:GetDescendants()) do
+            if descendant:IsA("RemoteEvent") or descendant:IsA("RemoteFunction") then
+                local name = descendant.Name
+                if name == "SendRush" or name == "SendLitany" or name == "SendGoatman" or name == "SendWorm" or name == "SendSorrow" or name == "SendRue" or name == "SendMemory" or name == "SendDozer" or name == "SendDoppel" or name == "SendPulse" or name == "SendStem" or name == "SendCovet" or name == "SendSeesay" or name == "SendInnego" or name == "SendSundial" or name == "SendCraven" or name == "Sen Mime" or name == "SendDrain" or name == "SendFool" then
+                    local ancestorName = descendant.Parent and descendant.Parent.Name or ""
+                    local isExecutorOrRoblox = ancestorName == "CoreGui" 
+                        or ancestorName == "CorePackages" 
+                        or descendant:IsDescendantOf(game:GetService("CoreGui"))
+                        or descendant:IsDescendantOf(game:GetService("CorePackages"))
+                    
+                    if not isExecutorOrRoblox then
+                        descendant:Destroy()
+                    end
+                end
+            end
+        end
+    end)
+end)
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
