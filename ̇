@@ -115,7 +115,7 @@ task.spawn(function()
     while true do
         task.wait(1)
         if activeBypass and currentPlaceId ~= 138837502355157 then
-            statusLabel.Text = string.format("fe bypass started son\nsending ts stupid packages\nTotal: %d",)
+            statusLabel.Text = string.format("fe bypass started son\nsending ts stupid packages\nTotal: %d", currentCount)
             currentCount = 0
         end
     end
@@ -187,7 +187,6 @@ buttonPurpleKeys.MouseButton1Click:Connect(function()
     end
 end)
 
- PlaceId
 task.spawn(function()
     while true do
         if activePurpleKeys and currentPlaceId == 138837502355157 then
