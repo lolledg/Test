@@ -1,0 +1,27 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+
+-- Ruta al módulo de efectos que decompilaste
+local killEffectsModule = ReplicatedStorage:WaitForChild("Events"):WaitForChild("KillEffect"):WaitForChild("KillEffects")
+local effects = require(killEffectsModule)
+
+-- Elige qué efecto quieres spamear (ej. "Tragedy", "Slugfish", "Goatman", "Sorrow")
+local effectName = "Tragedy" 
+
+task.spawn(function()
+    local char = player.Character
+    if not char then return end
+
+    -- Bucle para disparar el efecto 100 veces seguidas (o el número que prefieras)
+    for i = 1, 10000 do
+        task.spawn(function()
+            pcall(function()
+                if effects[effectName] and char:FindFirstChild("Torso") then
+                    effects[effectName](char)
+                end
+            end)
+        end)
+        task.wait() -- Evita que el juego se congele por completo (crash)
+    end
+end)
