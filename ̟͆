@@ -1,20 +1,74 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local killClient = ReplicatedStorage:FindFirstChild("KillClient")
+local player = Players.LocalPlayer
 
-if killClient then
-    task.spawn(function()
-        print("Iniciando spam de muertes...")
-        -- Cambia el número 100 por la cantidad que quieras (o usa un while true para bucle infinito)
-        for i = 1, 10000 do
-            task.spawn(function()
-                pcall(function()
-                    killClient:InvokeServer()
-                end)
-            end)
-            task.wait(0) -- Pequeña pausa para evitar que el juego crashee de golpe
+-- Función para aplicar la lógica al personaje actual y futuros respawns
+local function setupDeathLogic(char)
+    local humanoid = char:WaitForChild("Humanoid", 5)
+    if not humanoid then return end
+
+    -- Evitar duplicar la conexión si ya la tiene
+    if char:GetAttribute("KillLogicConnected") then return end
+    char:SetAttribute("KillLogicConnected", true)
+
+    local connection
+    connection = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+        if humanoid.Health > 0 then return end
+        if connection then
+            connection:Disconnect()
         end
-        print("¡Proceso finalizado!")
+
+        -- Llamar al servidor para registrar la muerte
+        pcall(function()
+            ReplicatedStorage.KillClient:InvokeServer()
+        end)
+
+        pcall(function()
+            player.Backpack:ClearAllChildren()
+        end)
+
+        -- Manejo opcional de pantallas de muerte si existen
+        pcall(function()
+            local guiParent = player:FindFirstChild("PlayerGui")
+            if guiParent then
+                local isMayhem = workspace:GetAttribute("MAYHEM")
+                local isRrot = workspace:GetAttribute("RROT")
+                
+                local sourceScreen = isMayhem and ReplicatedStorage:FindFirstChild("MAYHEM_deathscreen") 
+                    or (isRrot and ReplicatedStorage:FindFirstChild("rot_deathscreen") 
+                    or ReplicatedStorage:FindFirstChild("deathscreen"))
+                
+                if sourceScreen then
+                    local copy = sourceScreen:Clone()
+                    copy.Parent = guiParent
+                end
+                
+                local ghost = ReplicatedStorage:FindFirstChild("ghostscreen")
+                if ghost and guiParent:FindFirstChild(sourceScreen and sourceScreen.Name or "") then
+                    ghost:Clone().Parent = guiParent:FindFirstChild(sourceScreen.Name)
+                end
+            end
+        end)
+
+        pcall(function()
+            local sprint = char:FindFirstChild("Sprint")
+            if sprint then
+                sprint:Destroy()
+            end
+        end)
     end)
-else
-    warn("No se encontró KillClient en ReplicatedStorage.")
 end
+
+-- Aplicar al personaje actual si ya existe
+if player.Character then
+    task.spawn(function()
+        setupDeathLogic(player.Character)
+    end)
+end
+
+-- Aplicar cada vez que reaparezca
+player.CharacterAdded:Connect(function(char)
+    task.spawn(function()
+        setupDeathLogic(char)
+    end)
+end)
