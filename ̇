@@ -47,7 +47,7 @@ ScreenGui.Parent = coreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 260, 0, 185)
+MainFrame.Size = UDim2.new(0, 260, 0, 155)
 MainFrame.Position = UDim2.new(0, 750, 0, 350)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
 MainFrame.BackgroundTransparency = 0.55
@@ -101,7 +101,7 @@ ButtonLoopTp.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
 ButtonLoopTp.BackgroundTransparency = 0.5
 ButtonLoopTp.BorderSizePixel = 0
 ButtonLoopTp.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
-ButtonLoopTp.Text = currentPlaceId == 138837502355157 and "Auto Get Crowns" or "idk"
+ButtonLoopTp.Text = currentPlaceId == 138837502355157 and "Auto Get Crowns" or "proccess for may fe bypass"
 ButtonLoopTp.TextColor3 = Color3.fromRGB(200, 210, 225)
 ButtonLoopTp.TextSize = 12
 ButtonLoopTp.Parent = MainFrame
@@ -130,58 +130,53 @@ ts3.Thickness = 1
 
 if currentPlaceId ~= 138837502355157 then
     ButtonPurpleKeys.Visible = false
-    MainFrame.Size = UDim2.new(0, 260, 0, 145)
+    MainFrame.Size = UDim2.new(0, 260, 0, 115)
 end
 
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Size = UDim2.new(0.88, 0, 0, 24)
-StatusLabel.Position = UDim2.new(0.06, 0, 0, 153)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
-StatusLabel.TextColor3 = Color3.fromRGB(160, 215, 255)
-StatusLabel.TextSize = 11
-StatusLabel.Text = "Ready..."
-StatusLabel.TextScaled = true
-StatusLabel.Parent = MainFrame
-
 if currentPlaceId ~= 138837502355157 then
-    StatusLabel.Position = UDim2.new(0.06, 0, 0, 112)
+    task.spawn(function()
+        pcall(function()
+            local currentRoomAttr = workspace:GetAttribute("ClientInRoom")
+            if not currentRoomAttr then
+                local roomsFolder = workspace:FindFirstChild("Rooms")
+                if roomsFolder then
+                    for _, room in ipairs(roomsFolder:GetChildren()) do
+                        local num = tonumber(room.Name)
+                        if num and num >= 49 then
+                            currentRoomAttr = room.Name
+                            break
+                        end
+                    end
+                end
+            end
+            
+            local roomNum = tonumber(currentRoomAttr)
+            if roomNum and roomNum >= 49 then
+                ButtonLoopTogglesAreDisabled = true
+                ButtonLoopTp:Destroy()
+            end
+        end)
+    end)
 end
 
 local activeBypass = false
 local activeLoopTp = false
 local activePurpleKeys = false
 local visitedRooms = {}
-local currentCount = 0
-
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if activeBypass and currentPlaceId ~= 138837502355157 then
-            StatusLabel.Text = string.format("Sending packages... Total: %d", currentCount)
-            currentCount = 0
-        end
-    end
-end)
 
 ToggleBtnD.MouseButton1Click:Connect(function()
     activeBypass = not activeBypass
     if activeBypass then
         if currentPlaceId == 138837502355157 then
             ToggleBtnD.Text = "Stop Auto Keys"
-            StatusLabel.Text = "Auto Keys started"
         else
             ToggleBtnD.Text = "fe bypass by 6xow on"
-            StatusLabel.Text = "Bypass started"
         end
     else
         if currentPlaceId == 138837502355157 then
             ToggleBtnD.Text = "Auto Use Keys"
-            StatusLabel.Text = "Auto Keys stopped"
         else
             ToggleBtnD.Text = "fe bypass off vro"
-            StatusLabel.Text = "Bypass stopped"
-            currentCount = 0
         end
     end
 end)
@@ -191,18 +186,14 @@ ButtonLoopTp.MouseButton1Click:Connect(function()
     if activeLoopTp then
         if currentPlaceId == 138837502355157 then
             ButtonLoopTp.Text = "Stop Auto Crowns"
-            StatusLabel.Text = "Auto Crowns active"
         else
             ButtonLoopTp.Text = "Stop process"
-            StatusLabel.Text = "Process active"
         end
     else
         if currentPlaceId == 138837502355157 then
             ButtonLoopTp.Text = "Auto Get Crowns"
-            StatusLabel.Text = "Auto Crowns stopped"
         else
-            ButtonLoopTp.Text = "idk"
-            StatusLabel.Text = "Process stopped"
+            ButtonLoopTp.Text = "proccess for may fe bypass"
         end
     end
 end)
@@ -212,10 +203,8 @@ ButtonPurpleKeys.MouseButton1Click:Connect(function()
     activePurpleKeys = not activePurpleKeys
     if activePurpleKeys then
         ButtonPurpleKeys.Text = "Stop Purple Keys"
-        StatusLabel.Text = "Purple Keys active"
     else
         ButtonPurpleKeys.Text = "Auto Use Purple Keys"
-        StatusLabel.Text = "Purple Keys stopped"
     end
 end)
 
@@ -271,7 +260,7 @@ task.spawn(function()
             pcall(function()
                 local event = game:GetService("ReplicatedStorage"):FindFirstChild("BuyKCrown")
                 if event then
-                    for i = 1, 10000 do
+                    for i = 1, 100 do
                         if not activeLoopTp then break end
                         task.spawn(function()
                             pcall(function()
@@ -281,9 +270,9 @@ task.spawn(function()
                     end
                 end
             end)
-            task.wait(10)
+            task.wait(0.1)
         else
-            task.wait(10)
+            task.wait(0.1)
         end
     end
 end)
@@ -311,8 +300,6 @@ task.spawn(function()
                 for _, room in ipairs(rooms) do
                     if not activeBypass then break end
                     if room:IsA("Model") or room:IsA("Folder") then
-                        StatusLabel.Text = string.format("Room: %s", room.Name)
-                        
                         workspace:SetAttribute("ClientInRoom", room.Name)
                         if actor then
                             actor:SetAttribute("ClientInRoom", room.Name)
@@ -324,7 +311,6 @@ task.spawn(function()
                                 pcall(function()
                                     updateEvent:FireServer(room.Name)
                                 end)
-                                currentCount = currentCount + 1
                                 task.wait()
                             end
                         end)
@@ -415,7 +401,6 @@ task.spawn(function()
                             
                             if roomNum and roomNum >= 49 then
                                 activeLoopTp = false
-                                StatusLabel.Text = "Done"
                                 
                                 task.delay(0.1, function()
                                     pcall(function()
