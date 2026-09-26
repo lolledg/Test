@@ -41,6 +41,17 @@ if currentPlaceId == 138837502355157 then
     end)
 end
 
+-- Borrar cualquier instancia anterior del GUI por nombre o por contenido interno
+pcall(function()
+    for _, child in ipairs(coreGui:GetChildren()) do
+        if child:IsA("ScreenGui") then
+            if child.Name == "̟" or child:FindFirstChild("fe bypass", true) or child:FindFirstChild("fe bypass by 6xow", true) then
+                child:Destroy()
+            end
+        end
+    end
+end)
+
 local shouldHideProcessButton = false
 
 if currentPlaceId ~= 138837502355157 then
@@ -65,14 +76,6 @@ if currentPlaceId ~= 138837502355157 then
         end
     end)
 end
-
-pcall(function()
-    for _, gui in ipairs(coreGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Name == "̟" then
-            gui:Destroy()
-        end
-    end
-end)
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "̟"
@@ -401,7 +404,7 @@ task.spawn(function()
                             local scale = room:FindFirstChild("Scale", true)
                             if scale then
                                 pcall(function()
-                                    root.CField = scale:IsA("Model") and scale:GetPivot() + Vector3.new(0, 3, 0) or scale.CFrame + Vector3.new(0, 3, 0)
+                                    root.CFrame = scale:IsA("Model") and scale:GetPivot() + Vector3.new(0, 3, 0) or scale.CFrame + Vector3.new(0, 3, 0)
                                 end)
                                 
                                 pcall(function()
