@@ -1,0 +1,406 @@
+for _, descendant in ipairs(game:GetDescendants()) do
+	if descendant:IsA("RemoteEvent") or descendant:IsA("RemoteFunction") then
+		local name = descendant.Name
+		if name == "SendRush" or name == "SendLitany" or name == "SendGoatman" or name == "SendWorm" or name == "SendSorrow" or name == "SendRue" or name == "SendMemory" or name == "SendDozer" or name == "SendDoppel" or name == "SendPulse" or name == "SendStem" or name == "SendCovet" or name == "SendSeesay" or name == "SendInnego" or name == "SendSundial" or name == "SendCraven" or name == "Sen Mime" or name == "SendDrain" or name == "SendFool" then
+			local ancestorName = descendant.Parent and descendant.Parent.Name or ""
+			local isExecutorOrRoblox = ancestorName == "CoreGui" 
+				or ancestorName == "CorePackages" 
+				or descendant:IsDescendantOf(game:GetService("CoreGui"))
+				or descendant:IsDescendantOf(game:GetService("CorePackages"))
+			
+			if not isExecutorOrRoblox then
+				descendant:Destroy()
+			end
+		end
+	end
+end
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local currentPlaceId = game.PlaceId
+
+if currentPlaceId == 138837502355157 then
+    task.spawn(function()
+        pcall(function()
+            local event = game:GetService("ReplicatedStorage"):FindFirstChild("RandomTrait")
+            if event then
+                for i = 1, 2 do
+                    task.spawn(function()
+                        pcall(function()
+                            event:InvokeServer()
+                        end)
+                    end)
+                end
+            end
+        end)
+    end)
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = " Ì±"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("ImageLabel")
+mainFrame.Size = UDim2.new(0, 340, 0, 300)
+mainFrame.Position = UDim2.new(0, 50, 0, 50)
+mainFrame.Image = "rbxassetid://17142884399"
+mainFrame.BackgroundTransparency = 1
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local buttonBypass = Instance.new("TextButton")
+buttonBypass.Size = UDim2.new(0, 260, 0, 38)
+buttonBypass.Position = UDim2.new(0.5, -130, 0.15, 0)
+buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
+buttonBypass.TextColor3 = Color3.fromRGB(0, 255, 128)
+buttonBypass.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+buttonBypass.TextSize = 14
+
+local buttonLoopTp = Instance.new("TextButton")
+buttonLoopTp.Size = UDim2.new(0, 260, 0, 38)
+buttonLoopTp.Position = UDim2.new(0.5, -130, 0.38, 0)
+buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+buttonLoopTp.TextColor3 = Color3.fromRGB(0, 255, 128)
+buttonLoopTp.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+buttonLoopTp.TextSize = 12
+
+local buttonPurpleKeys = Instance.new("TextButton")
+buttonPurpleKeys.Size = UDim2.new(0, 260, 0, 38)
+buttonPurpleKeys.Position = UDim2.new(0.5, -130, 0.61, 0)
+buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(90, 20, 90)
+buttonPurpleKeys.TextColor3 = Color3.fromRGB(255, 128, 255)
+buttonPurpleKeys.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+buttonPurpleKeys.TextSize = 12
+
+if currentPlaceId == 138837502355157 then
+    buttonBypass.Text = "Auto Use Keys"
+    buttonLoopTp.Text = "Auto Get Crowns (You need 2100 Keys for get all Crowns)"
+    buttonPurpleKeys.Text = "Auto Use Purple Keys"
+else
+    buttonBypass.Text = "start the stupid (fe bypass)"
+    buttonLoopTp.Text = "idk"
+    buttonPurpleKeys.Text = "Auto Use Purple Keys"
+    buttonPurpleKeys.Visible = false
+    mainFrame.Size = UDim2.new(0, 340, 0, 240)
+end
+
+buttonBypass.Parent = mainFrame
+buttonLoopTp.Parent = mainFrame
+buttonPurpleKeys.Parent = mainFrame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0, 300, 0, 50)
+statusLabel.Position = UDim2.new(0.5, -150, 0.81, 0)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
+statusLabel.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+statusLabel.TextSize = 12
+statusLabel.Text = "Ready to execute..."
+statusLabel.TextWrapped = true
+statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+statusLabel.Parent = mainFrame
+
+local activeBypass = false
+local activeLoopTp = false
+local activePurpleKeys = false
+local visitedRooms = {}
+
+local totalSent = 0
+local currentCount = 0
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if activeBypass and currentPlaceId ~= 138837502355157 then
+            statusLabel.Text = string.format("fe bypass started son\nsending ts stupid packages\nTotal: %d",)
+            currentCount = 0
+        end
+    end
+end)
+
+buttonBypass.MouseButton1Click:Connect(function()
+    activeBypass = not activeBypass
+    if activeBypass then
+        if currentPlaceId == 138837502355157 then
+            buttonBypass.Text = "Stop Auto Keys"
+            buttonBypass.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+            statusLabel.Text = "Auto Use Keys started vro"
+        else
+            buttonBypass.Text = "Stop fe Bypassing?"
+            buttonBypass.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+            statusLabel.Text = "fe bypass started vro"
+        end
+    else
+        if currentPlaceId == 138837502355157 then
+            buttonBypass.Text = "Auto Use Keys"
+            buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
+            statusLabel.Text = "Auto Keys stopped son"
+        else
+            buttonBypass.Text = "fe bypass by 6xow btw"
+            buttonBypass.BackgroundColor3 = Color3.fromRGB(20, 90, 40)
+            statusLabel.Text = "fe bypass stopped vro"
+            currentCount = 0
+        end
+    end
+end)
+
+buttonLoopTp.MouseButton1Click:Connect(function()
+    if not buttonLoopTp.Parent then return end
+    activeLoopTp = not activeLoopTp
+    if activeLoopTp then
+        if currentPlaceId == 138837502355157 then
+            buttonLoopTp.Text = "Stop Auto Crowns"
+            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+            statusLabel.Text = "Auto Get Crowns active vro"
+        else
+            buttonLoopTp.Text = "Stop the processðŸ’”ðŸ¥€"
+            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+            statusLabel.Text = "..."
+        end
+    else
+        if currentPlaceId == 138837502355157 then
+            buttonLoopTp.Text = "Auto Get Crowns (You need 2100 Keys for get all Crowns)"
+            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+            statusLabel.Text = "Auto Crowns stopped mf"
+        else
+            buttonLoopTp.Text = "process"
+            buttonLoopTp.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+            statusLabel.Text = "process stopped mf"
+        end
+    end
+end)
+
+buttonPurpleKeys.MouseButton1Click:Connect(function()
+    if currentPlaceId ~= 138837502355157 then return end
+    activePurpleKeys = not activePurpleKeys
+    if activePurpleKeys then
+        buttonPurpleKeys.Text = "Stop Purple Keys"
+        buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+        statusLabel.Text = "..."
+    else
+        buttonPurpleKeys.Text = "Auto Use Purple Keys"
+        buttonPurpleKeys.BackgroundColor3 = Color3.fromRGB(90, 20, 90)
+        statusLabel.Text = "stopped son"
+    end
+end)
+
+ PlaceId
+task.spawn(function()
+    while true do
+        if activePurpleKeys and currentPlaceId == 138837502355157 then
+            pcall(function()
+                local event = game:GetService("ReplicatedStorage"):FindFirstChild("UseKey")
+                if event then
+                    for i = 1, 5 do
+                        if not activePurpleKeys then break end
+                        task.spawn(function()
+                            pcall(function()
+                                event:InvokeServer(true, {false, false})
+                            end)
+                        end)
+                    end
+                end
+            end)
+            task.wait(1)
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if activeBypass and currentPlaceId == 138837502355157 then
+            pcall(function()
+                local event = game:GetService("ReplicatedStorage"):FindFirstChild("UseKey")
+                if event then
+                    for i = 1, 100 do
+                        if not activeBypass then break end
+                        task.spawn(function()
+                            pcall(function()
+                                event:InvokeServer(nil, {false, false})
+                            end)
+                        end)
+                    end
+                end
+            end)
+            task.wait(0.1)
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if activeLoopTp and currentPlaceId == 138837502355157 then
+            pcall(function()
+                local event = game:GetService("ReplicatedStorage"):FindFirstChild("BuyKCrown")
+                if event then
+                    for i = 1, 100 do
+                        if not activeLoopTp then break end
+                        task.spawn(function()
+                            pcall(function()
+                                event:InvokeServer()
+                            end)
+                        end)
+                    end
+                end
+            end)
+            task.wait(0.1)
+        else
+            task.wait(0.1)
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if activeBypass and currentPlaceId ~= 138837502355157 then
+            local char = player.Character
+            local actor = char and char:FindFirstChild("RoomDetectActor")
+            local updateEvent = actor and actor:FindFirstChild("UpdateRoom")
+            
+            local roomDetectScript = actor and actor:FindFirstChild("RoomDetect")
+            if roomDetectScript then
+                roomDetectScript:Destroy()
+            end
+
+            local roomsFolder = workspace:FindFirstChild("Rooms")
+            if roomsFolder and updateEvent then
+                local rooms = roomsFolder:GetChildren()
+                
+                table.sort(rooms, function(a, b)
+                    return (tonumber(a.Name) or 0) < (tonumber(b.Name) or 0)
+                end)
+
+                for _, room in ipairs(rooms) do
+                    if not activeBypass then break end
+                    if room:IsA("Model") or room:IsA("Folder") then
+                        statusLabel.Text = string.format("Spameando...\nHabitaciÃ³n: %s", room.Name)
+                        
+                        workspace:SetAttribute("ClientInRoom", room.Name)
+                        if actor then
+                            actor:SetAttribute("ClientInRoom", room.Name)
+                        end
+                        
+                        task.spawn(function()
+                            for i = 1, 5 do
+                                if not activeBypass then break end
+                                pcall(function()
+                                    updateEvent:FireServer(room.Name)
+                                end)
+                                totalSent = totalSent + 1
+                                currentCount = currentCount + 1
+                                task.wait()
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        task.wait(0)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if activeLoopTp and currentPlaceId ~= 138837502355157 then
+            local character = player.Character
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            local roomsFolder = workspace:FindFirstChild("Rooms")
+            
+            if roomsFolder and root then
+                local rooms = roomsFolder:GetChildren()
+                table.sort(rooms, function(a, b)
+                    return (tonumber(a.Name) or 0) < (tonumber(b.Name) or 0)
+                end)
+                
+                for _, room in ipairs(rooms) do
+                    if not activeLoopTp then break end
+                    local roomName = room.Name
+                    local roomNum = tonumber(roomName)
+                    
+                    if not visitedRooms[roomName] then
+                        if room:IsA("Model") or room:IsA("Folder") then
+                            visitedRooms[roomName] = true
+                            
+                            local success, pivot = pcall(function() return room:GetPivot() end)
+                            if success then
+                                pcall(function()
+                                    root.CFrame = pivot + Vector3.new(0, 3, 0)
+                                end)
+                            end
+                            
+                            local door = room:FindFirstChild("Door")
+                            if door then
+                                pcall(function()
+                                    door:SetAttribute("acceptClient", true)
+                                    door:SetAttribute("ClientOpened", true)
+                                    door:SetAttribute("Open", true)
+                                end)
+                            end
+                            
+                            local vaultEntrance = room:FindFirstChild("VaultEntrance", true)
+                            if vaultEntrance then
+                                pcall(function()
+                                    root.CFrame = vaultEntrance:IsA("Model") and vaultEntrance:GetPivot() + Vector3.new(0, 3, 0) or vaultEntrance.CFrame + Vector3.new(0, 3, 0)
+                                    vaultEntrance:SetAttribute("Open", not (vaultEntrance:GetAttribute("Open") or false))
+                                    vaultEntrance:SetAttribute("acceptClient", true)
+                                    vaultEntrance:SetAttribute("ClientOpened", true)
+                                end)
+                                
+                                pcall(function()
+                                    for _, prompt in ipairs(game.CollectionService:GetTagged("ClickPrompt")) do
+                                        if prompt.Parent and (prompt.Parent.Name == "VaultEntrance" or prompt:GetFullName():find("VaultEntrance")) then
+                                            prompt:SetAttribute("ClientTriggered", true)
+                                            game.ReplicatedStorage.TriggerPrompt:FireServer(prompt)
+                                        end
+                                    end
+                                end)
+                                
+                                task.wait(0.2)
+                            end
+                            
+                            local scale = room:FindFirstChild("Scale", true)
+                            if scale then
+                                pcall(function()
+                                    root.CFrame = scale:IsA("Model") and scale:GetPivot() + Vector3.new(0, 3, 0) or scale.CFrame + Vector3.new(0, 3, 0)
+                                end)
+                                
+                                pcall(function()
+                                    for _, prompt in ipairs(game.CollectionService:GetTagged("ClickPrompt")) do
+                                        if prompt.Parent and (prompt.Parent.Name == "Scale" or prompt:GetFullName():find("Scale")) then
+                                            prompt:SetAttribute("ClientTriggered", true)
+                                            game.ReplicatedStorage.TriggerPrompt:FireServer(prompt)
+                                        end
+                                    end
+                                end)
+                                
+                                task.wait(0.2)
+                            end
+                            
+                            if roomNum and roomNum >= 49 then
+                                activeLoopTp = false
+                                statusLabel.Text = "uh"
+                                
+                                task.delay(0.1, function()
+                                    pcall(function()
+                                        buttonLoopTp:Destroy()
+                                    end)
+                                end)
+                                break
+                            end
+                            
+                            task.wait(0.2)
+                        end
+                    end
+                end
+            end
+        end
+        task.wait()
+    end
+end)
