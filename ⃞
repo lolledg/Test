@@ -1,0 +1,386 @@
+local Players = game:GetService("Players")
+local CoreGui = gethui() or game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local Theme = {
+    BG            = Color3.fromRGB(30, 30, 30),
+    Panel         = Color3.fromRGB(45, 45, 45),
+    Surface       = Color3.fromRGB(60, 60, 60),
+    Accent        = Color3.fromRGB(120, 120, 120),
+    AccentAlt     = Color3.fromRGB(100, 100, 100),
+    TextPrimary   = Color3.fromRGB(240, 240, 240),
+    TextSecondary = Color3.fromRGB(180, 180, 180),
+    TextDim       = Color3.fromRGB(140, 140, 140),
+    White         = Color3.fromRGB(255, 255, 255),
+}
+
+function hidprot(instance, property, value)
+    if sethiddenproperty then
+        sethiddenproperty(instance, property, value)
+        return
+    end
+    if not setscriptable then
+        return warn("Neither sethiddenproperty nor setscriptable exist in this environment.")
+    end
+    local success, err = pcall(function()
+        setscriptable(instance, property, true)
+        instance[property] = value
+        setscriptable(instance, property, false)
+    end)
+    if not success then warn("Failed to set property: " .. tostring(err)) end
+end
+
+local Player, TargetPlayer, LastPlayer = Players.LocalPlayer, false, false
+local Camera = workspace.CurrentCamera
+local SpectateDB, AttachDB = false, false
+local PosX, PosY, PosZ, AngX, AngY, AngZ = 0, 0, 0, 0, 0, 0
+local TargetPartName = "HumanoidRootPart"
+local TargetRespawnConnection = nil
+local ActiveDummy = nil
+
+local PartFallbacks = {
+    ["UpperTorso"]   = {"Torso"},
+    ["LowerTorso"]   = {"Torso"},
+    ["LeftUpperArm"] = {"Left Arm"},
+    ["LeftLowerArm"] = {"Left Arm"},
+    ["LeftHand"]     = {"Left Arm"},
+    ["RightUpperArm"]= {"Right Arm"},
+    ["RightLowerArm"]= {"Right Arm"},
+    ["RightHand"]    = {"Right Arm"},
+    ["LeftUpperLeg"] = {"Left Leg"},
+    ["LeftLowerLeg"] = {"Left Leg"},
+    ["LeftFoot"]     = {"Left Leg"},
+    ["RightUpperLeg"]= {"Right Leg"},
+    ["RightLowerLeg"]= {"Right Leg"},
+    ["RightFoot"]    = {"Right Leg"},
+    ["Torso"]        = {"UpperTorso", "LowerTorso"},
+    ["Left Arm"]     = {"LeftUpperArm", "LeftLowerArm", "LeftHand"},
+    ["Right Arm"]    = {"RightUpperArm", "RightLowerArm", "RightHand"},
+    ["Left Leg"]     = {"LeftUpperLeg", "LeftLowerLeg", "LeftFoot"},
+    ["Right Leg"]    = {"RightUpperLeg", "RightLowerLeg", "RightFoot"},
+}
+
+local function ResolvePartName(character, preferredName)
+    if not character then return preferredName end
+    if character:FindFirstChild(preferredName) then return preferredName end
+    local fallbacks = PartFallbacks[preferredName]
+    if fallbacks then
+        for _, alt in next, fallbacks do
+            if character:FindFirstChild(alt) then return alt end
+        end
+    end
+    return preferredName
+end
+
+local function GetTargetPart(character, targetName)
+    if not character then return nil end
+
+    local exactMatch = character:FindFirstChild(targetName)
+    if exactMatch then return exactMatch end
+
+    local baseName, indexStr = targetName:match("^(.-)_(%d+)$")
+    if baseName and tonumber(indexStr) then
+        local targetIndex = tonumber(indexStr)
+        local currentIdx = 0
+        for _, obj in next, character:GetDescendants() do
+            if obj:IsA("BasePart") and obj.Name == baseName then
+                currentIdx = currentIdx + 1
+                if currentIdx == targetIndex then
+                    return obj
+                end
+            end
+        end
+    end
+
+    local resolvedName = ResolvePartName(character, targetName)
+    return character:FindFirstChild(resolvedName) or character:FindFirstChild("HumanoidRootPart")
+end
+
+local function AddHoverEffect(btn, normalColor, hoverColor, normalTrans, hoverTrans)
+    normalTrans = normalTrans or 0.5
+    hoverTrans  = hoverTrans  or 0.3
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = hoverColor or normalColor
+        btn.BackgroundTransparency = hoverTrans
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = normalColor
+        btn.BackgroundTransparency = normalTrans
+    end)
+end
+
+local Drag = function(GuiObject)
+    task.spawn(function()
+        local StartPosition, Dragging, DragInput
+        local DragStart = Vector3.new()
+        local Update = function(Input)
+            local Delta = Input.Position - DragStart
+            GuiObject.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+        end
+        GuiObject.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = true
+                DragStart = Input.Position
+                StartPosition = GuiObject.Position
+                Input.Changed:Connect(function()
+                    if Input.UserInputState == Enum.UserInputState.End then Dragging = false end
+                end)
+            end
+        end)
+        GuiObject.InputChanged:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then DragInput = Input end
+        end)
+        UserInputService.InputChanged:Connect(function(Input)
+            if Input == DragInput and Dragging then Update(Input) end
+        end)
+    end)
+end
+
+-- === GUI mínimo: contenedor + botón real (mismo MakeActionButton del original) ===
+
+local Attach = Instance.new("ScreenGui")
+Attach.Name = "AttachHubEnhanced"
+Attach.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Attach.IgnoreGuiInset = true
+Attach.ResetOnSpawn = false
+Attach.Parent = CoreGui
+
+local RightContainer = Instance.new("Frame")
+RightContainer.BackgroundColor3 = Theme.BG
+RightContainer.BackgroundTransparency = 0.3
+RightContainer.Position = UDim2.new(0, 20, 0, 20)
+RightContainer.Size = UDim2.new(0, 164, 0, 50)
+RightContainer.BorderSizePixel = 0
+RightContainer.Parent = Attach
+Instance.new("UICorner", RightContainer).CornerRadius = UDim.new(0, 12)
+Drag(RightContainer)
+
+local function MakeActionButton(text, posX, posY, sizeX, sizeY, parent)
+    local b = Instance.new("TextButton")
+    b.Text = text
+    b.TextColor3 = Theme.TextPrimary
+    b.BackgroundColor3 = Theme.Surface
+    b.BackgroundTransparency = 0.5
+    b.Position = UDim2.new(0, posX, 0, posY)
+    b.Size = UDim2.new(0, sizeX, 0, sizeY)
+    b.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+    b.TextScaled = true
+    b.Parent = parent
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    AddHoverEffect(b, Theme.Surface, Theme.Accent, 0.5, 0.5)
+    return b
+end
+
+local AttachButton = MakeActionButton("Attach", 12, 12, 140, 26, RightContainer)
+
+local function SetStatus(text)
+    print("[AttachHub] " .. tostring(text))
+end
+
+-- AttachFunc (copiada literal más abajo) llama a StopPresetAnim() en su branch de detach.
+-- En el original, esa función solo detiene una animación si CurrentPresetAnim ~= nil.
+-- Esta versión no tiene sistema de presets, así que CurrentPresetAnim nunca se asignaría:
+-- el no-op de abajo es el mismo comportamiento resultante, no una función recortada.
+local function StopPresetAnim() end
+
+local AttachFunc = function()
+    AttachDB = not AttachDB
+    if AttachDB then
+        AttachButton.Text = "Unattach"
+        AttachButton.BackgroundColor3 = Theme.Accent
+        SetStatus("Attached to " .. (TargetPlayer and TargetPlayer.DisplayName or "?"))
+        
+        task.spawn(function()
+            task.wait(0.1)
+            if AttachDB then
+                local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                if Root then
+                    Root.Anchored = true
+                end
+            end
+        end)
+
+        local Char = Player.Character
+        local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+        if Char and Hum then
+            local success, desc = pcall(function() return Hum:GetAppliedDescription() end)
+            if not success or not desc then
+                desc = Instance.new("HumanoidDescription")
+            end
+            
+            ActiveDummy = Players:CreateHumanoidModelFromDescription(desc, Hum.RigType)
+            
+            for _, part in pairs(ActiveDummy:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                    part.Massless = true
+                    part.Anchored = false
+                end
+            end
+            
+            local dummyRoot = ActiveDummy:FindFirstChild("HumanoidRootPart") or ActiveDummy.PrimaryPart
+            if dummyRoot then
+                dummyRoot.Anchored = true
+            end
+            
+            ActiveDummy.Parent = workspace
+            Camera.CameraSubject = ActiveDummy:FindFirstChildOfClass("Humanoid")
+            
+            task.spawn(function()
+                local dummyHum = ActiveDummy:FindFirstChildOfClass("Humanoid")
+                local dummyAnimator = dummyHum and (dummyHum:FindFirstChildOfClass("Animator") or Instance.new("Animator", dummyHum))
+                local activeTracks = {}
+                
+                while AttachDB and ActiveDummy and ActiveDummy.Parent do
+                    if Hum and Hum.Parent and dummyAnimator then
+                        for _, track in pairs(Hum:GetPlayingAnimationTracks()) do
+                            if not activeTracks[track.Animation.AnimationId] then
+                                local newAnim = Instance.new("Animation")
+                                newAnim.AnimationId = track.Animation.AnimationId
+                                local dummyTrack = dummyAnimator:LoadAnimation(newAnim)
+                                dummyTrack:Play()
+                                activeTracks[track.Animation.AnimationId] = {real = track, dummy = dummyTrack}
+                            end
+                        end
+                        
+                        for id, pair in pairs(activeTracks) do
+                            if pair.real.IsPlaying then
+                                pcall(function()
+                                    pair.dummy.TimePosition = pair.real.TimePosition
+                                    pair.dummy:AdjustWeight(pair.real.WeightTarget, 0)
+                                    pair.dummy:AdjustSpeed(pair.real.Speed)
+                                end)
+                            else
+                                pair.dummy:Stop()
+                                activeTracks[id] = nil
+                            end
+                        end
+                    end
+                    task.wait()
+                end
+            end)
+        end
+        
+        task.spawn(function()
+            while AttachDB do
+                if TargetPlayer and TargetPlayer.Character then
+                    local RootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                    local TPart = GetTargetPart(TargetPlayer.Character, TargetPartName)
+                    
+                    if RootPart and TPart then
+                        TPart.Velocity = Vector3.zero
+                        TPart.RotVelocity = Vector3.zero
+                        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                        if hum then hum:ChangeState(Enum.HumanoidStateType.None) end
+                        hidprot(RootPart, "PhysicsRepRootPart", TPart)
+                        
+                        local localOffset = CFrame.new(PosX, PosY, PosZ) * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ))
+                        
+                        if ActiveDummy and ActiveDummy:FindFirstChild("HumanoidRootPart") then
+                            ActiveDummy.HumanoidRootPart.CFrame = TPart.CFrame * localOffset
+                        end
+                        
+                        local invTargetRotation = TPart.CFrame.Rotation:Inverse()
+                        local counterWorldPos = invTargetRotation * (TPart.CFrame.Rotation * Vector3.new(PosX, PosY, PosZ))
+                        local counterWorldRot = invTargetRotation * (TPart.CFrame.Rotation * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ)))
+                        
+                        RootPart.CFrame = CFrame.new(counterWorldPos) * counterWorldRot
+                            
+                        RootPart.RotVelocity = Vector3.zero
+                        RootPart.Velocity = Vector3.zero
+                    end
+                end
+                task.wait()
+            end
+        end)
+
+    else
+        AttachButton.Text = "Attach"
+        AttachButton.BackgroundColor3 = Theme.Surface
+        StopPresetAnim()
+        
+        local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+        if Root then
+            Root.Anchored = false
+            pcall(function() hidprot(Root, "PhysicsRepRootPart", nil) end)
+            
+            if ActiveDummy and ActiveDummy:FindFirstChild("HumanoidRootPart") then
+                Root.CFrame = ActiveDummy.HumanoidRootPart.CFrame
+            end
+        end
+        
+        if ActiveDummy then
+            ActiveDummy:Destroy()
+            ActiveDummy = nil
+        end
+        
+        Camera.CameraSubject = Player.Character and Player.Character:FindFirstChildWhichIsA("Humanoid")
+        SetStatus("Detached")
+    end
+end
+
+-- === Selección aleatoria de target (reemplaza el click en la lista del panel original) ===
+
+local function GetRandomPlayer()
+    local Candidates = {}
+    for _, p in next, Players:GetPlayers() do
+        if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(Candidates, p)
+        end
+    end
+    if #Candidates == 0 then return nil end
+    return Candidates[math.random(1, #Candidates)]
+end
+
+local function BindTargetRespawn()
+    if TargetRespawnConnection then
+        TargetRespawnConnection:Disconnect()
+        TargetRespawnConnection = nil
+    end
+    if not TargetPlayer then return end
+    TargetRespawnConnection = TargetPlayer.CharacterAdded:Connect(function()
+        -- Igual que en el original: si el target respawnea mientras está attachado,
+        -- el loop de AttachFunc ya vuelve a resolver HumanoidRootPart en cada tick.
+        SetStatus("Target respawneó: " .. TargetPlayer.DisplayName)
+    end)
+end
+
+-- === Conectar el botón real al AttachFunc real ===
+-- Si no hay target elegido todavía cuando se toca el botón por primera vez, elige uno random antes.
+
+AttachButton.MouseButton1Click:Connect(function()
+    if not AttachDB then
+        TargetPlayer = GetRandomPlayer()
+        if not TargetPlayer then
+            SetStatus("No hay jugadores disponibles")
+            return
+        end
+        LastPlayer = TargetPlayer
+        BindTargetRespawn()
+    end
+    AttachFunc()
+end)
+
+-- === Auto-detach si morís mientras estás attachado ===
+
+local function BindDeath()
+    local Char = Player.Character
+    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+    if not Hum then return end
+
+    local DiedConn
+    DiedConn = Hum.Died:Connect(function()
+        if DiedConn then DiedConn:Disconnect() end
+        if AttachDB then
+            AttachFunc() -- dispara el branch else real: desancla, destruye Dummy, resetea PhysicsRepRootPart
+        end
+    end)
+end
+
+Player.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    BindDeath()
+end)
+
+BindDeath()
