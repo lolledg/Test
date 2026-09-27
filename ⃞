@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local function hidprot(instance, property, value)
     if sethiddenproperty then
@@ -111,13 +112,26 @@ AttachFunc = function()
                         local counterWorldPos = invTargetRotation * (TPart.CFrame.Rotation * Vector3.new(PosX, PosY, PosZ))
                         local counterWorldRot = invTargetRotation * (TPart.CFrame.Rotation * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ)))
                         
-                        RootPart.CFrame = CFrame.new(counterWorldPos) * counterWorldRot
+                        local finalCF = CFrame.new(counterWorldPos) * counterWorldRot
+                        RootPart.CFrame = finalCF
+                        pcall(function()
+                            RootPart.AssemblyLinearVelocity = Vector3.zero
+                            RootPart.AssemblyAngularVelocity = Vector3.zero
+                        end)
                             
                         RootPart.RotVelocity = Vector3.zero
                         RootPart.Velocity = Vector3.zero
+
+                        if Player.Character then
+                            for _, descendant in ipairs(Player.Character:GetDescendants()) do
+                                if descendant:IsA("BasePart") and descendant ~= RootPart then
+                                    descendant.LocalTransparencyModifier = descendant.Transparency
+                                end
+                            end
+                        end
                     end
                 end
-                task.wait()
+                RunService.RenderStepped:Wait()
             end
         end)
 
