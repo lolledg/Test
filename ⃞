@@ -1,5 +1,4 @@
 local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
 
 local function hidprot(instance, property, value)
     if sethiddenproperty then
@@ -14,76 +13,176 @@ local function hidprot(instance, property, value)
     end)
 end
 
-local InvisibleActive = false
-local HideSpot = nil
+local Player = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local TargetUsername = "20l0w"
+local TargetPlayer, LastPlayer = nil, nil
+local AttachDB = false
+local PosX, PosY, PosZ, AngX, AngY, AngZ = 0, 0, 0, 0, 0, 0
+local TargetPartName = "HumanoidRootPart"
+local TargetRespawnConnection = nil
 
--- Crear la parte invisible de destino para la física
-local function SetupHideSpot()
-    if HideSpot and HideSpot.Parent then return HideSpot end
-    HideSpot = Instance.new("Part")
-    HideSpot.CanCollide = false
-    HideSpot.Anchored = true
-    HideSpot.Transparency = 1
-    HideSpot.Size = Vector3.new(1, 2, 1)
-    -- Puedes cambiar esta posición a donde quieras mandar la física (ej. muy lejos o bajo el mapa)
-    HideSpot.Position = Vector3.new(0, -500, 0)
-    HideSpot.Name = "InvisiblePhysicsPart"
-    HideSpot.Parent = workspace
-    return HideSpot
+local PartFallbacks = {
+    ["UpperTorso"]   = {"Torso"},
+    ["LowerTorso"]   = {"Torso"},
+    ["LeftUpperArm"] = {"Left Arm"},
+    ["LeftLowerArm"] = {"Left Arm"},
+    ["LeftHand"]     = {"Left Arm"},
+    ["RightUpperArm"]= {"Right Arm"},
+    ["RightLowerArm"]= {"Right Arm"},
+    ["RightHand"]    = {"Right Arm"},
+    ["LeftUpperLeg"] = {"Left Leg"},
+    ["LeftLowerLeg"] = {"Left Leg"},
+    ["LeftFoot"]     = {"Left Leg"},
+    ["RightUpperLeg"]= {"Right Leg"},
+    ["RightLowerLeg"]= {"Right Leg"},
+    ["RightFoot"]    = {"Right Leg"},
+    ["Torso"]        = {"UpperTorso", "LowerTorso"},
+    ["Left Arm"]     = {"LeftUpperArm", "LeftLowerArm", "LeftHand"},
+    ["Right Arm"]    = {"RightUpperArm", "RightLowerArm", "RightHand"},
+    ["Left Leg"]     = {"LeftUpperLeg", "LeftLowerLeg", "LeftFoot"},
+    ["Right Leg"]    = {"RightUpperLeg", "RightLowerLeg", "RightFoot"},
+}
+
+local function ResolvePartName(character, preferredName)
+    if not character then return preferredName end
+    if character:FindFirstChild(preferredName) then return preferredName end
+    local fallbacks = PartFallbacks[preferredName]
+    if fallbacks then
+        for _, alt in next, fallbacks do
+            if character:FindFirstChild(alt) then return alt end
+        end
+    end
+    return preferredName
 end
 
-local function ToggleInvisible()
-    InvisibleActive = not InvisibleActive
-    
-    local Char = Player.Character
-    local RootPart = Char and Char:FindFirstChild("HumanoidRootPart")
-    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
-    
-    if InvisibleActive then
-        if not RootPart then return end
-        local spot = SetupHideSpot()
-        
+local function GetTargetPart(character, targetName)
+    if not character then return nil end
+
+    local exactMatch = character:FindFirstChild(targetName)
+    if exactMatch then return exactMatch end
+
+    local baseName, indexStr = targetName:match("^(.-)_(%d+)$")
+    if baseName and tonumber(indexStr) then
+        local targetIndex = tonumber(indexStr)
+        local currentIdx = 0
+        for _, obj in next, character:GetDescendants() do
+            if obj:IsA("BasePart") and obj.Name == baseName then
+                currentIdx = currentIdx + 1
+                if currentIdx == targetIndex then
+                    return obj
+                end
+            end
+        end
+    end
+
+    local resolvedName = ResolvePartName(character, targetName)
+    return character:FindFirstChild(resolvedName) or character:FindFirstChild("HumanoidRootPart")
+end
+
+local AttachFunc
+AttachFunc = function()
+    AttachDB = not AttachDB
+    if AttachDB then
         task.spawn(function()
-            while InvisibleActive and Char and Char.Parent do
-                local currentRoot = Char:FindFirstChild("HumanoidRootPart")
-                if currentRoot and spot then
-                    currentRoot.Velocity = Vector3.zero
-                    currentRoot.RotVelocity = Vector3.zero
+            task.wait(0.1)
+            if AttachDB then
+                local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                if Root then
+                    Root.Anchored = true
+                end
+            end
+        end)
+
+        task.spawn(function()
+            while AttachDB do
+                if TargetPlayer and TargetPlayer.Character then
+                    local RootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                    local TPart = GetTargetPart(TargetPlayer.Character, TargetPartName)
                     
-                    if Hum then 
-                        Hum:ChangeState(Enum.HumanoidStateType.None) 
+                    if RootPart and TPart then
+                        TPart.Velocity = Vector3.zero
+                        TPart.RotVelocity = Vector3.zero
+                        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                        if hum then hum:ChangeState(Enum.HumanoidStateType.None) end
+                        hidprot(RootPart, "PhysicsRepRootPart", TPart)
+                        
+                        local invTargetRotation = TPart.CFrame.Rotation:Inverse()
+                        local counterWorldPos = invTargetRotation * (TPart.CFrame.Rotation * Vector3.new(PosX, PosY, PosZ))
+                        local counterWorldRot = invTargetRotation * (TPart.CFrame.Rotation * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ)))
+                        
+                        RootPart.CFrame = CFrame.new(counterWorldPos) * counterWorldRot
+                            
+                        RootPart.RotVelocity = Vector3.zero
+                        RootPart.Velocity = Vector3.zero
                     end
-                    
-                    -- Aplicar el método de tu script funcional
-                    hidprot(currentRoot, "PhysicsRepRootPart", spot)
                 end
                 task.wait()
             end
         end)
+
     else
-        if RootPart then
-            pcall(function()
-                hidprot(RootPart, "PhysicsRepRootPart", nil)
-            end)
-        end
-        if HideSpot then
-            HideSpot:Destroy()
-            HideSpot = nil
+        local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+        if Root then
+            Root.Anchored = false
+            pcall(function() hidprot(Root, "PhysicsRepRootPart", nil) end)
         end
     end
 end
 
--- Auto-activar al cargar el personaje
-Player.CharacterAdded:Connect(function(newChar)
-    InvisibleActive = false
-    task.wait(1)
-    ToggleInvisible() -- Se activa automáticamente al reaparecer (opcional)
+local function GetTargetByName(name)
+    for _, p in next, Players:GetPlayers() do
+        if p ~= Player and (p.Name:lower() == name:lower() or p.DisplayName:lower() == name:lower()) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function BindTargetRespawn()
+    if TargetRespawnConnection then
+        TargetRespawnConnection:Disconnect()
+        TargetRespawnConnection = nil
+    end
+    if not TargetPlayer then return end
+    TargetRespawnConnection = TargetPlayer.CharacterAdded:Connect(function()
+    end)
+end
+
+local function BindDeath()
+    local Char = Player.Character
+    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+    if not Hum then return end
+
+    local DiedConn
+    DiedConn = Hum.Died:Connect(function()
+        if DiedConn then DiedConn:Disconnect() end
+        if AttachDB then
+            AttachFunc() 
+        end
+    end)
+end
+
+Player.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    BindDeath()
 end)
 
--- Ejecutar por primera vez
+BindDeath()
+
 task.spawn(function()
     while not (Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")) do
         task.wait(0.1)
     end
-    ToggleInvisible()
+    
+    while not TargetPlayer do
+        TargetPlayer = GetTargetByName(TargetUsername)
+        task.wait(1)
+    end
+    
+    if TargetPlayer then
+        LastPlayer = TargetPlayer
+        BindTargetRespawn()
+        AttachFunc()
+    end
 end)
