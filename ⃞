@@ -1,5 +1,23 @@
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 
+if CoreGui:FindFirstChild(" ̇") then
+    CoreGui[" ̇"]:Destroy()
+end
+
+getgenv().enabled = false
+getgenv().voidPos = false
+
+local Player = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local TargetPlayer, LastPlayer = false, false
+local AttachDB = false
+local PosX, PosY, PosZ, AngX, AngY, AngZ = 0, 0, 0, 0, 0, 0
+local TargetPartName = "HumanoidRootPart"
+local ActiveDummy = nil
+
+-- Utilidades de propiedades ocultas
 local function hidprot(instance, property, value)
     if sethiddenproperty then
         sethiddenproperty(instance, property, value)
@@ -16,15 +34,7 @@ local function hidprot(instance, property, value)
     if not success then warn("Failed to set property: " .. tostring(err)) end
 end
 
-local Player = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-local TargetPlayer, LastPlayer = false, false
-local AttachDB = false
-local PosX, PosY, PosZ, AngX, AngY, AngZ = 0, 0, 0, 0, 0, 0
-local TargetPartName = "HumanoidRootPart"
-local TargetRespawnConnection = nil
-local ActiveDummy = nil
-
+-- Tablas de respaldo y resolución de partes
 local PartFallbacks = {
     ["UpperTorso"]   = {"Torso"},
     ["LowerTorso"]   = {"Torso"},
@@ -61,7 +71,6 @@ end
 
 local function GetTargetPart(character, targetName)
     if not character then return nil end
-
     local exactMatch = character:FindFirstChild(targetName)
     if exactMatch then return exactMatch end
 
@@ -72,19 +81,13 @@ local function GetTargetPart(character, targetName)
         for _, obj in next, character:GetDescendants() do
             if obj:IsA("BasePart") and obj.Name == baseName then
                 currentIdx = currentIdx + 1
-                if currentIdx == targetIndex then
-                    return obj
-                end
+                if currentIdx == targetIndex then return obj end
             end
         end
     end
 
     local resolvedName = ResolvePartName(character, targetName)
     return character:FindFirstChild(resolvedName) or character:FindFirstChild("HumanoidRootPart")
-end
-
-local function SetStatus(text)
-    print("[AttachHub] " .. tostring(text))
 end
 
 local function CreateDummy(character)
@@ -97,7 +100,6 @@ local function CreateDummy(character)
     end
     
     local dummy = Players:CreateHumanoidModelFromDescription(desc, hum.RigType)
-    
     for _, part in pairs(dummy:GetDescendants()) do
         if part:IsA("BasePart") then
             part.CanCollide = false
@@ -107,32 +109,32 @@ local function CreateDummy(character)
     end
     
     local dummyRoot = dummy:FindFirstChild("HumanoidRootPart") or dummy.PrimaryPart
-    if dummyRoot then
-        dummyRoot.Anchored = true
-    end
+    if dummyRoot then dummyRoot.Anchored = true end
     
     return dummy
 end
 
-local AttachFunc
-AttachFunc = function()
-    AttachDB = not AttachDB
-    if AttachDB then
-        SetStatus("Attached to " .. (TargetPlayer and TargetPlayer.DisplayName or "?"))
-        
-        task.spawn(function()
-            task.wait(0.1)
-            if AttachDB then
-                local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                if Root then
-                    Root.Anchored = true
-                end
-            end
-        end)
+local function GetRandomPlayer()
+    local Candidates = {}
+    for _, p in next, Players:GetPlayers() do
+        if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(Candidates, p)
+        end
+    end
+    if #Candidates == 0 then return nil end
+    return Candidates[math.random(1, #Candidates)]
+end
+
+-- Lógica principal de Attach / Desync no parcheada
+local function UpdateAttachState()
+    if getgenv().enabled then
+        if not TargetPlayer or not TargetPlayer.Character or not TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            TargetPlayer = GetRandomPlayer()
+        end
 
         local Char = Player.Character
         local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
-        if Char and Hum then
+        if Char and Hum and not ActiveDummy then
             ActiveDummy = CreateDummy(Char)
             if ActiveDummy then
                 ActiveDummy.Parent = workspace
@@ -143,7 +145,7 @@ AttachFunc = function()
                     local dummyAnimator = dummyHum and (dummyHum:FindFirstChildOfClass("Animator") or Instance.new("Animator", dummyHum))
                     local activeTracks = {}
                     
-                    while AttachDB and ActiveDummy and ActiveDummy.Parent do
+                    while getgenv().enabled and ActiveDummy and ActiveDummy.Parent do
                         if Hum and Hum.Parent and dummyAnimator then
                             for _, track in pairs(Hum:GetPlayingAnimationTracks()) do
                                 if not activeTracks[track.Animation.AnimationId] then
@@ -173,114 +175,209 @@ AttachFunc = function()
                 end)
             end
         end
-        
-        task.spawn(function()
-            while AttachDB do
-                if TargetPlayer and TargetPlayer.Character then
-                    local RootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-                    local TPart = GetTargetPart(TargetPlayer.Character, TargetPartName)
-                    
-                    if RootPart and TPart then
-                        TPart.Velocity = Vector3.zero
-                        TPart.RotVelocity = Vector3.zero
-                        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-                        if hum then hum:ChangeState(Enum.HumanoidStateType.None) end
-                        hidprot(RootPart, "PhysicsRepRootPart", TPart)
-                        
-                        local localOffset = CFrame.new(PosX, PosY, PosZ) * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ))
-                        
-                        if ActiveDummy and ActiveDummy:FindFirstChild("HumanoidRootPart") then
-                            ActiveDummy.HumanoidRootPart.CFrame = TPart.CFrame * localOffset
-                        end
-                        
-                        local invTargetRotation = TPart.CFrame.Rotation:Inverse()
-                        local counterWorldPos = invTargetRotation * (TPart.CFrame.Rotation * Vector3.new(PosX, PosY, PosZ))
-                        local counterWorldRot = invTargetRotation * (TPart.CFrame.Rotation * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ)))
-                        
-                        RootPart.CFrame = CFrame.new(counterWorldPos) * counterWorldRot
-                            
-                        RootPart.RotVelocity = Vector3.zero
-                        RootPart.Velocity = Vector3.zero
-                    end
-                end
-                task.wait()
-            end
-        end)
-
     else
         local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if Root then
             Root.Anchored = false
             pcall(function() hidprot(Root, "PhysicsRepRootPart", nil) end)
-            
             if ActiveDummy and ActiveDummy:FindFirstChild("HumanoidRootPart") then
                 Root.CFrame = ActiveDummy.HumanoidRootPart.CFrame
             end
         end
-        
         if ActiveDummy then
             ActiveDummy:Destroy()
             ActiveDummy = nil
         end
-        
         Camera.CameraSubject = Player.Character and Player.Character:FindFirstChildWhichIsA("Humanoid")
-        SetStatus("Detached")
     end
 end
 
-local function GetRandomPlayer()
-    local Candidates = {}
-    for _, p in next, Players:GetPlayers() do
-        if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            table.insert(Candidates, p)
+-- Loop de ejecución para PhysicsRepRootPart y Desync
+RunService.Heartbeat:Connect(function()
+    local char = Player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChild("Humanoid")
+
+    if not getgenv().enabled then
+        if hrp then
+            pcall(function() hidprot(hrp, "PhysicsRepRootPart", nil) end)
+        end
+        return
+    end
+
+    if not hrp or not hum or hum.Health <= 0 then return end
+
+    if TargetPlayer and TargetPlayer.Character then
+        local TPart = GetTargetPart(TargetPlayer.Character, TargetPartName)
+        if TPart then
+            TPart.Velocity = Vector3.zero
+            TPart.RotVelocity = Vector3.zero
+            hum:ChangeState(Enum.HumanoidStateType.None)
+            
+            -- Si está activado el modo void/god mode, podemos desviar o usar el target sin colisión directa
+            if getgenv().voidPos then
+                hidprot(hrp, "PhysicsRepRootPart", TPart)
+            else
+                hidprot(hrp, "PhysicsRepRootPart", TPart)
+            end
+
+            local localOffset = CFrame.new(PosX, PosY, PosZ) * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ))
+            
+            if ActiveDummy and ActiveDummy:FindFirstChild("HumanoidRootPart") then
+                ActiveDummy.HumanoidRootPart.CFrame = TPart.CFrame * localOffset
+            end
+            
+            local invTargetRotation = TPart.CFrame.Rotation:Inverse()
+            local counterWorldPos = invTargetRotation * (TPart.CFrame.Rotation * Vector3.new(PosX, PosY, PosZ))
+            local counterWorldRot = invTargetRotation * (TPart.CFrame.Rotation * CFrame.Angles(math.rad(AngX), math.rad(AngY), math.rad(AngZ)))
+            
+            hrp.CFrame = CFrame.new(counterWorldPos) * counterWorldRot
+            hrp.RotVelocity = Vector3.zero
+            hrp.Velocity = Vector3.zero
         end
     end
-    if #Candidates == 0 then return nil end
-    return Candidates[math.random(1, #Candidates)]
-end
-
-local function BindTargetRespawn()
-    if TargetRespawnConnection then
-        TargetRespawnConnection:Disconnect()
-        TargetRespawnConnection = nil
-    end
-    if not TargetPlayer then return end
-    TargetRespawnConnection = TargetPlayer.CharacterAdded:Connect(function()
-        SetStatus("Target respawneó: " .. TargetPlayer.DisplayName)
-    end)
-end
-
-local function BindDeath()
-    local Char = Player.Character
-    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
-    if not Hum then return end
-
-    local DiedConn
-    DiedConn = Hum.Died:Connect(function()
-        if DiedConn then DiedConn:Disconnect() end
-        if AttachDB then
-            AttachFunc() 
-        end
-    end)
-end
-
-Player.CharacterAdded:Connect(function()
-    task.wait(0.5)
-    BindDeath()
 end)
 
-BindDeath()
+-- Interfaz Gráfica (hachiware.cc panel)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = " ̇"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-task.spawn(function()
-    while not (Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")) do
-        task.wait(0.1)
-    end
-    TargetPlayer = GetRandomPlayer()
-    if TargetPlayer then
-        LastPlayer = TargetPlayer
-        BindTargetRespawn()
-        AttachFunc()
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 360, 0, 115)
+MainFrame.Position = UDim2.new(0, 790, 0, 402)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+MainFrame.BackgroundTransparency = 0.55
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 18)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(80, 160, 220)
+UIStroke.Transparency = 0.35
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 26)
+Title.Position = UDim2.new(0, 0, 0, 4)
+Title.BackgroundTransparency = 1
+Title.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+Title.Text = "hachiware.cc panel? (100% secret)"
+Title.TextColor3 = Color3.fromRGB(240, 245, 255)
+Title.TextSize = 13
+Title.Parent = MainFrame
+
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0.31, 0, 0, 48)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 38)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+ToggleBtn.BackgroundTransparency = 0.5
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+ToggleBtn.Text = "Desync: off"
+ToggleBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
+ToggleBtn.TextSize = 13
+ToggleBtn.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 12)
+ToggleCorner.Parent = ToggleBtn
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(80, 160, 220)
+ToggleStroke.Transparency = 0.5
+ToggleStroke.Thickness = 1
+ToggleStroke.Parent = ToggleBtn
+
+local VoidBtn = Instance.new("TextButton")
+VoidBtn.Size = UDim2.new(0.31, 0, 0, 48)
+VoidBtn.Position = UDim2.new(0.345, 0, 0, 38)
+VoidBtn.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+VoidBtn.BackgroundTransparency = 0.5
+VoidBtn.BorderSizePixel = 0
+VoidBtn.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+VoidBtn.Text = "god mode"
+VoidBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
+VoidBtn.TextSize = 13
+VoidBtn.Parent = MainFrame
+
+local VoidCorner = Instance.new("UICorner")
+VoidCorner.CornerRadius = UDim.new(0, 12)
+VoidCorner.Parent = VoidBtn
+
+local VoidStroke = Instance.new("UIStroke")
+VoidStroke.Color = Color3.fromRGB(80, 160, 220)
+VoidStroke.Transparency = 0.5
+VoidStroke.Thickness = 1
+VoidStroke.Parent = VoidBtn
+
+local UpdateBtn = Instance.new("TextButton")
+UpdateBtn.Size = UDim2.new(0.31, 0, 0, 48)
+UpdateBtn.Position = UDim2.new(0.69, 0, 0, 38)
+UpdateBtn.BackgroundColor3 = Color3.fromRGB(35, 45, 65)
+UpdateBtn.BackgroundTransparency = 0.5
+UpdateBtn.BorderSizePixel = 0
+UpdateBtn.FontFace = Font.new("rbxasset://fonts/families/LegacySans.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+UpdateBtn.Text = "reset pos"
+UpdateBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
+UpdateBtn.TextSize = 13
+UpdateBtn.Parent = MainFrame
+
+local UpdateCorner = Instance.new("UICorner")
+UpdateCorner.CornerRadius = UDim.new(0, 12)
+UpdateCorner.Parent = UpdateBtn
+
+local UpdateStroke = Instance.new("UIStroke")
+UpdateStroke.Color = Color3.fromRGB(80, 160, 220)
+UpdateStroke.Transparency = 0.5
+UpdateStroke.Thickness = 1
+UpdateStroke.Parent = UpdateBtn
+
+-- Conexiones de los botones de la GUI
+ToggleBtn.MouseButton1Click:Connect(function()
+    getgenv().enabled = not getgenv().enabled
+    if getgenv().enabled then
+        ToggleBtn.Text = "Desync: on"
+        ToggleBtn.TextColor3 = Color3.fromRGB(160, 215, 255)
+        TargetPlayer = GetRandomPlayer()
     else
-        SetStatus("No hay jugadores disponibles para conectar.")
+        ToggleBtn.Text = "Desync: off"
+        ToggleBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
     end
+    UpdateAttachState()
+end)
+
+VoidBtn.MouseButton1Click:Connect(function()
+    getgenv().voidPos = not getgenv().voidPos
+    if getgenv().voidPos then
+        VoidBtn.Text = "void"
+        VoidBtn.TextColor3 = Color3.fromRGB(160, 215, 255)
+    else
+        VoidBtn.Text = "god mode"
+        VoidBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
+    end
+end)
+
+UpdateBtn.MouseButton1Click:Connect(function()
+    getgenv().enabled = false
+    ToggleBtn.Text = "Desync: off"
+    ToggleBtn.TextColor3 = Color3.fromRGB(200, 210, 225)
+    UpdateAttachState()
+
+    task.wait(0.05)
+
+    getgenv().enabled = true
+    ToggleBtn.Text = "Desync: on"
+    ToggleBtn.TextColor3 = Color3.fromRGB(160, 215, 255)
+    TargetPlayer = GetRandomPlayer()
+    UpdateAttachState()
 end)
