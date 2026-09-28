@@ -40,7 +40,7 @@ local function crearDummy()
     local part = Instance.new("Part")
     part.Size = Vector3.new(2, 2, 2)
     part.Color = Color3.new(1, 0, 0)
-    part.Transparency = 0.5 -- Ponlo en 1 si lo quieres invisible
+    part.Transparency = 0.5
     part.CanCollide = false
     part.Anchored = true
     part.CFrame = hrp.CFrame
@@ -84,10 +84,11 @@ ToggleButton.MouseButton1Click:Connect(function()
             
             currentPos = currentPos + (moveDir * speed * deltaTime)
             
-            -- [B] GIRO EXTREMO / NaN (Corregido para evitar límites de math.random)
-            local spinX = (math.random() - 0.5) * 9e8
-            local spinY = (math.random() - 0.5) * 9e8
-            local spinZ = (math.random() - 0.5) * 9e8
+            -- [B] GIRO EXTREMO / NaN (Usando os.clock para evitar errores de math.random)
+            local t = os.clock() * 100000
+            local spinX = t % 100000
+            local spinY = (t * 2) % 100000
+            local spinZ = (t * 3) % 100000
             
             dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(spinX, spinY, spinZ)
             
