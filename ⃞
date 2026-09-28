@@ -1,23 +1,124 @@
-for _,v in getproperties(game:service'Players'.LocalPlayer.Character.HumanoidRootPart) do
-if v == "PhysicsRepRootRef" then
-print(v)
-end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- ==========================================
+-- 1. CREAR LA INTERFAZ (EL BOTÓN)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ControlDummyNaN"
+-- Intenta ponerlo en CoreGui para que no se borre al morir, si el ejecutor no lo permite, usa PlayerGui
+local success = pcall(function() ScreenGui.Parent = CoreGui end)
+if not success then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 200, 0, 50)
+ToggleButton.Position = UDim2.new(0.5, -100, 0.9, -60)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Text = "Activar Dummy NaN"
+ToggleButton.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
+
+-- ==========================================
+-- 2. VARIABLES DEL DUMMY
+-- ==========================================
+local activo = false
+local dummy = nil
+local heartbeatConnection = nil
+local speed = 75 -- Velocidad a la que el Dummy se mueve con CFrame
+
+local function crearDummy()
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(2, 2, 2)
+    part.Color = Color3.new(1, 0, 0)
+    part.Transparency = 0.5 -- Ponlo en 1 si quieres que sea invisible
+    part.CanCollide = false
+    part.Anchored = true -- Anclado porque lo moveremos estrictamente con CFrame
+    part.CFrame = hrp.CFrame
+    part.Parent = workspace
+    return part
 end
 
+-- ==========================================
+-- 3. LÓGICA PRINCIPAL (TOGGLE)
+-- ==========================================
+ToggleButton.MouseButton1Click:Connect(function()
+    activo = not activo
+    
+    if activo then
+        ToggleButton.Text = "Desactivar Dummy"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        
+        -- Refrescar variables del personaje por si murió
+        character = LocalPlayer.Character
+        hrp = character:WaitForChild("HumanoidRootPart")
+        
+        dummy = crearDummy()
+        local currentPos = dummy.Position
+        
+        heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
+            if not dummy or not dummy.Parent then return end
+            
+            -- [A] MOVIMIENTO CON CFRAME (WASD + Cámara)
+            local cam = workspace.CurrentCamera
+            local moveDir = Vector3.new(0, 0, 0)
 
-function findtarget(name)
-for _,v in game:service'Players':GetPlayers() do
-if string.find(v.Name, name) then
-return v
-end
-end
-end
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
 
-
-
-local target = findtarget("20l0w")
-print(target)
-game:GetService("RunService").Heartbeat:Connect(function()
-sethiddenproperty(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart,"PhysicsRepRootRef",InstanceHandle.new(target.Character.HumanoidRootPart))
-game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+            if moveDir.Magnitude > 0 then
+                moveDir = moveDir.Unit
+            end
+            
+            -- Actualizamos la posición
+            currentPos = currentPos + (moveDir * speed * deltaTime)
+            
+            -- [B] GIRO INFINITO / NaN
+            -- Usamos math.rad(9e9) o math.random para crear un CFrame corrupto/infinito que rompe las físicas
+            local spinX = math.random(-9e9, 9e9)
+            local spinY = math.random(-9e9, 9e9)
+            local spinZ = math.random(-9e9, 9e9)
+            
+            -- Aplicamos Posición + Rotación Infinita
+            dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(spinX, spinY, spinZ)
+            
+            -- [C] TU LÓGICA DE ATTACH
+            pcall(function()
+                -- Ocultamos el root ref usando InstanceHandle.new como pediste
+                sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummy))
+                -- Igualamos el CFrame de tu personaje al del Dummy giratorio
+                hrp.CFrame = dummy.CFrame
+            end)
+        end)
+    else
+        ToggleButton.Text = "Activar Dummy NaN"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        
+        if heartbeatConnection then heartbeatConnection:Disconnect() end
+        if dummy then dummy:Destroy() end
+        
+        -- Restaurar las físicas a la normalidad
+        pcall(function()
+            if hrp then
+                sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(hrp))
+                -- Para frenar cualquier inercia residual
+                hrp.AssemblyAngularVelocity = Vector3.new(0,0,0) 
+                hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+            end
+        end)
+    end
 end)
