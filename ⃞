@@ -1,27 +1,58 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-
-setfflag("S2PhysicsSenderRate", 1000)
-local dsfs = 0
-local issyncinrn = false
-
-task.spawn(function()
-    while Player.Character == Character and task.wait(1/240) do 
-        if issyncinrn then task.wait() continue end
-        if dsfs <= 0 then
-            issyncinrn = true
-            pcall(sethiddenproperty, HumanoidRootPart, "PhysicsRepRootRef", nil)
-            task.wait(0.1)
-            pcall(sethiddenproperty, HumanoidRootPart, "PhysicsRepRootRef", HumanoidRootPart)
-            issyncinrn = false
-            dsfs = 8
-        else
-            dsfs = dsfs - 1
-            pcall(sethiddenproperty, HumanoidRootPart, "PhysicsRepRootRef", HumanoidRootPart)
+-- 1. Buscar un jugador aleatorio válido que tenga personaje y HumanoidRootPart
+local function getRandomTarget()
+    local validPlayers = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(validPlayers, player)
         end
     end
-end)
+    
+    if #validPlayers > 0 then
+        return validPlayers[math.random(1, #validPlayers)]
+    end
+    return nil
+end
+
+local target = getRandomTarget()
+
+if target then
+    print("¡Objetivo seleccionado: " .. target.Name .. "!")
+    
+    -- 2. Bucle de sincronización por frame
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        -- Verificaciones de seguridad por si alguien muere o se sale
+        local myChar = LocalPlayer.Character
+        local targetChar = target.Character
+        
+        if not myChar or not targetChar then 
+            return 
+        end
+        
+        local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+        local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+        
+        if myRoot and targetRoot then
+            -- Obtenemos la raíz física de la asamblea del objetivo
+            local assemblyRoot = targetRoot.AssemblyRootPart or targetRoot
+            
+            -- Sincronizar CFrame (manteniéndote ligeramente encima o en su posición)
+            myRoot.CFrame = assemblyRoot.CFrame * CFrame.new(0, 3, 0)
+            
+            -- Opcional: Sincronizar velocidad lineal para evitar predicciones de físicas rotas
+            if myRoot.AssemblyRootPart then
+                myRoot.AssemblyLinearVelocity = assemblyRoot.AssemblyLinearVelocity
+            end
+        else
+            -- Si el objetivo se sale o se resetea, desconectamos el bucle
+            connection:Disconnect()
+            print("El objetivo ya no está disponible. Sincronización finalizada.")
+        end
+    end)
+else
+    print("No hay suficientes jugadores válidos en el servidor para attachearse.")
+end
