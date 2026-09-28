@@ -12,7 +12,6 @@ local hrp = character:WaitForChild("HumanoidRootPart")
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ControlDummyNaN"
--- Intenta ponerlo en CoreGui para que no se borre al morir, si el ejecutor no lo permite, usa PlayerGui
 local success = pcall(function() ScreenGui.Parent = CoreGui end)
 if not success then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
@@ -35,15 +34,15 @@ UICorner.Parent = ToggleButton
 local activo = false
 local dummy = nil
 local heartbeatConnection = nil
-local speed = 75 -- Velocidad a la que el Dummy se mueve con CFrame
+local speed = 75 -- Velocidad de movimiento con WASD
 
 local function crearDummy()
     local part = Instance.new("Part")
     part.Size = Vector3.new(2, 2, 2)
     part.Color = Color3.new(1, 0, 0)
-    part.Transparency = 0.5 -- Ponlo en 1 si quieres que sea invisible
+    part.Transparency = 0.5 -- Ponlo en 1 si lo quieres invisible
     part.CanCollide = false
-    part.Anchored = true -- Anclado porque lo moveremos estrictamente con CFrame
+    part.Anchored = true
     part.CFrame = hrp.CFrame
     part.Parent = workspace
     return part
@@ -59,7 +58,6 @@ ToggleButton.MouseButton1Click:Connect(function()
         ToggleButton.Text = "Desactivar Dummy"
         ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
         
-        -- Refrescar variables del personaje por si murió
         character = LocalPlayer.Character
         hrp = character:WaitForChild("HumanoidRootPart")
         
@@ -84,24 +82,21 @@ ToggleButton.MouseButton1Click:Connect(function()
                 moveDir = moveDir.Unit
             end
             
-            -- Actualizamos la posición
             currentPos = currentPos + (moveDir * speed * deltaTime)
             
-            -- [B] GIRO INFINITO / NaN
-            -- Usamos math.rad(9e9) o math.random para crear un CFrame corrupto/infinito que rompe las físicas
-            local spinX = math.random(-9e9, 9e9)
-            local spinY = math.random(-9e9, 9e9)
-            local spinZ = math.random(-9e9, 9e9)
+            -- [B] GIRO EXTREMO / NaN (Corregido para evitar límites de math.random)
+            local spinX = (math.random() - 0.5) * 9e8
+            local spinY = (math.random() - 0.5) * 9e8
+            local spinZ = (math.random() - 0.5) * 9e8
             
-            -- Aplicamos Posición + Rotación Infinita
             dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(spinX, spinY, spinZ)
             
-            -- [C] TU LÓGICA DE ATTACH
+            -- [C] TU LÓGICA DE ATTACH + FÍSICAS DE VUELO
             pcall(function()
-                -- Ocultamos el root ref usando InstanceHandle.new como pediste
                 sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummy))
-                -- Igualamos el CFrame de tu personaje al del Dummy giratorio
                 hrp.CFrame = dummy.CFrame
+                hrp.AssemblyAngularVelocity = Vector3.new(9e9, 9e9, 9e9)
+                hrp.AssemblyLinearVelocity = Vector3.new(9e9, 9e9, 9e9)
             end)
         end)
     else
@@ -111,11 +106,9 @@ ToggleButton.MouseButton1Click:Connect(function()
         if heartbeatConnection then heartbeatConnection:Disconnect() end
         if dummy then dummy:Destroy() end
         
-        -- Restaurar las físicas a la normalidad
         pcall(function()
             if hrp then
                 sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(hrp))
-                -- Para frenar cualquier inercia residual
                 hrp.AssemblyAngularVelocity = Vector3.new(0,0,0) 
                 hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
             end
