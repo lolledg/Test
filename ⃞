@@ -35,7 +35,7 @@ local activo = false
 local dummy = nil
 local heartbeatConnection = nil
 local speed = 75 -- Velocidad de movimiento con WASD
-local rotationAngle = 0
+local accumulator = 0
 
 local function crearDummy()
     local part = Instance.new("Part")
@@ -85,15 +85,12 @@ ToggleButton.MouseButton1Click:Connect(function()
             
             currentPos = currentPos + (moveDir * speed * deltaTime)
             
-            -- [B] GIRO INFINITO / RÁPIDO SEGURO (Sin math.random)
-            rotationAngle = rotationAngle + (100000 * deltaTime)
-            local spinX = rotationAngle * 1.5
-            local spinY = rotationAngle * 2.3
-            local spinZ = rotationAngle * 3.7
+            -- [B] GIRO EXTREMO / NaN (Sin usar math.random para evitar errores de intervalo)
+            accumulator = accumulator + (deltaTime * 500000)
             
-            dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(spinX, spinY, spinZ)
+            dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(accumulator, accumulator * 1.5, accumulator * 2)
             
-            -- [C] TU LÓGICA DE ATTACH + FÍSICAS DE VUELO EXTREMAS
+            -- [C] TU LÓGICA DE ATTACH + FÍSICAS
             pcall(function()
                 sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummy))
                 hrp.CFrame = dummy.CFrame
