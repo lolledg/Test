@@ -1,162 +1,148 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local players = game:GetService("Players")
+local runservice = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
-local LocalPlayer = Players.LocalPlayer
-local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local client = players.LocalPlayer
+local character = client.Character or client.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
 -- ==========================================
--- 1. CREAR LA INTERFAZ (LOS BOTONES)
+-- 1. CREAR INTERFAZ PARA MÓVIL (TÁCTIL)
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ControlDummyAndSync"
+ScreenGui.Name = "DesyncMobileGui"
 local success = pcall(function() ScreenGui.Parent = CoreGui end)
-if not success then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+if not success then ScreenGui.Parent = client:WaitForChild("PlayerGui") end
 
--- Botón principal para activar/desactivar el Dummy NaN
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 200, 0, 50)
-ToggleButton.Position = UDim2.new(0.5, -100, 0.9, -120)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextScaled = true
-ToggleButton.Text = "Activar Dummy NaN"
-ToggleButton.Parent = ScreenGui
+-- Contenedor superior para no estorbar el joystick
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 300, 0, 45)
+Frame.Position = UDim2.new(0.5, -150, 0.05, 0) -- Arriba, centrado
+Frame.BackgroundTransparency = 1
+Frame.Parent = ScreenGui
+
+-- Botón 1: Actualizar Posición
+local UpdateButton = Instance.new("TextButton")
+UpdateButton.Size = UDim2.new(0.48, 0, 1, 0)
+UpdateButton.Position = UDim2.new(0, 0, 0, 0)
+UpdateButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+UpdateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+UpdateButton.TextScaled = true
+UpdateButton.Text = "Actualizar Pos"
+UpdateButton.Parent = Frame
 
 local UICorner1 = Instance.new("UICorner")
 UICorner1.CornerRadius = UDim.new(0, 8)
-UICorner1.Parent = ToggleButton
+UICorner1.Parent = UpdateButton
 
--- Botón para actualizar/sincronizar posición (Basado en la lógica del juego)
-local SyncButton = Instance.new("TextButton")
-SyncButton.Size = UDim2.new(0, 200, 0, 40)
-SyncButton.Position = UDim2.new(0.5, -100, 0.9, -65)
-SyncButton.BackgroundColor3 = Color3.fromRGB(40, 120, 200)
-SyncButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-SyncButton.TextScaled = true
-SyncButton.Text = "Actualizar Posición"
-SyncButton.Parent = ScreenGui
+-- Botón 2: Modo Combate (Pausar Desync)
+local CombatButton = Instance.new("TextButton")
+CombatButton.Size = UDim2.new(0.48, 0, 1, 0)
+CombatButton.Position = UDim2.new(0.52, 0, 0, 0)
+CombatButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CombatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CombatButton.TextScaled = true
+CombatButton.Text = "Desync: ON"
+CombatButton.Parent = Frame
 
 local UICorner2 = Instance.new("UICorner")
 UICorner2.CornerRadius = UDim.new(0, 8)
-UICorner2.Parent = SyncButton
+UICorner2.Parent = CombatButton
 
 -- ==========================================
--- 2. VARIABLES Y FUNCIÓN DE ACTUALIZACIÓN
+-- 2. VARIABLES Y LÓGICA
 -- ==========================================
-local activo = false
-local dummy = nil
-local heartbeatConnection = nil
-local speed = 75 -- Velocidad con WASD
-local accumulator = 0
+local dummyPart = Instance.new("Part")
+dummyPart.Size = Vector3.new(2, 2, 2)
+dummyPart.Transparency = 1
+dummyPart.CanCollide = false
+dummyPart.Anchored = true
+dummyPart.CFrame = hrp.CFrame
+dummyPart.Parent = workspace
+
+local isAttacking = false -- Variable que controla el bypass táctil
 
 local function actualizarPosicionReal(targetCFrame)
-    local char = LocalPlayer.Character
+    local char = client.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     
     local rootPart = char.HumanoidRootPart
     
-    -- Lógica idéntica al script del juego: limpiar físicas para evitar tirones o rechazo del servidor[span_2](start_span)[span_2](end_span)
+    -- Limpieza de físicas
     rootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
     rootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
     
     if char.PrimaryPart then
-        char:PivotTo(targetCFrame) --[span_3](start_span)[span_3](end_span)
+        char:PivotTo(targetCFrame)
     end
-    rootPart.CFrame = targetCFrame --[span_4](start_span)[span_4](end_span)
-end
-
-local function crearDummy()
-    local part = Instance.new("Part")
-    part.Size = Vector3.new(2, 2, 2)
-    part.Color = Color3.new(1, 0, 0)
-    part.Transparency = 0.5
-    part.CanCollide = false
-    part.Anchored = true
-    part.CFrame = hrp.CFrame
-    part.Parent = workspace
-    return part
+    rootPart.CFrame = targetCFrame
+    dummyPart.CFrame = targetCFrame
 end
 
 -- ==========================================
--- 3. EVENTOS DE LOS BOTONES
+-- 3. EVENTOS TÁCTILES
 -- ==========================================
+UpdateButton.MouseButton1Click:Connect(function()
+    actualizarPosicionReal(dummyPart.CFrame)
+end)
 
--- Botón de Sincronización Manual
-SyncButton.MouseButton1Click:Connect(function()
-    character = LocalPlayer.Character
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        if dummy then
-            -- Si el dummy está activo, te teletransporta a su posición de forma sincronizada
-            actualizarPosicionReal(dummy.CFrame)
-        else
-            -- Si no está activo, refresca y reestablece tu posición actual limpiando inercias
-            actualizarPosicionReal(character.HumanoidRootPart.CFrame)
-        end
+CombatButton.MouseButton1Click:Connect(function()
+    isAttacking = not isAttacking
+    
+    if isAttacking then
+        -- Desync apagado temporalmente para poder atacar
+        CombatButton.Text = "Desync: PAUSADO"
+        CombatButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0) -- Verde = listo para golpear
+    else
+        -- Desync reactivado
+        CombatButton.Text = "Desync: ON"
+        CombatButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Rojo = intocable
     end
 end)
 
--- Botón de Activación / Desactivación del Dummy NaN
-ToggleButton.MouseButton1Click:Connect(function()
-    activo = not activo
-    
-    if activo then
-        ToggleButton.Text = "Desactivar Dummy"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-        
-        character = LocalPlayer.Character
-        hrp = character:WaitForChild("HumanoidRootPart")
-        
-        dummy = crearDummy()
-        local currentPos = dummy.Position
-        
-        heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
-            if not dummy or not dummy.Parent then return end
-            
-            -- [A] MOVIMIENTO CON CFRAME (WASD + Cámara)
-            local cam = workspace.CurrentCamera
-            local moveDir = Vector3.new(0, 0, 0)
+-- ==========================================
+-- 4. BUCLE DE DESYNC ADAPTADO
+-- ==========================================
+local debounce = 0
+local sleepnet = true
 
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+task.spawn(function()
+    while true do
+        character = client.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            hrp = character.HumanoidRootPart
+            local oldpos = hrp.CFrame
 
-            if moveDir.Magnitude > 0 then
-                moveDir = moveDir.Unit
+            -- Si "Desync: ON" (isAttacking = false), aplicamos desync normal
+            if not isAttacking then
+                debounce += 1
+                
+                if not sleepnet then
+                    hrp.CFrame = hrp.CFrame + Vector3.new(55, 0, 5)
+                    pcall(function() sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummyPart)) end)
+                else
+                    pcall(function() sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(hrp)) end)
+                end
+
+                sethiddenproperty(hrp, "NetworkIsSleeping", sleepnet)
+                hrp.CFrame = oldpos
+
+                if debounce >= 3 then
+                    sleepnet = false
+                    debounce = 0 
+                    dummyPart.CFrame = hrp.CFrame
+                else
+                    sleepnet = true
+                end
+            else
+                -- Si "Desync: PAUSADO" (Verde), sincronizamos para el combate
+                pcall(function() sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(hrp)) end)
+                sethiddenproperty(hrp, "NetworkIsSleeping", false)
+                dummyPart.CFrame = hrp.CFrame
             end
-            
-            currentPos = currentPos + (moveDir * speed * deltaTime)
-            
-            -- [B] GIRO EXTREMO / NaN SEGURO (Evita errores de intervalo)
-            accumulator = accumulator + (deltaTime * 500000)
-            dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(accumulator, accumulator * 1.5, accumulator * 2)
-            
-            -- [C] ATTACH Y ACTUALIZACIÓN USANDO LA LÓGICA SEGURA
-            pcall(function()
-                sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummy))
-                actualizarPosicionReal(dummy.CFrame)
-                hrp.AssemblyAngularVelocity = Vector3.new(9e9, 9e9, 9e9)
-                hrp.AssemblyLinearVelocity = Vector3.new(9e9, 9e9, 9e9)
-            end)
-        end)
-    else
-        ToggleButton.Text = "Activar Dummy NaN"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        
-        if heartbeatConnection then heartbeatConnection:Disconnect() end
-        if dummy then dummy:Destroy() end
-        
-        pcall(function()
-            if hrp then
-                sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(hrp))
-                hrp.AssemblyAngularVelocity = Vector3.new(0,0,0) 
-                hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
-            end
-        end)
+        end
+
+        runservice.RenderStepped:Wait()
+        runservice.Heartbeat:Wait()
     end
 end)
