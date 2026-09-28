@@ -85,15 +85,15 @@ ToggleButton.MouseButton1Click:Connect(function()
             
             currentPos = currentPos + (moveDir * speed * deltaTime)
             
-            -- [B] GIRO EXTREMO / NaN SEGURO (Evita por completo math.random)
-            rotationAngle = rotationAngle + (50000 * deltaTime)
+            -- [B] GIRO INFINITO / RÁPIDO SEGURO (Sin math.random)
+            rotationAngle = rotationAngle + (100000 * deltaTime)
             local spinX = rotationAngle * 1.5
             local spinY = rotationAngle * 2.3
             local spinZ = rotationAngle * 3.7
             
             dummy.CFrame = CFrame.new(currentPos) * CFrame.Angles(spinX, spinY, spinZ)
             
-            -- [C] TU LÓGICA DE ATTACH + FÍSICAS DE VUELO
+            -- [C] TU LÓGICA DE ATTACH + FÍSICAS DE VUELO EXTREMAS
             pcall(function()
                 sethiddenproperty(hrp, "PhysicsRepRootRef", InstanceHandle.new(dummy))
                 hrp.CFrame = dummy.CFrame
