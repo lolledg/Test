@@ -2,57 +2,83 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- 1. Buscar un jugador aleatorio válido que tenga personaje y HumanoidRootPart
-local function getRandomTarget()
-    local validPlayers = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            table.insert(validPlayers, player)
-        end
-    end
-    
-    if #validPlayers > 0 then
-        return validPlayers[math.random(1, #validPlayers)]
-    end
-    return nil
+-- 1. Buscar una Tool (ya sea equipada, en la mochila o tirada en el workspace)
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+
+local tool = character:FindFirstChildOfClass("Tool") 
+    or (backpack and backpack:FindFirstChildOfClass("Tool"))
+    or workspace:FindFirstChildOfClass("Tool")
+
+if not tool then
+    warn("¡No se encontró ninguna Tool! Ten una herramienta en tu mochila, equipada o cerca de ti en el suelo.")
+    return
 end
 
-local target = getRandomTarget()
+-- Si la herramienta está en la mochila, la equipamos o la sacamos al workspace para controlarla físicamente
+if tool.Parent == backpack then
+    tool.Parent = character
+    task.wait(0.1)
+end
 
-if target then
-    print("¡Objetivo seleccionado: " .. target.Name .. "!")
-    
-    -- 2. Bucle de sincronización por frame
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        -- Verificaciones de seguridad por si alguien muere o se sale
-        local myChar = LocalPlayer.Character
-        local targetChar = target.Character
-        
-        if not myChar or not targetChar then 
-            return 
-        end
-        
-        local myRoot = myChar:FindFirstChild("HumanoidRootPart")
-        local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-        
-        if myRoot and targetRoot then
-            -- Obtenemos la raíz física de la asamblea del objetivo
-            local assemblyRoot = targetRoot.AssemblyRootPart or targetRoot
-            
-            -- Sincronizar CFrame (manteniéndote ligeramente encima o en su posición)
-            myRoot.CFrame = assemblyRoot.CFrame * CFrame.new(0, 3, 0)
-            
-            -- Opcional: Sincronizar velocidad lineal para evitar predicciones de físicas rotas
-            if myRoot.AssemblyRootPart then
-                myRoot.AssemblyLinearVelocity = assemblyRoot.AssemblyLinearVelocity
-            end
-        else
-            -- Si el objetivo se sale o se resetea, desconectamos el bucle
-            connection:Disconnect()
-            print("El objetivo ya no está disponible. Sincronización finalizada.")
-        end
+local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart")
+if not handle then
+    warn("La herramienta no tiene una parte física válida (Handle).")
+    return
+end
+
+print("¡Utilizando la herramienta: " .. tool.Name .. "!")
+
+-- 2. Configuración de Físicas y Network Ownership
+pcall(function()
+    -- Evitar que el sistema global de físicas entre en modo de suspensión
+    settings().Physics.AllowSleep = false
+end)
+
+-- Reclamar propiedad de red para que tu cliente controle las físicas de la Tool
+pcall(function()
+    if handle:CanSetNetworkOwnership() then
+        handle:SetNetworkOwner(LocalPlayer)
+    end
+end)
+
+-- Ampliar el radio de simulación local mediante propiedades ocultas
+pcall(function()
+    sethiddenproperty(LocalPlayer, "SimulationRadius", 9e9)
+    sethiddenproperty(LocalPlayer, "MaximumSimulationRadius", 9e9)
+end)
+
+-- 3. Parámetros de la órbita
+local radius = 6  -- Distancia de separación (en studs)
+local speed = 8   -- Velocidad de rotación
+
+-- 4. Bucle de actualización por frame (RenderStepped)
+local connection
+connection = RunService.RenderStepped:Connect(function()
+    if not character or not character:FindFirstChild("HumanoidRootPart") or not handle or not handle.Parent then
+        if connection then connection:Disconnect() end
+        return
+    end
+
+    local rootPart = character.HumanoidRootPart
+
+    -- Forzar la propiedad oculta para evitar que el motor "duerma" la pieza
+    pcall(function()
+        sethiddenproperty(handle, "NetworkIsSleeping", false)
     end)
-else
-    print("No hay suficientes jugadores válidos en el servidor para attachearse.")
-end
+
+    -- Calcular la posición circular usando trigonometría y el tiempo actual
+    local timeElapsed = tick() * speed
+    local x = math.cos(timeElapsed) * radius
+    local z = math.sin(timeElapsed) * radius
+
+    -- Definir la CFrame objetivo alrededor del personaje (a la altura del torso)
+    local targetCFrame = rootPart.CFrame * CFrame.new(x, 0, z)
+
+    -- Aplicar posición y anular inercias/velocidades para evitar tirones de físicas
+    handle.CFrame = targetCFrame
+    handle.AssemblyLinearVelocity = Vector3.zero
+    handle.AssemblyAngularVelocity = Vector3.zero
+end)
+
+print("¡Órbita activada correctamente!")
