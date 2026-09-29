@@ -1,84 +1,66 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
+-- Sistema de CFrame Fly optimizado para hachiware.cc
+local FLYING = false
+local flyConnection = nil
 
--- 1. Buscar una Tool (ya sea equipada, en la mochila o tirada en el workspace)
-local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-
-local tool = character:FindFirstChildOfClass("Tool") 
-    or (backpack and backpack:FindFirstChildOfClass("Tool"))
-    or workspace:FindFirstChildOfClass("Tool")
-
-if not tool then
-    warn("¡No se encontró ninguna Tool! Ten una herramienta en tu mochila, equipada o cerca de ti en el suelo.")
-    return
+local function getRoot(char)
+    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso"))
 end
 
--- Si la herramienta está en la mochila, la equipamos o la sacamos al workspace para controlarla físicamente
-if tool.Parent == backpack then
-    tool.Parent = character
-    task.wait(0.1)
-end
-
-local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart")
-if not handle then
-    warn("La herramienta no tiene una parte física válida (Handle).")
-    return
-end
-
-print("¡Utilizando la herramienta: " .. tool.Name .. "!")
-
--- 2. Configuración de Físicas y Network Ownership
-pcall(function()
-    -- Evitar que el sistema global de físicas entre en modo de suspensión
-    settings().Physics.AllowSleep = false
-end)
-
--- Reclamar propiedad de red para que tu cliente controle las físicas de la Tool
-pcall(function()
-    if handle:CanSetNetworkOwnership() then
-        handle:SetNetworkOwner(LocalPlayer)
+local function unmobilefly(speaker)
+    FLYING = false
+    if flyConnection then
+        flyConnection:Disconnect()
+        flyConnection = nil
     end
-end)
-
--- Ampliar el radio de simulación local mediante propiedades ocultas
-pcall(function()
-    sethiddenproperty(LocalPlayer, "SimulationRadius", 9e9)
-    sethiddenproperty(LocalPlayer, "MaximumSimulationRadius", 9e9)
-end)
-
--- 3. Parámetros de la órbita
-local radius = 6  -- Distancia de separación (en studs)
-local speed = 8   -- Velocidad de rotación
-
--- 4. Bucle de actualización por frame (RenderStepped)
-local connection
-connection = RunService.RenderStepped:Connect(function()
-    if not character or not character:FindFirstChild("HumanoidRootPart") or not handle or not handle.Parent then
-        if connection then connection:Disconnect() end
-        return
+    
+    workspace.Gravity = 192
+    
+    local char = speaker.Character
+    local root = getRoot(char)
+    if root then
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
     end
+    
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.PlatformStand = false
+    end
+end
 
-    local rootPart = character.HumanoidRootPart
-
-    -- Forzar la propiedad oculta para evitar que el motor "duerma" la pieza
-    pcall(function()
-        sethiddenproperty(handle, "NetworkIsSleeping", false)
+local function mobilefly(speaker)
+    unmobilefly(speaker)
+    FLYING = true
+    workspace.Gravity = 0
+    
+    local playerScripts = speaker:FindFirstChild("PlayerScripts") or speaker:WaitForChild("PlayerScripts")
+    local success, controlModule = pcall(function()
+        return require(playerScripts:WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
     end)
 
-    -- Calcular la posición circular usando trigonometría y el tiempo actual
-    local timeElapsed = tick() * speed
-    local x = math.cos(timeElapsed) * radius
-    local z = math.sin(timeElapsed) * radius
-
-    -- Definir la CFrame objetivo alrededor del personaje (a la altura del torso)
-    local targetCFrame = rootPart.CFrame * CFrame.new(x, 0, z)
-
-    -- Aplicar posición y anular inercias/velocidades para evitar tirones de físicas
-    handle.CFrame = targetCFrame
-    handle.AssemblyLinearVelocity = Vector3.zero
-    handle.AssemblyAngularVelocity = Vector3.zero
-end)
-
-print("¡Órbita activada correctamente!")
+    flyConnection = RunService.RenderStepped:Connect(function(deltaTime)
+        if not FLYING then return end
+        
+        local char = speaker.Character
+        local currentRoot = getRoot(char)
+        local currentCamera = workspace.CurrentCamera
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        
+        if humanoid and currentRoot then
+            humanoid.PlatformStand = true
+            
+            local moveVector = success and controlModule:GetMoveVector() or Vector3.zero
+            local moveVelocity = Vector3.zero
+            local speed = Config.FlySpeed * 60 -- Multiplicador de velocidad ajustable desde la UI
+            
+            if moveVector.X ~= 0 or moveVector.Z ~= 0 then
+                moveVelocity = (currentCamera.CFrame.RightVector * moveVector.X) - (currentCamera.CFrame.LookVector * moveVector.Z)
+            end
+            
+            -- Actualización directa de CFrame manteniendo la rotación de la cámara
+            currentRoot.CFrame = CFrame.new(currentRoot.Position + (moveVelocity * speed * deltaTime)) * currentCamera.CFrame.Rotation
+            currentRoot.AssemblyLinearVelocity = Vector3.zero
+            currentRoot.AssemblyAngularVelocity = Vector3.zero
+        end
+    end)
+end
